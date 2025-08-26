@@ -1,0 +1,55 @@
+/* Dynamic tenant branding CSS variables */
+:root {
+  /* Default brand colors */
+  --brand-primary-color: #6366f1;
+  --brand-secondary-color: #8b5cf6;
+  --brand-background-image: none;
+  
+  /* Default spacing and sizing */
+  --brand-logo-height: 3rem;
+  --brand-border-radius: 0.5rem;
+  
+  /* Default gradients */
+  --brand-gradient-primary: linear-gradient(135deg, var(--brand-primary-color), var(--brand-secondary-color));
+  --brand-gradient-background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+}
+
+/* Utility classes for branding */
+.brand-primary {
+  color: var(--brand-primary-color);
+}
+
+.brand-bg-primary {
+  background-color: var(--brand-primary-color);
+}
+
+.brand-border-primary {
+  border-color: var(--brand-primary-color);
+}
+
+.brand-gradient {
+  background: var(--brand-gradient-primary);
+}
+
+.brand-background {
+  background-image: var(--brand-background-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Override default button styles with brand colors */
+.btn-brand-primary {
+  background-color: var(--brand-primary-color);
+  border-color: var(--brand-primary-color);
+  color: white;
+}
+
+.btn-brand-primary:hover {
+  background-color: color-mix(in srgb, var(--brand-primary-color) 90%, black);
+  border-color: color-mix(in srgb, var(--brand-primary-color) 90%, black);
+}
+
+.btn-brand-primary:focus {
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--brand-primary-color) 25%, transparent);
+}

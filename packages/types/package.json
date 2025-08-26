@@ -1,0 +1,29 @@
+{
+  "name": "@repo/types",
+  "version": "0.0.0",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./api": "./dist/api.js",
+    "./user": "./dist/user.js",
+    "./product": "./dist/product.js",
+    "./order": "./dist/order.js",
+    "./common": "./dist/common.js",
+    "./setup": "./dist/setup.js"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "lint": "eslint src --max-warnings 0"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "eslint": "^8.55.0",
+    "typescript": "^5.2.2"
+  }
+}

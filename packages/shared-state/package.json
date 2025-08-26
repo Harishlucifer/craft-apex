@@ -1,0 +1,40 @@
+{
+  "name": "@repo/shared-state",
+  "version": "0.0.0",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./query": "./dist/query.js",
+    "./store": "./dist/store.js",
+    "./stores": "./dist/stores/index.js",
+    "./types": "./dist/types.js",
+    "./api": "./dist/api/index.js",
+    "./hooks": "./dist/hooks/index.js"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "lint": "eslint src --max-warnings 0"
+  },
+  "peerDependencies": {
+    "react": "^18",
+    "@tanstack/react-query": "^5",
+    "zustand": "^4"
+  },
+  "dependencies": {
+    "@repo/types": "*"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@types/react": "^18.2.43",
+    "@tanstack/react-query": "^5.17.0",
+    "eslint": "^8.55.0",
+    "typescript": "^5.2.2",
+    "zustand": "^4.4.7"
+  }
+}

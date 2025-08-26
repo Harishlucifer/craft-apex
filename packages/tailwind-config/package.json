@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "exports": {
-    ".": "./shared-styles.css",
+    ".": "./tailwind.config.js",
     "./postcss": "./postcss.config.js"
   },
   "devDependencies": {

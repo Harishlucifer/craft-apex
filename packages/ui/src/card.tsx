@@ -4,27 +4,47 @@ export function Card({
   title,
   children,
   href,
+  className = "",
 }: {
   title: string;
   children: ReactNode;
-  href: string;
+  href?: string;
+  className?: string;
 }) {
-  return (
-    <a
-      className="ui:group ui:rounded-lg ui:border ui:border-transparent ui:px-5 ui:py-4 ui:transition-colors hover:ui:border-neutral-700 hover:ui:bg-neutral-800/30"
-      href={`${href}?utm_source=create-turbo&utm_medium=with-tailwind&utm_campaign=create-turbo"`}
-      rel="noopener noreferrer"
-      target="_blank"
-    >
-      <h2 className="ui:mb-3 ui:text-2xl ui:font-semibold">
+  const cardContent = (
+    <>
+      <h2 className="mb-3 text-2xl font-semibold">
         {title}{" "}
-        <span className="ui:inline-block ui:transition-transform group-hover:ui:translate-x-1 motion-reduce:ui:transform-none">
-          -&gt;
-        </span>
+        {href && (
+          <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
+            -&gt;
+          </span>
+        )}
       </h2>
-      <p className="ui:m-0 ui:max-w-[30ch] ui:text-sm ui:opacity-50">
+      <p className="m-0 max-w-[30ch] text-sm opacity-70">
         {children}
       </p>
-    </a>
+    </>
+  );
+
+  const baseClasses = `group rounded-lg border border-gray-200 px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-50 ${className}`;
+
+  if (href) {
+    return (
+      <a
+        className={baseClasses}
+        href={href}
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        {cardContent}
+      </a>
+    );
+  }
+
+  return (
+    <div className={baseClasses}>
+      {cardContent}
+    </div>
   );
 }

@@ -4,9 +4,17 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:partner": "turbo run dev --filter=partner-portal",
+    "dev:employee": "turbo run dev --filter=employee-portal",
+    "dev:customer": "turbo run dev --filter=customer-portal",
+    "build:partner": "turbo run build --filter=partner-portal",
+    "build:employee": "turbo run build --filter=employee-portal",
+    "build:customer": "turbo run build --filter=customer-portal",
     "lint": "turbo run lint",
     "check-types": "turbo run check-types",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "clean": "turbo run clean",
+    "install:all": "yarn install"
   },
   "devDependencies": {
     "prettier": "^3.6.0",
