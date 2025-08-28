@@ -40,7 +40,49 @@ export class AuthApiService {
       "Content-Type": "application/json",
     };
   }
+  async loginWithMFA(
+    requestPayload: Record<string, any>,
+    platform: PlatformType,
+    tenantDomain: string
+  ): Promise<LoginResponse> {
+    const headers = this.getAuthHeaders(platform, tenantDomain);
 
+    try {
+      const response = await fetch(`${AUTH_BASE_URL}/alpha/v2/auth/login-with-mfa`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(requestPayload),
+      });
+
+      const data = await response.json();
+      console.log("Login with OTP response :: ", data);
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            `Login with OTP API failed: ${response.status} ${response.statusText}`
+        );
+      }
+
+      // Handle different response scenarios based on payload content
+      if (requestPayload.otp) {
+        // OTP verification - expect successful login
+        return data;
+      } else {
+        // OTP send - check for successful OTP send (status 6 indicates success)
+        if (data.status < 0) {
+          throw new Error(data.error || "Failed to send OTP");
+        }
+        if (data.status !== 6) {
+          throw new Error(data.message || "Failed to send OTP");
+        }
+        return data;
+      }
+    } catch (error) {
+      console.error("Login with OTP API Error:", error);
+      throw error;
+    }
+  }
   async loginWithOtp(
     requestPayload: Record<string, any>,
     platform: PlatformType,

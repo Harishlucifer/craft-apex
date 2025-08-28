@@ -45,7 +45,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <img 
               src={tenantLogo} 
               alt={tenantName || 'Tenant Logo'} 
-              className="w-full h-14 rounded-sm object-contain"
+              className="w-full h-14 px-3 rounded-sm object-contain"
             />
           )}
         </div>

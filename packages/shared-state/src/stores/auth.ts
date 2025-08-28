@@ -26,6 +26,7 @@ interface AuthStore {
   setLoading: (loading: boolean) => void;
   setLoginLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  loginWithMFA: (credentials: { email: string, password: string; otp?: string }) => Promise<void>;
   loginWithOtp: (credentials: { mobile: string; otp?: string }) => Promise<void>;
   loginWithPassword: (credentials: { email: string; password: string }) => Promise<void>;
   logout: () => void;
@@ -111,6 +112,37 @@ export const useAuthStore = create<AuthStore>()(
       setLoading(false);
     }
   },
+  loginWithMFA: async (credentials: { email: string, password: string; otp?: string }) => {
+    const { platform, tenantDomain, setError, setUser, setSetupData, setLoginLoading } = get();
+    
+    if (!platform || !tenantDomain) {
+      const errorMessage = 'Platform or tenant domain not set';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+    
+    try {
+      setLoginLoading(true);
+      setError(null);
+      
+      const response = await authApiService.loginWithMFA(credentials, platform, tenantDomain);
+      if (response.status < 0) {
+        throw new Error(response.error || 'Login failed');
+      }
+      if (response.status === 1 && response.data) {
+        // Store complete setup data including modules, system config, and tenant config
+        setSetupData(response.data);
+        // Set user data and mark as authenticated
+        setUser(response.data.user);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Login failed';
+      // Don't modify authentication state on error to prevent navigation loops
+      throw error;
+    } finally {
+      setLoginLoading(false);
+    }
+  },
   loginWithOtp: async (credentials: { mobile: string; otp?: string }) => {
     const { platform, tenantDomain, setError, setUser, setSetupData, setLoginLoading } = get();
     
@@ -125,14 +157,14 @@ export const useAuthStore = create<AuthStore>()(
       setError(null);
       
       const response = await authApiService.loginWithOtp(credentials, platform, tenantDomain);
-      
+      if (response.status < 0) {
+        throw new Error(response.error || 'Login failed');
+      }
       if (response.status === 1 && response.data) {
         // Store complete setup data including modules, system config, and tenant config
         setSetupData(response.data);
         // Set user data and mark as authenticated
         setUser(response.data.user);
-      } else {
-        throw new Error('Login failed');
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed';

@@ -31,6 +31,7 @@ export const useAuth = (options?: UseAuthOptions) => {
     tenantDomain,
     loginWithOtp: loginWithOtpAction,
     loginWithPassword: loginWithPasswordAction,
+    loginWithMFA: loginWithMFAAction,
     logout: logoutAction,
     clearError,
   } = useAuthStore();
@@ -63,6 +64,29 @@ export const useAuth = (options?: UseAuthOptions) => {
       await loginWithPasswordAction({
         email: credentials.email!,
         password: credentials.password!,
+      });
+      return useAuthStore.getState().user;
+    },
+    onSuccess: (user) => {
+      // Invalidate and refetch user-related queries
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      queryClient.invalidateQueries({ queryKey: ["setup"] });
+
+      // Set user data in cache
+      queryClient.setQueryData(["user", user?.id], user);
+    },
+    onError: (error) => {
+      console.error("Login with password failed:", error);
+    },
+  });
+
+  // Login with password mutation
+  const loginWithMFAMutation = useMutation({
+    mutationFn: async (credentials: LoginCredentials) => {
+      await loginWithMFAAction({
+        email: credentials.email!,
+        password: credentials.password!,
+        otp: credentials.otp,
       });
       return useAuthStore.getState().user;
     },
@@ -122,6 +146,7 @@ export const useAuth = (options?: UseAuthOptions) => {
     isLoginLoading:
       loginWithOtpMutation.isPending ||
       loginWithPasswordMutation.isPending ||
+      loginWithMFAMutation.isPending ||
       isLoginLoading,
     isSendingOtp: loginWithOtpMutation.isPending,
     isLoggingOut: logoutMutation.isPending,
@@ -132,7 +157,8 @@ export const useAuth = (options?: UseAuthOptions) => {
     // Actions
     logout: logoutMutation.mutateAsync,
     loginWithOtp: loginWithOtpMutation.mutateAsync,
-    loginWithPassword: loginWithPasswordAction,
+    loginWithPassword: loginWithPasswordMutation.mutateAsync,
+    loginWithMFA: loginWithMFAMutation.mutateAsync,
     clearError,
 
     // Query controls
@@ -145,7 +171,9 @@ export const useAuth = (options?: UseAuthOptions) => {
       loginWithPasswordMutation.isError ||
       userQuery.isError,
     isSuccess:
-      loginWithOtpMutation.isSuccess || loginWithPasswordMutation.isSuccess,
+      loginWithOtpMutation.isSuccess ||
+      loginWithPasswordMutation.isSuccess ||
+      loginWithMFAMutation.isSuccess,
   };
 };
 

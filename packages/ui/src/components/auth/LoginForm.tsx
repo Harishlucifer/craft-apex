@@ -1,6 +1,7 @@
 import { LoginType } from "@repo/types/setup";
 import { LoginOtpForm } from "./LoginOtp";
 import { LoginPasswordForm } from "./LoginPassword";
+import { LoginMFAForm } from "./LoginMFA";
 
 export interface LoginFormProps {
   loginType: LoginType;
@@ -28,8 +29,12 @@ export const LoginForm = ({
           />
         );
       case "PASSWORD+OTP":
-        // For PASSWORD+OTP, continue with the unified form below
-        break;
+        return (
+          <LoginMFAForm
+            setupData={setupData}
+            platformConfig={platformConfig}
+          />
+        );
       default:
         return (
           <LoginPasswordForm
