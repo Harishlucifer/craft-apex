@@ -1,48 +1,58 @@
 import React from 'react';
-import { Navigate, useLocation, useParams } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@repo/shared-state/stores';
-import { useModuleAuth } from '@repo/shared-state/hooks';
+import { useModule } from '@/contexts/ModuleContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireModuleAccess?: boolean;
-  moduleCode?: string; // Optional module code for specific routes
 }
 
-export function ProtectedRoute({ children, requireModuleAccess = false, moduleCode }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, requireModuleAccess = false }: ProtectedRouteProps) {
   const { isAuthenticated, setupData } = useAuthStore();
   const location = useLocation();
-  const { moduleId } = useParams<{ moduleId: string }>();
   
-  // Map specific routes to module codes
-  const getModuleCodeFromPath = (pathname: string): string | undefined => {
-    if (pathname.startsWith('/ask/')) return 'ask';
-    if (pathname.startsWith('/lead/')) return 'lead';
-    if (pathname.startsWith('/task/')) return 'task';
-    return undefined;
-  };
-  
-  // Use provided moduleCode, or derive from URL path, or use moduleId from params
-  const targetModuleCode = moduleCode || getModuleCodeFromPath(location.pathname) || moduleId;
-  const { hasAccess, modules } = useModuleAuth(targetModuleCode);
+  // Only use module context when module access is required
+  let currentModule = null;
+  if (requireModuleAccess) {
+    try {
+      const moduleContext = useModule();
+      console.log('Module Context:', moduleContext);
+      currentModule = moduleContext.currentModule;
+    } catch (error) {
+      // If useModule fails (not within ModuleProvider), redirect to dashboard
+      if (!isAuthenticated) {
+        return <Navigate to="/login" state={{ from: location }} replace />;
+      }
+      return <Navigate to="/partner/dashboard" replace />;
+    }
+  }
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If we're on a module route, check if the module exists and user has access
-  if (targetModuleCode) {
-    const moduleExists = modules.some(m => m.module_id === targetModuleCode);
-    
-    if (!moduleExists || !hasAccess) {
-      return <Navigate to="/partner/dashboard" replace />;
-    }
-  }
+  // If requireModuleAccess is true, check if user has access to any modules
+  if (requireModuleAccess) {
+    // Check if user has access to any modules in the system
+    if (setupData?.module && setupData.module.length > 0) {
+      const hasAnyModuleAccess = setupData.module.some(m => 
+        m.display_mode !== 'HIDDEN'
+      );
 
-  // If requireModuleAccess is true but no module code found, redirect to dashboard
-  if (requireModuleAccess && !targetModuleCode) {
-    return <Navigate to="/partner/dashboard" replace />;
+      console.log('Has Any Module Access:', hasAnyModuleAccess);
+      
+      // If user has no module access at all, redirect to dashboard
+      if (!hasAnyModuleAccess) {
+        return <Navigate to="/partner/dashboard" replace />;
+      }
+      
+      // If no current module found but user has module access, allow access
+      // This handles cases where URL doesn't perfectly match module URLs
+    } else {
+      // Allow access to specific routes even without module data
+    }
   }
 
   return <>{children}</>;

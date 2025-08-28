@@ -14,49 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Filter } from 'lucide-react';
 
-// Mock data for tasks
-const mockTasks = [
-  {
-    id: 'TASK-001',
-    title: 'Review partnership agreement',
-    description: 'Review and approve the new partnership terms',
-    status: 'In Progress',
-    priority: 'High',
-    assignee: 'John Doe',
-    dueDate: '2024-01-15',
-    createdAt: '2024-01-10',
-  },
-  {
-    id: 'TASK-002',
-    title: 'Update client documentation',
-    description: 'Update documentation for new client onboarding',
-    status: 'Pending',
-    priority: 'Medium',
-    assignee: 'Jane Smith',
-    dueDate: '2024-01-20',
-    createdAt: '2024-01-12',
-  },
-  {
-    id: 'TASK-003',
-    title: 'Prepare monthly report',
-    description: 'Compile monthly performance metrics and analysis',
-    status: 'Completed',
-    priority: 'Low',
-    assignee: 'Mike Johnson',
-    dueDate: '2024-01-18',
-    createdAt: '2024-01-08',
-  },
-  {
-    id: 'TASK-004',
-    title: 'Client follow-up call',
-    description: 'Schedule and conduct follow-up call with key clients',
-    status: 'In Progress',
-    priority: 'High',
-    assignee: 'Sarah Wilson',
-    dueDate: '2024-01-16',
-    createdAt: '2024-01-11',
-  },
-];
+// TODO: Replace with actual API call to fetch tasks data
+const mockTasks: any[] = [];
 
 export function TaskListPage() {
   const [searchTerm, setSearchTerm] = useState('');

@@ -20,36 +20,61 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Specific module pages */}
+        {/* Redirect root paths to dashboard */}
+        <Route path="/" element={<Navigate to="/partner/dashboard" replace />} />
+        <Route path="/dashboard" element={<Navigate to="/partner/dashboard" replace />} />
+
+        {/* Dashboard route - protected but no module access required */}
+        <Route 
+          path="/partner/dashboard" 
+          element={
+            <ProtectedRoute requireModuleAccess={false}>
+              <DashboardPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Specific module pages - all require module access */}
         <Route 
           path="/ask/list" 
           element={
-            <ProtectedRoute requireModuleAccess={true}>
-              <TaskListPage />
-            </ProtectedRoute>
+            <ModuleProvider>
+              <ProtectedRoute requireModuleAccess={true}>
+                <TaskListPage />
+              </ProtectedRoute>
+            </ModuleProvider>
           } 
         />
         <Route
           path="/lead/list"
           element={
-            // <ProtectedRoute requireModuleAccess={true}>
-            <LeadListPage />
-            // </ProtectedRoute>
+            <ModuleProvider>
+              <ProtectedRoute requireModuleAccess={true}>
+                <LeadListPage />
+              </ProtectedRoute>
+            </ModuleProvider>
           }
         />
-
-        {/* Dashboard routes */}
-        {/* <Route path="/" element={<Navigate to="/partner/dashboard" replace />} /> */}
-        {/* <Route path="/dashboard" element={<Navigate to="/partner/dashboard" replace />} /> */}
-        <Route path="/partner/dashboard" element={<DashboardPage />} />
+        <Route
+          path="/employeeConnector/list"
+          element={
+            <ModuleProvider>
+              <ProtectedRoute requireModuleAccess={true}>
+                <ModulePage />
+              </ProtectedRoute>
+            </ModuleProvider>
+          }
+        />
 
         {/* Catch-all route for any module URL pattern - must be last */}
         <Route
           path="*"
           element={
-            <ProtectedRoute requireModuleAccess={false}>
-              <ModulePage />
-            </ProtectedRoute>
+            <ModuleProvider>
+              <ProtectedRoute requireModuleAccess={false}>
+                <ModulePage />
+              </ProtectedRoute>
+            </ModuleProvider>
           }
         />
       </Routes>

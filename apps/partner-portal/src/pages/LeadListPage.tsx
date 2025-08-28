@@ -13,75 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Filter } from "lucide-react";
+import { useAuthStore } from "@repo/shared-state/stores";
+import { useModule } from "@/contexts/ModuleContext";
 
-// Mock data for leads
-const mockLeads = [
-  {
-    id: "LEAD-001",
-    name: "Acme Corporation",
-    contact: "John Smith",
-    email: "john.smith@acme.com",
-    phone: "+1 (555) 123-4567",
-    status: "Qualified",
-    source: "Website",
-    value: "$50,000",
-    assignee: "Sarah Johnson",
-    createdAt: "2024-01-10",
-    lastContact: "2024-01-14",
-  },
-  {
-    id: "LEAD-002",
-    name: "Tech Solutions Inc",
-    contact: "Emily Davis",
-    email: "emily.davis@techsolutions.com",
-    phone: "+1 (555) 987-6543",
-    status: "New",
-    source: "Referral",
-    value: "$75,000",
-    assignee: "Mike Wilson",
-    createdAt: "2024-01-12",
-    lastContact: "2024-01-12",
-  },
-  {
-    id: "LEAD-003",
-    name: "Global Enterprises",
-    contact: "Robert Brown",
-    email: "robert.brown@global.com",
-    phone: "+1 (555) 456-7890",
-    status: "Contacted",
-    source: "Cold Call",
-    value: "$25,000",
-    assignee: "Lisa Chen",
-    createdAt: "2024-01-08",
-    lastContact: "2024-01-13",
-  },
-  {
-    id: "LEAD-004",
-    name: "Innovation Labs",
-    contact: "Jennifer Wilson",
-    email: "jennifer.wilson@innovationlabs.com",
-    phone: "+1 (555) 321-0987",
-    status: "Proposal Sent",
-    source: "LinkedIn",
-    value: "$100,000",
-    assignee: "David Kim",
-    createdAt: "2024-01-05",
-    lastContact: "2024-01-15",
-  },
-  {
-    id: "LEAD-005",
-    name: "Future Systems",
-    contact: "Mark Thompson",
-    email: "mark.thompson@futuresystems.com",
-    phone: "+1 (555) 654-3210",
-    status: "Lost",
-    source: "Trade Show",
-    value: "$30,000",
-    assignee: "Anna Rodriguez",
-    createdAt: "2024-01-03",
-    lastContact: "2024-01-11",
-  },
-];
+// TODO: Replace with actual API call to fetch leads data
+const mockLeads: any[] = [];
 
 const statusColors = {
   New: "bg-blue-100 text-blue-800",
@@ -100,6 +36,7 @@ const sourceColors = {
 };
 
 export function LeadListPage() {
+  const { currentModule } = useModule();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
@@ -129,163 +66,159 @@ export function LeadListPage() {
 
   return (
     <ModuleLayout>
-        <div className="space-y-8">
-          {/* Page Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                Lead Management
-              </h1>
-              <p className="text-muted-foreground mt-2">
-                Manage and track your sales leads and opportunities
+      <div className="space-y-8">
+        {/* Page Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Lead Management
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Manage and track your sales leads and opportunities
+            </p>
+          </div>
+          <Button className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add New Lead
+          </Button>
+        </div>
+
+        {/* Filters and Search */}
+        <Card title="Lead Management" className="p-6">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search leads by name, contact, email, or ID..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+              >
+                <option value="all">All Statuses</option>
+                {uniqueStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={sourceFilter}
+                onChange={(e) => setSourceFilter(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+              >
+                <option value="all">All Sources</option>
+                {uniqueSources.map((source) => (
+                  <option key={source} value={source}>
+                    {source}
+                  </option>
+                ))}
+              </select>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                More Filters
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        {/* Leads Table */}
+        <Card title="Lead List" className="p-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Showing {filteredLeads.length} leads
               </p>
             </div>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add New Lead
-            </Button>
-          </div>
 
-          {/* Filters and Search */}
-          <Card title="Lead Management" className="p-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    placeholder="Search leads by name, contact, email, or ID..."
-                    value={searchTerm}
-                    onChange={handleSearch}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 border border-input bg-background rounded-md text-sm"
-                >
-                  <option value="all">All Statuses</option>
-                  {uniqueStatuses.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Lead ID</TableHead>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Source</TableHead>
+                    <TableHead>Value</TableHead>
+                    <TableHead>Assignee</TableHead>
+                    <TableHead>Last Contact</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredLeads.map((lead) => (
+                    <TableRow key={lead.id}>
+                      <TableCell className="font-medium">{lead.id}</TableCell>
+                      <TableCell className="font-medium">{lead.name}</TableCell>
+                      <TableCell>{lead.contact}</TableCell>
+                      <TableCell className="break-all">{lead.email}</TableCell>
+                      <TableCell>{lead.phone}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={
+                            statusColors[
+                              lead.status as keyof typeof statusColors
+                            ] || "bg-gray-100 text-gray-800"
+                          }
+                        >
+                          {lead.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={
+                            sourceColors[
+                              lead.source as keyof typeof sourceColors
+                            ] || "bg-gray-100 text-gray-800"
+                          }
+                        >
+                          {lead.source}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {lead.value}
+                      </TableCell>
+                      <TableCell>{lead.assignee}</TableCell>
+                      <TableCell>{lead.lastContact}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">
+                            View
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            Edit
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </select>
-                <select
-                  value={sourceFilter}
-                  onChange={(e) => setSourceFilter(e.target.value)}
-                  className="px-3 py-2 border border-input bg-background rounded-md text-sm"
-                >
-                  <option value="all">All Sources</option>
-                  {uniqueSources.map((source) => (
-                    <option key={source} value={source}>
-                      {source}
-                    </option>
-                  ))}
-                </select>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  More Filters
-                </Button>
-              </div>
+                </TableBody>
+              </Table>
             </div>
-          </Card>
 
-          {/* Leads Table */}
-          <Card title="Lead List" className="p-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Showing {filteredLeads.length} of {mockLeads.length} leads
+            {filteredLeads.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  No leads found matching your criteria.
                 </p>
               </div>
-
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Lead ID</TableHead>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Source</TableHead>
-                      <TableHead>Value</TableHead>
-                      <TableHead>Assignee</TableHead>
-                      <TableHead>Last Contact</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredLeads.map((lead) => (
-                      <TableRow key={lead.id}>
-                        <TableCell className="font-medium">{lead.id}</TableCell>
-                        <TableCell className="font-medium">
-                          {lead.name}
-                        </TableCell>
-                        <TableCell>{lead.contact}</TableCell>
-                        <TableCell className="break-all">
-                          {lead.email}
-                        </TableCell>
-                        <TableCell>{lead.phone}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={
-                              statusColors[
-                                lead.status as keyof typeof statusColors
-                              ] || "bg-gray-100 text-gray-800"
-                            }
-                          >
-                            {lead.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={
-                              sourceColors[
-                                lead.source as keyof typeof sourceColors
-                              ] || "bg-gray-100 text-gray-800"
-                            }
-                          >
-                            {lead.source}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {lead.value}
-                        </TableCell>
-                        <TableCell>{lead.assignee}</TableCell>
-                        <TableCell>{lead.lastContact}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
-                              View
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              Edit
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {filteredLeads.length === 0 && (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">
-                    No leads found matching your criteria.
-                  </p>
-                </div>
-              )}
-            </div>
-          </Card>
-        </div>
+            )}
+          </div>
+        </Card>
+      </div>
     </ModuleLayout>
   );
 }

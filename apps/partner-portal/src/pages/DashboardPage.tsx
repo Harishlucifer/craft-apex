@@ -1,4 +1,3 @@
-import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '@repo/shared-state/stores';
 import { Card } from '@repo/ui/card';
 import { AppSidebar } from '@/components/app-sidebar';
@@ -13,12 +12,7 @@ import { ModuleBreadcrumb } from '@/components/ModuleBreadcrumb';
 import { ModuleContent } from '@/components/ModuleContent';
 
 export function DashboardPage() {
-  const { isAuthenticated, logout } = useAuthStore();
-
-  // Redirect to login if not authenticated
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  const { logout } = useAuthStore();
 
   const handleLogout = () => {
     logout();
