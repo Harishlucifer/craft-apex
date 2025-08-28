@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useSetup, usePlatformConfig } from '@repo/shared-state/hooks';
 import { useAuthStore } from '@repo/shared-state/stores';
-import { LoginForm } from '../components/login-form';
+import { LoginOtpForm } from '@repo/ui/components/auth';
 import { applyTenantBranding, extractBrandingFromSetup } from '../utils/branding';
 import { toast } from 'sonner';
 
@@ -54,7 +54,7 @@ export const LoginPage: React.FC = () => {
   return (
     <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm md:max-w-3xl">
-        <LoginForm setupData={setupData} platformConfig={platformConfig} />
+        <LoginOtpForm setupData={setupData} platformConfig={platformConfig} />
       </div>
     </div>
   );

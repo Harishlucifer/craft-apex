@@ -1,7 +1,7 @@
 import { ModuleData } from '@repo/types/setup';
 import { LucideIcon } from 'lucide-react';
 import { Building } from 'lucide-react';
-import { convertIconToLucideName } from './iconConverter';
+import { convertIconToLucideName } from '@repo/ui/utils/iconConverter';
 import { DynamicIcon } from 'lucide-react/dynamic';
 import React from 'react';
 

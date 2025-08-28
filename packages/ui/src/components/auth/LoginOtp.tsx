@@ -1,8 +1,8 @@
-import { cn } from "../lib/utils"
-import { Button } from "./ui/button"
-import { Card, CardContent } from "./ui/card"
-import { Input } from "./ui/input"
-import { Label } from "./ui/label"
+import { cn } from "@repo/ui/lib/utils"
+import { Button } from "@repo/ui/components/ui/button"
+import { Card, CardContent } from "@repo/ui/components/ui/card"
+import { Input } from "@repo/ui/components/ui/input"
+import { Label } from "@repo/ui/components/ui/label"
 import { SetupData } from "@repo/types/setup"
 import { useState, useEffect } from "react"
 import { useAuthStore } from "@repo/shared-state/stores"
@@ -22,7 +22,7 @@ interface LoginState {
   isLoading: boolean;
 }
 
-export function LoginForm({
+export function LoginOtpForm({
   className,
   setupData,
   platformConfig,

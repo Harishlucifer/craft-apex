@@ -1,7 +1,7 @@
 import React from 'react';
 import { useCurrentModule } from '@/contexts/ModuleContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { convertIconToLucideName } from '@/utils/iconConverter';
+import { convertIconToLucideName } from '@repo/ui/utils/iconConverter';
 import { DynamicIcon } from 'lucide-react/dynamic';
 
 interface ModuleContentProps {

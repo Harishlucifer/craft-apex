@@ -10,6 +10,7 @@
   "exports": {
     "./styles.css": "./dist/index.css",
     "./auth/login-form": "./dist/components/auth/LoginForm.js",
+    "./components/auth": "./dist/components/auth/index.js",
     "./ui": "./dist/components/ui/index.js",
     "./lib/utils": "./dist/lib/utils.js",
     "./*": "./dist/*.js"
