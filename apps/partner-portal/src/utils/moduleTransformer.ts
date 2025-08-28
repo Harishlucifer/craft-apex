@@ -1,77 +1,9 @@
 import { ModuleData } from '@repo/types/setup';
 import { LucideIcon } from 'lucide-react';
-import {
-  SquareTerminal,
-  Settings2,
-  Users,
-  FileText,
-  BarChart3,
-  CreditCard,
-  Building,
-  Shield,
-  Database,
-  Globe,
-  Mail,
-  Calendar,
-  Package,
-  Truck,
-  DollarSign,
-  PieChart,
-  TrendingUp,
-  UserCheck,
-  FileCheck,
-  Briefcase,
-  Home,
-  Activity,
-  Settings,
-  HelpCircle,
-} from 'lucide-react';
-
-// Icon mapping for module icons
-const iconMap: Record<string, LucideIcon> = {
-  dashboard: Home,
-  home: Home,
-  activity: Activity,
-  analytics: BarChart3,
-  users: Users,
-  user: Users,
-  settings: Settings2,
-  setting: Settings2,
-  config: Settings,
-  reports: FileText,
-  report: FileText,
-  finance: DollarSign,
-  billing: CreditCard,
-  payment: CreditCard,
-  company: Building,
-  organization: Building,
-  security: Shield,
-  database: Database,
-  api: Globe,
-  mail: Mail,
-  email: Mail,
-  calendar: Calendar,
-  schedule: Calendar,
-  inventory: Package,
-  product: Package,
-  shipping: Truck,
-  delivery: Truck,
-  chart: PieChart,
-  graph: TrendingUp,
-  approval: UserCheck,
-  verification: FileCheck,
-  business: Briefcase,
-  help: HelpCircle,
-  support: HelpCircle,
-  // Default fallbacks
-  default: SquareTerminal,
-};
-
-// Get icon component from icon string
-function getIconComponent(iconString: string): LucideIcon {
-  const iconKey = iconString.toLowerCase().replace(/[^a-z]/g, '');
-  return iconMap[iconKey] || iconMap.default!;
-}
+import { Building } from 'lucide-react';
+import { convertIconToLucideName } from './iconConverter';
+import { DynamicIcon } from 'lucide-react/dynamic';
+import React from 'react';
 
 // Transform ModuleData to sidebar navigation format
 export interface SidebarNavItem {
@@ -177,7 +109,8 @@ export function transformModulesToNavigation(modules: ModuleData[] | null): Side
     
     // For modules without URL, create a default URL
     if (!module.url) {
-      module.url = `/module/${module.module_id || module.code || module.name.toLowerCase().replace(/\s+/g, '-')}`;
+      const moduleCode = module.code || module.name.toLowerCase().replace(/\s+/g, '-');
+      module.url = `/partner/${moduleCode}`;
     }
     
     return hasModuleAccess(module);
@@ -200,13 +133,19 @@ export function transformModulesToNavigation(modules: ModuleData[] | null): Side
 
   // Transform modules to navigation items
   function transformModule(module: ModuleData): SidebarNavItem {
-    // Use the module's URL if it exists, otherwise fall back to module ID pattern
-    const moduleUrl = module.url || `/module/${module.module_id}`;
+    // Use the module's URL if it exists, otherwise fall back to module code pattern
+    const moduleCode = module.code || module.name.toLowerCase().replace(/\s+/g, '-');
+    const moduleUrl = module.url || `/partner/${moduleCode}`;
+    
+    const iconName = convertIconToLucideName(module.icon || 'default');
+    const IconComponent = React.forwardRef<SVGSVGElement, any>((props, ref) => 
+      React.createElement(DynamicIcon, { name: iconName as any, ref, ...props })
+    ) as LucideIcon;
     
     const navItem: SidebarNavItem = {
       title: module.name,
       url: moduleUrl,
-      icon: getIconComponent(module.icon || 'default'),
+      icon: IconComponent,
       moduleId: module.module_id,
       permissions: module.allowed_permission,
     };
@@ -264,11 +203,19 @@ export function transformModulesToProjects(modules: ModuleData[] | null): Sideba
     (!module.child_module || module.child_module.length === 0)
   );
 
-  return accessibleModules.map(module => ({
-    name: module.name,
-    url: `/module/${module.module_id}`,
-    icon: getIconComponent(module.icon || 'default'),
-  }));
+  return accessibleModules.map(module => {
+    const moduleCode = module.code || module.name.toLowerCase().replace(/\s+/g, '-');
+    const iconName = convertIconToLucideName(module.icon || 'default');
+    const IconComponent = React.forwardRef<SVGSVGElement, any>((props, ref) => 
+      React.createElement(DynamicIcon, { name: iconName as any, ref, ...props })
+    ) as LucideIcon;
+    
+    return {
+      name: module.name,
+      url: `/partner/${moduleCode}`,
+      icon: IconComponent,
+    };
+  });
 }
 
 // Transform tenant/system data for team switcher

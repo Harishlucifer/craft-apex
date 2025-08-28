@@ -1,40 +1,30 @@
-import { useParams, Navigate } from 'react-router-dom';
-import { useAuthStore } from '@repo/shared-state/stores';
-import { useModuleAuth } from '@repo/shared-state/hooks';
-import { getModulePermissions, hasModulePermission } from '@/utils/moduleTransformer';
-import { AppSidebar } from '@/components/app-sidebar';
+import { Navigate, useLocation, useParams } from "react-router-dom";
+import { useAuthStore } from "@repo/shared-state/stores";
+import { useModuleAuth } from "@repo/shared-state/hooks";
+import {
+  getModulePermissions,
+  hasModulePermission,
+} from "@/utils/moduleTransformer";
+import { AppSidebar } from "@/components/app-sidebar";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from '@/components/ui/sidebar';
-import { Separator } from '@/components/ui/separator';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Card } from '@repo/ui/card';
+} from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
+import { ModuleProvider, useCurrentModule } from "@/contexts/ModuleContext";
+import { ModuleBreadcrumb } from "@/components/ModuleBreadcrumb";
+import { ModuleContent } from "@/components/ModuleContent";
+import { Card } from "@repo/ui/card";
 
-export function ModulePage() {
-  const { moduleId } = useParams<{ moduleId: string }>();
-  const { setupData, isAuthenticated } = useAuthStore();
-  const { hasAccess, modules } = useModuleAuth(moduleId);
+// Component that uses ModuleContext to get current module
+function ModulePageContent() {
+  const currentModule = useCurrentModule();
+  const { hasAccess } = useModuleAuth();
 
-  // Redirect to login if not authenticated
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // Find the current module
-  const currentModule = modules.find(m => m.module_id === moduleId);
-  
-  // Redirect to dashboard if module not found or no access
-  if (!currentModule || !hasAccess) {
-    return <Navigate to="/dashboard" replace />;
+  // If no module found, redirect to dashboard
+  if (!currentModule) {
+    return <Navigate to="/partner/dashboard" replace />;
   }
 
   // Get module permissions
@@ -48,86 +38,96 @@ export function ModulePage() {
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/dashboard">
-                    Dashboard
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>{currentModule.name}</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+            <ModuleBreadcrumb />
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="aspect-video rounded-xl bg-muted/50" />
-            <div className="aspect-video rounded-xl bg-muted/50" />
-            <div className="aspect-video rounded-xl bg-muted/50" />
-          </div>
-          <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min">
+          <ModuleContent>
             <Card title={currentModule.name} className="p-6">
               <div className="space-y-4">
                 <p className="text-gray-600">
-                  Welcome to the {currentModule.name} module. This is a placeholder page that will be replaced with the actual module content.
+                  Welcome to the {currentModule.name} module. This is a
+                  placeholder page that will be replaced with the actual module
+                  content.
                 </p>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="w-full">
                   <div>
-                    <h4 className="font-semibold mb-2">Module Information</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Module ID:</span>
-                        <span className="font-medium">{currentModule.module_id}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Code:</span>
-                        <span className="font-medium">{currentModule.code}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">System:</span>
-                        <span className="font-medium">{currentModule.system}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Target:</span>
-                        <span className="font-medium">{currentModule.target}</span>
+                    <h4 className="font-semibold mb-3 text-lg">
+                      Module Information
+                    </h4>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <div className="space-y-3 text-sm">
+                        <div className="grid grid-cols-3 gap-2 items-start">
+                          <span className="text-gray-600">Module ID:</span>
+                          <span className="font-medium col-span-2 break-words">
+                            {currentModule.module_id}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 items-start">
+                          <span className="text-gray-600">Code:</span>
+                          <span className="font-medium col-span-2 break-words">
+                            {currentModule.code}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 items-start">
+                          <span className="text-gray-600">System:</span>
+                          <span className="font-medium col-span-2 break-words">
+                            {currentModule.system}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 items-start">
+                          <span className="text-gray-600">Target:</span>
+                          <span className="font-medium col-span-2 break-words">
+                            {currentModule.target}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div>
-                    <h4 className="font-semibold mb-2">Your Permissions</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">View:</span>
-                        <span className={`font-medium ${permissions.view ? 'text-green-600' : 'text-red-600'}`}>
-                          {permissions.view ? 'Allowed' : 'Denied'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Add:</span>
-                        <span className={`font-medium ${permissions.add ? 'text-green-600' : 'text-red-600'}`}>
-                          {permissions.add ? 'Allowed' : 'Denied'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Edit:</span>
-                        <span className={`font-medium ${permissions.edit ? 'text-green-600' : 'text-red-600'}`}>
-                          {permissions.edit ? 'Allowed' : 'Denied'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Export:</span>
-                        <span className={`font-medium ${permissions.export ? 'text-green-600' : 'text-red-600'}`}>
-                          {permissions.export ? 'Allowed' : 'Denied'}
-                        </span>
+
+                  <div className="border-t pt-6 md:border-t-0 md:pt-0">
+                    <h4 className="font-semibold mb-3 text-lg">
+                      Your Permissions
+                    </h4>
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <div className="space-y-3 text-sm">
+                        <div className="grid grid-cols-3 gap-2 items-start">
+                          <span className="text-gray-600">View:</span>
+                          <span
+                            className={`font-medium col-span-2 ${permissions.view ? "text-green-600" : "text-red-600"}`}
+                          >
+                            {permissions.view ? "Allowed" : "Denied"}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 items-start">
+                          <span className="text-gray-600">Add:</span>
+                          <span
+                            className={`font-medium col-span-2 ${permissions.add ? "text-green-600" : "text-red-600"}`}
+                          >
+                            {permissions.add ? "Allowed" : "Denied"}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 items-start">
+                          <span className="text-gray-600">Edit:</span>
+                          <span
+                            className={`font-medium col-span-2 ${permissions.edit ? "text-green-600" : "text-red-600"}`}
+                          >
+                            {permissions.edit ? "Allowed" : "Denied"}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 items-start">
+                          <span className="text-gray-600">Export:</span>
+                          <span
+                            className={`font-medium col-span-2 ${permissions.export ? "text-green-600" : "text-red-600"}`}
+                          >
+                            {permissions.export ? "Allowed" : "Denied"}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Permission-based action buttons */}
                 <div className="flex gap-2 pt-4 border-t">
                   {permissions.add && (
@@ -145,28 +145,34 @@ export function ModulePage() {
                       Export Data
                     </button>
                   )}
-                  {!permissions.add && !permissions.edit && !permissions.export && (
-                    <p className="text-gray-500 italic">No actions available with current permissions</p>
-                  )}
+                  {!permissions.add &&
+                    !permissions.edit &&
+                    !permissions.export && (
+                      <p className="text-gray-500 italic">
+                        No actions available with current permissions
+                      </p>
+                    )}
                 </div>
-                {currentModule.child_module && currentModule.child_module.length > 0 && (
-                  <div>
-                    <h4 className="font-semibold mb-2">Child Modules</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {currentModule.child_module.map((child) => (
-                        <div key={child.module_id} className="p-3 border rounded-lg">
-                          <div className="font-medium">{child.name}</div>
-                          <div className="text-sm text-gray-600">{child.code}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </Card>
-          </div>
+          </ModuleContent>
         </div>
       </SidebarInset>
     </SidebarProvider>
+  );
+}
+
+export function ModulePage() {
+  const { isAuthenticated } = useAuthStore();
+
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <ModuleProvider>
+      <ModulePageContent />
+    </ModuleProvider>
   );
 }

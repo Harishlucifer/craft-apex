@@ -8,14 +8,9 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
+import { ModuleProvider } from '@/contexts/ModuleContext';
+import { ModuleBreadcrumb } from '@/components/ModuleBreadcrumb';
+import { ModuleContent } from '@/components/ModuleContent';
 
 export function DashboardPage() {
   const { isAuthenticated, logout } = useAuthStore();
@@ -30,26 +25,15 @@ export function DashboardPage() {
   };
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+    <ModuleProvider>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Partner Portal
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Dashboard</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+            <ModuleBreadcrumb />
           </div>
           <div className="ml-auto px-4">
             <button
@@ -61,7 +45,8 @@ export function DashboardPage() {
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-
+          <ModuleContent />
+          
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
           <Card title="Partner Overview" className="p-6">
             <div className="space-y-3">
@@ -155,7 +140,8 @@ export function DashboardPage() {
             </div>
           </div>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+        </SidebarInset>
+      </SidebarProvider>
+    </ModuleProvider>
   );
 }

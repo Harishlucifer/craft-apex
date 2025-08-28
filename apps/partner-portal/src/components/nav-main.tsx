@@ -1,7 +1,7 @@
 "use client"
 
 import { ChevronRight, type LucideIcon } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 
 import {
   Collapsible,
@@ -33,6 +33,18 @@ export function NavMain({
     }[]
   }[]
 }) {
+  const location = useLocation();
+  
+  // Helper function to check if a URL is active
+  const isUrlActive = (url: string) => {
+    return location.pathname === url || location.pathname.startsWith(url + '/');
+  };
+  
+  // Helper function to check if any child item is active
+  const hasActiveChild = (childItems?: { url: string }[]) => {
+    return childItems?.some(child => isUrlActive(child.url)) || false;
+  };
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
@@ -40,16 +52,17 @@ export function NavMain({
         {items.map((item) => {
           // If item has children, render as collapsible dropdown
           if (item.items && item.items.length > 0) {
+            const isParentActive = hasActiveChild(item.items);
             return (
               <Collapsible
                 key={item.title}
                 asChild
-                defaultOpen={item.isActive}
+                defaultOpen={isParentActive || item.isActive}
                 className="group/collapsible"
               >
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip={item.title}>
+                    <SidebarMenuButton tooltip={item.title} isActive={isParentActive}>
                       {item.icon && <item.icon />}
                       <span>{item.title}</span>
                       <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -59,7 +72,7 @@ export function NavMain({
                     <SidebarMenuSub>
                       {item.items.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild>
+                          <SidebarMenuSubButton asChild isActive={isUrlActive(subItem.url)}>
                             <Link to={subItem.url}>
                               <span>{subItem.title}</span>
                             </Link>
@@ -76,7 +89,7 @@ export function NavMain({
           // If item has no children, render as direct navigation link
           return (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild tooltip={item.title}>
+              <SidebarMenuButton asChild tooltip={item.title} isActive={isUrlActive(item.url)}>
                 <Link to={item.url}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
