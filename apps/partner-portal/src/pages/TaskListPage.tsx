@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ModuleLayout } from '@/components/ModuleLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@repo/ui/components/ui/card';
 import {
   Table,
   TableBody,
@@ -8,10 +8,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+} from '@repo/ui/components/ui/table';
+import { Button } from '@repo/ui/components/ui/button';
+import { Input } from '@repo/ui/components/ui/input';
+import { Badge } from '@repo/ui/components/ui/badge';
 import { Search, Plus, Filter } from 'lucide-react';
 
 // TODO: Replace with actual API call to fetch tasks data

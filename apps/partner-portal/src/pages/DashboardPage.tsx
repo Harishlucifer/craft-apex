@@ -6,7 +6,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@repo/ui/components/ui/sidebar';
-import { Separator } from '@/components/ui/separator';
+import { Separator } from '@repo/ui/components/ui/separator';
 import { ModuleProvider } from '@/contexts/ModuleContext';
 import { ModuleBreadcrumb } from '@/components/ModuleBreadcrumb';
 import { ModuleContent } from '@/components/ModuleContent';
