@@ -1,58 +1,137 @@
-# Turborepo Tailwind CSS starter
+# Craft Apex - Multi-Portal Platform
 
-This Turborepo starter is maintained by the Turborepo core team.
+A modern multi-portal platform built with Turborepo, featuring separate portals for customers, employees, and partners with shared state management and UI components.
 
-## Using this example
+## Quick Start
 
-Run the following command:
+### Prerequisites
+- Node.js >= 18
+- Yarn package manager
+
+### Installation
 
 ```sh
-npx create-turbo@latest -e with-tailwind
+# Install all dependencies
+yarn install
+
+# Start all portals in development mode
+yarn dev
+
+# Or start individual portals
+yarn dev:partner    # Partner portal on port 3001
+yarn dev:employee   # Employee portal
+yarn dev:customer   # Customer portal
 ```
 
-## What's inside?
+## Project Structure
 
-This Turborepo includes the following packages/apps:
+This Turborepo monorepo includes the following applications and packages:
 
-### Apps and Packages
+### Applications
 
-- `docs`: a [Next.js](https://nextjs.org/) app with [Tailwind CSS](https://tailwindcss.com/)
-- `web`: another [Next.js](https://nextjs.org/) app with [Tailwind CSS](https://tailwindcss.com/)
-- `ui`: a stub React component library with [Tailwind CSS](https://tailwindcss.com/) shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+- **`partner-portal`**: Partner management interface built with React + Vite
+- **`employee-portal`**: Employee dashboard built with React + Vite  
+- **`customer-portal`**: Customer-facing application built with React + Vite
+- **`docs`**: Documentation site
+- **`web`**: Additional web application
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+### Shared Packages
 
-### Building packages/ui
+- **`@repo/shared-state`**: Centralized state management using Zustand and React Query
+- **`@repo/ui`**: Shared React component library with Tailwind CSS and Radix UI
+- **`@repo/types`**: Shared TypeScript type definitions
+- **`@repo/eslint-config`**: ESLint configurations for consistent code quality
+- **`@repo/typescript-config`**: Shared TypeScript configurations
+- **`@repo/tailwind-config`**: Shared Tailwind CSS configuration and styles
 
-This example is set up to produce compiled styles for `ui` components into the `dist` directory. The component `.tsx` files are consumed by the Next.js apps directly using `transpilePackages` in `next.config.ts`. This was chosen for several reasons:
+All applications and packages are built with [TypeScript](https://www.typescriptlang.org/) for type safety.
 
-- Make sharing one `tailwind.config.ts` to apps and packages as easy as possible.
-- Make package compilation simple by only depending on the Next.js Compiler and `tailwindcss`.
-- Ensure Tailwind classes do not overwrite each other. The `ui` package uses a `ui-` prefix for it's classes.
-- Maintain clear package export boundaries.
+## Technology Stack
 
-Another option is to consume `packages/ui` directly from source without building. If using this option, you will need to update the `tailwind.config.ts` in your apps to be aware of your package locations, so it can find all usages of the `tailwindcss` class names for CSS compilation.
+### Frontend
+- **React 18**: Modern React with hooks and concurrent features
+- **Vite**: Fast build tool and development server
+- **TypeScript**: Type-safe JavaScript development
+- **Tailwind CSS**: Utility-first CSS framework
+- **Radix UI**: Accessible, unstyled UI components
+- **React Router**: Client-side routing
 
-For example, in [tailwind.config.ts](packages/tailwind-config/tailwind.config.ts):
+### State Management
+- **Zustand**: Lightweight state management
+- **React Query**: Server state management and caching
 
-```js
-  content: [
-    // app content
-    `src/**/*.{js,ts,jsx,tsx}`,
-    // include packages if not transpiling
-    "../../packages/ui/*.{js,ts,jsx,tsx}",
-  ],
+### Development Tools
+- **Turborepo**: Monorepo build system with caching
+- **ESLint**: Code linting and quality checks
+- **Prettier**: Code formatting
+- **TypeScript**: Static type checking
+
+## Available Scripts
+
+```sh
+# Development
+yarn dev                 # Start all applications
+yarn dev:partner         # Start partner portal only
+yarn dev:employee        # Start employee portal only
+yarn dev:customer        # Start customer portal only
+
+# Building
+yarn build               # Build all applications
+yarn build:partner       # Build partner portal only
+yarn build:employee      # Build employee portal only
+yarn build:customer      # Build customer portal only
+
+# Code Quality
+yarn lint                # Lint all packages
+yarn check-types         # Type check all packages
+yarn format              # Format code with Prettier
+
+# Maintenance
+yarn clean               # Clean build artifacts
 ```
 
-If you choose this strategy, you can remove the `tailwindcss` and `autoprefixer` dependencies from the `ui` package.
+## Architecture
 
-### Utilities
+### Monorepo Structure
+This project uses Turborepo to manage multiple applications and shared packages efficiently:
 
-This Turborepo has some additional tools already setup for you:
+- **Shared Dependencies**: Common packages are shared across all applications
+- **Build Caching**: Turborepo caches build outputs for faster subsequent builds
+- **Parallel Execution**: Tasks run in parallel across packages when possible
+- **Dependency Graph**: Automatic dependency resolution and build ordering
 
-- [Tailwind CSS](https://tailwindcss.com/) for styles
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+### State Management Architecture
+The `@repo/shared-state` package provides:
+
+- **Zustand Stores**: Lightweight, type-safe state management
+- **React Query Integration**: Server state caching and synchronization
+- **Shared Hooks**: Reusable state logic across applications
+- **Type Safety**: Full TypeScript support for all state operations
+
+### UI Component System
+The `@repo/ui` package includes:
+
+- **Design System**: Consistent styling with Tailwind CSS
+- **Accessible Components**: Built on Radix UI primitives
+- **Shared Components**: Reusable UI elements across all portals
+- **Theme Support**: Centralized styling and theming
+
+## Development Workflow
+
+1. **Install Dependencies**: `yarn install`
+2. **Start Development**: `yarn dev` or specific portal commands
+3. **Make Changes**: Edit code in any app or package
+4. **Hot Reload**: Changes automatically reflect in running applications
+5. **Type Check**: `yarn check-types` before committing
+6. **Lint & Format**: `yarn lint && yarn format`
+7. **Build**: `yarn build` to create production builds
+
+## Contributing
+
+When adding new features:
+
+1. **Shared Logic**: Add to appropriate package in `/packages`
+2. **Portal-Specific**: Add to the relevant app in `/apps`
+3. **Types**: Update `@repo/types` for shared type definitions
+4. **Components**: Add reusable components to `@repo/ui`
+5. **State**: Add shared state logic to `@repo/shared-state`
