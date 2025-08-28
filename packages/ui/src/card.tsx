@@ -21,9 +21,9 @@ export function Card({
           </span>
         )}
       </h2>
-      <p className="m-0 max-w-[30ch] text-sm opacity-70">
+      <div className="m-0 max-w-[30ch] text-sm opacity-70">
         {children}
-      </p>
+      </div>
     </>
   );
 

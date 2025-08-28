@@ -2,7 +2,7 @@ import { Navigate } from "react-router-dom";
 import { useModuleAuth } from "@repo/shared-state/hooks";
 import {
   getModulePermissions,
-} from "@/utils/moduleTransformer";
+} from "@repo/ui/utils/moduleTransformer";
 import { useCurrentModule } from "@/contexts/ModuleContext";
 import { ModuleLayout } from "@/components/ModuleLayout";
 import { Card } from "@repo/ui/card";

@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useSetup, usePlatformConfig } from '@repo/shared-state/hooks';
 import { useAuthStore } from '@repo/shared-state/stores';
 import { LoginOtpForm } from '@repo/ui/components/auth';
-import { applyTenantBranding, extractBrandingFromSetup } from '../utils/branding';
+import { applyTenantBranding, extractBrandingFromSetup } from '@repo/ui/utils/branding';
 import { toast } from 'sonner';
 
 export const LoginPage: React.FC = () => {

@@ -1,11 +1,11 @@
 import { useAuthStore } from '@repo/shared-state/stores';
 import { Card } from '@repo/ui/card';
-import { AppSidebar } from '@/components/app-sidebar';
+import { AppSidebar } from '@/components/ModuleSidebar';
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from '@/components/ui/sidebar';
+} from '@repo/ui/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
 import { ModuleProvider } from '@/contexts/ModuleContext';
 import { ModuleBreadcrumb } from '@/components/ModuleBreadcrumb';

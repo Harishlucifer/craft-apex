@@ -3,17 +3,17 @@ import { useAuthStore } from '@repo/shared-state/stores';
 import {
   transformModulesToNavigation,
   transformUserForSidebar,
-} from '@/utils/moduleTransformer';
+} from '@repo/ui/utils/moduleTransformer';
 
-import { NavMain } from "@/components/nav-main"
-import { NavUser } from "@/components/nav-user"
+import { NavMain } from "@repo/ui/components/ui/nav-main"
+import { NavUser } from "@repo/ui/components/ui/nav-user"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@repo/ui/components/ui/sidebar"
 
 
 

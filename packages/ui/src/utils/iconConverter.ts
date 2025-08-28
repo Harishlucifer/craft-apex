@@ -347,10 +347,38 @@ const iconClassToLucideNameMap: Record<string, string> = {
   'key': 'key'
 };
 
+// List of valid Lucide icon names for validation
+const validLucideIcons = new Set([
+  'home', 'user', 'users', 'users-round', 'settings', 'settings-2', 'file-text', 'folder',
+  'mail', 'phone', 'calendar', 'search', 'plus', 'trash-2', 'edit', 'save', 'download',
+  'upload', 'share', 'copy', 'scissors', 'clipboard', 'undo', 'redo', 'refresh-cw',
+  'x', 'check', 'arrow-left', 'arrow-right', 'arrow-up', 'arrow-down', 'menu',
+  'more-horizontal', 'eye', 'eye-off', 'lock', 'lock-open', 'heart', 'star', 'bookmark',
+  'flag', 'tag', 'link', 'image', 'video', 'file', 'activity', 'building', 'shield',
+  'database', 'globe', 'bar-chart-3', 'pie-chart', 'trending-up', 'credit-card',
+  'dollar-sign', 'package', 'truck', 'briefcase', 'help-circle', 'bell', 'key',
+  'folder-open', 'archive', 'cloud', 'wifi', 'bluetooth', 'battery', 'volume-2',
+  'volume-1', 'volume-x', 'list', 'filter', 'arrow-up-down', 'minus', 'alert-triangle',
+  'info', 'message-circle', 'building-2', 'wallet', 'shopping-cart', 'monitor',
+  'smartphone', 'server', 'camera', 'mic', 'play', 'pause', 'car', 'plane', 'train',
+  'ship', 'bike', 'bus', 'sun', 'moon', 'trees', 'flower', 'leaf', 'wrench', 'hammer',
+  'brush', 'palette', 'chevron-up', 'chevron-down', 'chevron-left', 'chevron-right',
+  'music', 'headphones', 'gamepad-2', 'trophy', 'gift', 'clock', 'timer', 'map',
+  'map-pin', 'compass', 'route', 'calculator', 'shopping-bag', 'store', 'ticket',
+  'award', 'medal', 'crown', 'gem', 'flame', 'snowflake', 'cloud-rain', 'cloud-snow',
+  'zap', 'umbrella', 'wind', 'thermometer', 'droplets', 'mountain', 'apple', 'coffee',
+  'wine', 'beer', 'utensils', 'cookie', 'cake', 'pizza', 'fish', 'egg', 'lightbulb',
+  'lamp', 'fan', 'shirt', 'glasses', 'backpack', 'baby', 'factory', 'warehouse',
+  'hospital', 'school', 'book-open', 'theater', 'ambulance', 'rocket', 'satellite',
+  'table', 'check-circle', 'x-circle', 'target', 'move', 'maximize', 'minimize',
+  'zoom-in', 'zoom-out', 'hand', 'type', 'test-tube', 'bug', 'brain', 'dumbbell',
+  'scale', 'circle', 'check-square', 'radio', 'gauge', 'unlock', 'external-link'
+]);
+
 /**
  * Converts icon class names (Remix, Line Awesome) or direct Lucide names to Lucide icon names
  * @param iconClass - The icon class name (e.g., 'ri-home-line', 'las la-home', 'home', 'users-round')
- * @returns The corresponding Lucide icon name or the original input if not found
+ * @returns The corresponding Lucide icon name or a fallback icon if not found
  */
 export function convertIconToLucideName(iconClass: string): string {
   if (!iconClass) return 'help-circle'; // Default fallback icon
@@ -361,8 +389,18 @@ export function convertIconToLucideName(iconClass: string): string {
   // Check if it's in our mapping
   const lucideIconName = iconClassToLucideNameMap[cleanedClass];
   
-  // Return the mapped name or the original input (assuming it's already a valid Lucide name)
-  return lucideIconName || cleanedClass;
+  if (lucideIconName) {
+    return lucideIconName;
+  }
+  
+  // Check if the cleaned class is a valid Lucide icon name
+  if (validLucideIcons.has(cleanedClass)) {
+    return cleanedClass;
+  }
+  
+  // If nothing matches, return a safe fallback
+  // console.warn(`Icon '${iconClass}' not found in mapping, using fallback icon`);
+  return 'help-circle';
 }
 
 /**
