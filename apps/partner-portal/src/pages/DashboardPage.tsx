@@ -1,15 +1,13 @@
 import { useAuthStore } from '@repo/shared-state/stores';
 import { Card } from '@repo/ui/card';
-import { AppSidebar } from '@/components/ModuleSidebar';
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from '@repo/ui/components/ui/sidebar';
 import { Separator } from '@repo/ui/components/ui/separator';
-import { ModuleProvider } from '@/contexts/ModuleContext';
-import { ModuleBreadcrumb } from '@/components/ModuleBreadcrumb';
-import { ModuleContent } from '@/components/ModuleContent';
+import { ModuleProvider } from '@repo/shared-state/contexts';
+import { AppSidebar, ModuleBreadcrumb, ModuleContent } from '@repo/shared-state/components';
 
 export function DashboardPage() {
   const { logout } = useAuthStore();
@@ -39,7 +37,12 @@ export function DashboardPage() {
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <ModuleContent />
+          <ModuleContent>
+              <div className="space-y-4">
+                <h1 className="text-2xl font-bold">Dashboard</h1>
+                <p className="text-muted-foreground">Welcome to your dashboard</p>
+              </div>
+            </ModuleContent>
           
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
           <Card title="Partner Overview" className="p-6">

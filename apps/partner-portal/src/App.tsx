@@ -9,10 +9,10 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { ModulePage } from "./pages/ModulePage";
 import { TaskListPage } from "./pages/TaskListPage";
 import { LeadListPage } from "./pages/LeadListPage";
-import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ProtectedRoute } from "@repo/shared-state/components";
 import { Toaster } from "@repo/ui/ui";
 import "./App.css";
-import { ModuleProvider } from "./contexts/ModuleContext";
+import { ModuleProvider } from "@repo/shared-state/contexts";
 
 function App() {
   return (

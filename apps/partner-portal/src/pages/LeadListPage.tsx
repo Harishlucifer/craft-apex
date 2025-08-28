@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ModuleLayout } from "@/components/ModuleLayout";
+import { ModuleLayout } from "@repo/shared-state/components";
 import { Card } from "@repo/ui/components/ui/card";
 import {
   Table,
@@ -13,7 +13,7 @@ import { Button } from "@repo/ui/components/ui/button";
 import { Input } from "@repo/ui/components/ui/input";
 import { Badge } from "@repo/ui/components/ui/badge";
 import { Search, Plus, Filter } from "lucide-react";
-import { useModule } from "@/contexts/ModuleContext";
+// import { useModule } from "@repo/shared-state/contexts";
 
 // TODO: Replace with actual API call to fetch leads data
 const mockLeads: any[] = [];
@@ -35,7 +35,7 @@ const sourceColors = {
 };
 
 export function LeadListPage() {
-  const { currentModule } = useModule();
+  // const { currentModule } = useModule();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");

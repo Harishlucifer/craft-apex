@@ -1,6 +1,9 @@
-export type LoginType = 'OTP' | 'PASSWORD' | 'PASSWORD+OTP';
+export type LoginType = "OTP" | "PASSWORD" | "PASSWORD+OTP";
 
-export type PlatformType = 'PARTNER_PORTAL' | 'EMPLOYEE_PORTAL' | 'CUSTOMER_PORTAL';
+export type PlatformType =
+  | "PARTNER_PORTAL"
+  | "EMPLOYEE_PORTAL"
+  | "CUSTOMER_PORTAL";
 
 export interface ModulePermissions {
   add: boolean;
@@ -110,6 +113,6 @@ export interface SetupResponse {
 }
 
 export interface SetupApiHeaders {
-  'x-platform': PlatformType;
-  'x-tenant-domain': string;
+  "x-platform": PlatformType;
+  "x-tenant-domain": string;
 }

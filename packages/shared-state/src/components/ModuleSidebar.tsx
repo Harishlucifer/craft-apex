@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useAuthStore } from '@repo/shared-state/stores';
+import { useAuthStore } from '../stores';
 import {
   transformModulesToNavigation,
   transformUserForSidebar,

@@ -11,7 +11,9 @@
     "./stores": "./dist/stores/index.js",
     "./types": "./dist/types.js",
     "./api": "./dist/api/index.js",
-    "./hooks": "./dist/hooks/index.js"
+    "./hooks": "./dist/hooks/index.js",
+    "./contexts": "./dist/contexts/index.js",
+    "./components": "./dist/components/index.js"
   },
   "license": "MIT",
   "scripts": {
@@ -22,6 +24,7 @@
   },
   "peerDependencies": {
     "react": "^18",
+    "react-router-dom": "^6",
     "@tanstack/react-query": "^5",
     "zustand": "^4"
   },

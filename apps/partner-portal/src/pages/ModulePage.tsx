@@ -1,15 +1,15 @@
 import { Navigate } from "react-router-dom";
-import { useModuleAuth } from "@repo/shared-state/hooks";
+// import { useModuleAuth } from "@repo/shared-state/hooks";
 import {
   getModulePermissions,
 } from "@repo/ui/utils/moduleTransformer";
-import { useCurrentModule } from "@/contexts/ModuleContext";
-import { ModuleLayout } from "@/components/ModuleLayout";
+import { useCurrentModule } from "@repo/shared-state/contexts";
+import { ModuleLayout } from "@repo/shared-state/components";
 import { Card } from "@repo/ui/card";
 
 export function ModulePage() {
   const currentModule = useCurrentModule();
-  const { hasAccess } = useModuleAuth();
+  // const { hasAccess } = useModuleAuth();
 
   // If no module found, redirect to dashboard
   if (!currentModule) {

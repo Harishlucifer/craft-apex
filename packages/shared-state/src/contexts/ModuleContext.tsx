@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useAuthStore } from '@repo/shared-state/stores';
+import { useAuthStore } from '../stores';
 import { ModuleData } from '@repo/types/setup';
 
 interface ModuleContextType {

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ModuleLayout } from '@/components/ModuleLayout';
+import { useState } from 'react';
+import { ModuleLayout } from '@repo/shared-state/components';
 import { Card } from '@repo/ui/components/ui/card';
 import {
   Table,

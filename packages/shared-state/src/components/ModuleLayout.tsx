@@ -1,13 +1,13 @@
 import React from 'react';
-import { AppSidebar } from '@/components/ModuleSidebar';
+import { AppSidebar } from './ModuleSidebar';
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from '@repo/ui/components/ui/sidebar';
 import { Separator } from '@repo/ui/components/ui/separator';
-import { ModuleBreadcrumb } from '@/components/ModuleBreadcrumb';
-import { ModuleProvider } from '@/contexts/ModuleContext';
+import { ModuleBreadcrumb } from './ModuleBreadcrumb';
+import { ModuleProvider } from '../contexts';
 
 interface ModuleLayoutProps {
   children: React.ReactNode;
