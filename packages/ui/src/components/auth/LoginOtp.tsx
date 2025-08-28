@@ -35,7 +35,7 @@ export function LoginOtpForm({
     isLoading: false
   });
   
-  const { login, sendOtp, clearError, isLoginLoading } = useAuthStore();
+  const { loginWithOtp, clearError, isLoginLoading } = useAuthStore();
   
   // Clear any existing errors when component mounts or step changes
   useEffect(() => {
@@ -53,7 +53,7 @@ export function LoginOtpForm({
     setLoginState(prev => ({ ...prev, isLoading: true }));
     
     try {
-      await sendOtp(loginState.mobile);
+      await loginWithOtp({ mobile: loginState.mobile });
       toast.success('OTP sent successfully');
       setLoginState(prev => ({ ...prev, step: 'otp', isLoading: false }));
     } catch (error: any) {
@@ -72,7 +72,7 @@ export function LoginOtpForm({
     }
     
     try {
-      await login({
+      await loginWithOtp({
         mobile: loginState.mobile,
         otp: loginState.otp
       });

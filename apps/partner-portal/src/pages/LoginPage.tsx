@@ -1,24 +1,27 @@
-import React, { useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useSetup, usePlatformConfig } from '@repo/shared-state/hooks';
-import { useAuthStore } from '@repo/shared-state/stores';
-import { LoginOtpForm } from '@repo/ui/components/auth';
-import { applyTenantBranding, extractBrandingFromSetup } from '@repo/ui/utils/branding';
-import { toast } from 'sonner';
+import React, { useEffect } from "react";
+import { Navigate } from "react-router-dom";
+import { useSetup, usePlatformConfig } from "@repo/shared-state/hooks";
+import { useAuthStore } from "@repo/shared-state/stores";
+import { LoginForm } from "@repo/ui/components/auth";
+import {
+  applyTenantBranding,
+  extractBrandingFromSetup,
+} from "@repo/ui/utils/branding";
+import { toast } from "sonner";
 
 export const LoginPage: React.FC = () => {
   const { isAuthenticated } = useAuthStore();
-  
+
   // Get tenant domain from URL or environment
   const tenantDomain = window.location.hostname;
-  
+
   const { setupData, isLoading, error } = useSetup({
-    platform: 'PARTNER_PORTAL',
+    platform: "PARTNER_PORTAL",
     tenantDomain,
   });
-  
-  const platformConfig = usePlatformConfig('PARTNER_PORTAL');
-  
+
+  const platformConfig = usePlatformConfig("PARTNER_PORTAL");
+
   // Apply tenant branding when setup data is available
   useEffect(() => {
     if (setupData) {
@@ -26,19 +29,19 @@ export const LoginPage: React.FC = () => {
       applyTenantBranding(branding);
     }
   }, [setupData]);
-  
+
   // Handle setup error with toast notification instead of blocking the page
   useEffect(() => {
     if (error) {
       toast.error(`Setup error: ${error}`);
     }
   }, [error]);
-  
+
   // Redirect to dashboard if already authenticated
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
-  
+
   // Show loading state
   if (isLoading) {
     return (
@@ -50,12 +53,19 @@ export const LoginPage: React.FC = () => {
       </div>
     );
   }
-  
+
+  // Get login type from system configuration
+  const loginType = setupData?.system?.login_type || "PASSWORD";
+
   return (
     <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm md:max-w-3xl">
-        <LoginOtpForm setupData={setupData} platformConfig={platformConfig} />
+        <LoginForm
+          loginType={loginType}
+          setupData={setupData}
+          platformConfig={platformConfig}
+        />
       </div>
     </div>
   );
-}
+};

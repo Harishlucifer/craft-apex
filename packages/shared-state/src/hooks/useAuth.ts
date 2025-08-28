@@ -1,9 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuthStore } from '../stores/auth';
-import { PlatformType } from '@repo/types/setup';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuthStore } from "../stores/auth";
+import { PlatformType } from "@repo/types/setup";
 
 interface LoginCredentials {
-  mobile: string;
+  email?: string;
+  mobile?: string;
   password?: string;
   otp?: string;
 }
@@ -28,38 +29,53 @@ export const useAuth = (options?: UseAuthOptions) => {
     error,
     platform,
     tenantDomain,
-    login: loginAction,
+    loginWithOtp: loginWithOtpAction,
+    loginWithPassword: loginWithPasswordAction,
     logout: logoutAction,
-    sendOtp: sendOtpAction,
     clearError,
   } = useAuthStore();
 
-  // Login mutation with React Query
-  const loginMutation = useMutation({
+  // Login with OTP mutation (handles both sending OTP and verifying OTP)
+  const loginWithOtpMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
-      await loginAction(credentials);
+      await loginWithOtpAction({
+        mobile: credentials.mobile!,
+        otp: credentials.otp,
+      });
       return useAuthStore.getState().user;
     },
     onSuccess: (user) => {
       // Invalidate and refetch user-related queries
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      queryClient.invalidateQueries({ queryKey: ['setup'] });
-      
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      queryClient.invalidateQueries({ queryKey: ["setup"] });
+
       // Set user data in cache
-      queryClient.setQueryData(['user', user?.id], user);
+      queryClient.setQueryData(["user", user?.id], user);
     },
     onError: (error) => {
-      console.error('Login failed:', error);
+      console.error("Login with OTP failed:", error);
     },
   });
 
-  // Send OTP mutation
-  const sendOtpMutation = useMutation({
-    mutationFn: async (mobile: string) => {
-      await sendOtpAction(mobile);
+  // Login with password mutation
+  const loginWithPasswordMutation = useMutation({
+    mutationFn: async (credentials: LoginCredentials) => {
+      await loginWithPasswordAction({
+        email: credentials.email!,
+        password: credentials.password!,
+      });
+      return useAuthStore.getState().user;
+    },
+    onSuccess: (user) => {
+      // Invalidate and refetch user-related queries
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      queryClient.invalidateQueries({ queryKey: ["setup"] });
+
+      // Set user data in cache
+      queryClient.setQueryData(["user", user?.id], user);
     },
     onError: (error) => {
-      console.error('Send OTP failed:', error);
+      console.error("Login with password failed:", error);
     },
   });
 
@@ -71,7 +87,7 @@ export const useAuth = (options?: UseAuthOptions) => {
     onSuccess: () => {
       // Clear all cached data on logout
       queryClient.clear();
-      
+
       // Optionally, you can be more selective:
       // queryClient.removeQueries({ queryKey: ['user'] });
       // queryClient.removeQueries({ queryKey: ['setup'] });
@@ -80,20 +96,20 @@ export const useAuth = (options?: UseAuthOptions) => {
 
   // Query for current user (useful for refetching user data)
   const userQuery = useQuery({
-    queryKey: ['user', user?.id],
-    queryFn: () => user,
+    queryKey: ["user", user?.id],
+    queryFn: () => Promise.resolve(user),
     enabled: !!user && isAuthenticated,
     staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 30 * 60 * 1000,    // 30 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
   });
 
   // Auto-refresh setup data periodically
   const setupQuery = useQuery({
-    queryKey: ['setup', platform, tenantDomain],
-    queryFn: () => setupData,
+    queryKey: ["setup", platform, tenantDomain],
+    queryFn: () => Promise.resolve(setupData),
     enabled: !!setupData && isAuthenticated,
     staleTime: 15 * 60 * 1000, // 15 minutes
-    gcTime: 60 * 60 * 1000,    // 1 hour
+    gcTime: 60 * 60 * 1000, // 1 hour
     refetchInterval: 30 * 60 * 1000, // Refetch every 30 minutes
   });
 
@@ -103,26 +119,33 @@ export const useAuth = (options?: UseAuthOptions) => {
     isAuthenticated,
     setupData: setupQuery.data || setupData,
     isLoading: isLoading || userQuery.isLoading || setupQuery.isLoading,
-    isLoginLoading: loginMutation.isPending || isLoginLoading,
-    isSendingOtp: sendOtpMutation.isPending,
+    isLoginLoading:
+      loginWithOtpMutation.isPending ||
+      loginWithPasswordMutation.isPending ||
+      isLoginLoading,
+    isSendingOtp: loginWithOtpMutation.isPending,
     isLoggingOut: logoutMutation.isPending,
     error,
     platform,
     tenantDomain,
 
     // Actions
-    login: loginMutation.mutateAsync,
     logout: logoutMutation.mutateAsync,
-    sendOtp: sendOtpMutation.mutateAsync,
+    loginWithOtp: loginWithOtpMutation.mutateAsync,
+    loginWithPassword: loginWithPasswordAction,
     clearError,
 
     // Query controls
     refetchUser: userQuery.refetch,
     refetchSetup: setupQuery.refetch,
-    
+
     // Status flags
-    isError: loginMutation.isError || sendOtpMutation.isError || userQuery.isError,
-    isSuccess: loginMutation.isSuccess,
+    isError:
+      loginWithOtpMutation.isError ||
+      loginWithPasswordMutation.isError ||
+      userQuery.isError,
+    isSuccess:
+      loginWithOtpMutation.isSuccess || loginWithPasswordMutation.isSuccess,
   };
 };
 
@@ -131,12 +154,12 @@ export const useAuth = (options?: UseAuthOptions) => {
  */
 export const useAuthStatus = () => {
   const { isAuthenticated, user, isLoading } = useAuthStore();
-  
+
   return {
     isAuthenticated,
     user,
     isLoading,
-    isGuest: !isAuthenticated || user?.user_type === 'GUEST',
+    isGuest: !isAuthenticated || user?.user_type === "GUEST",
   };
 };
 
@@ -145,22 +168,23 @@ export const useAuthStatus = () => {
  */
 export const useModuleAuth = (moduleId?: string) => {
   const { setupData, user, isAuthenticated } = useAuthStore();
-  
+
   const hasModuleAccess = (moduleId: string) => {
     if (!isAuthenticated || !setupData?.module) return false;
-    
-    return setupData.module.some(module => 
-      module.module_id === moduleId && module.display_mode !== 'HIDDEN'
+
+    return setupData.module.some(
+      (module) =>
+        module.module_id === moduleId && module.display_mode !== "HIDDEN"
     );
   };
-  
+
   const getUserPermissions = (moduleId: string) => {
     if (!setupData?.module) return null;
-    
-    const module = setupData.module.find(m => m.module_id === moduleId);
+
+    const module = setupData.module.find((m) => m.module_id === moduleId);
     return module?.allowed_permission || null;
   };
-  
+
   return {
     hasAccess: moduleId ? hasModuleAccess(moduleId) : true,
     permissions: moduleId ? getUserPermissions(moduleId) : null,
@@ -174,16 +198,16 @@ export const useModuleAuth = (moduleId?: string) => {
 export const useSession = () => {
   const { logout } = useAuth();
   const queryClient = useQueryClient();
-  
+
   const refreshSession = async () => {
     // Invalidate all queries to force refetch
     await queryClient.invalidateQueries();
   };
-  
+
   const clearSession = async () => {
     await logout();
   };
-  
+
   return {
     refreshSession,
     clearSession,

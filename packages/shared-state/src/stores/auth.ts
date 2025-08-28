@@ -26,10 +26,10 @@ interface AuthStore {
   setLoading: (loading: boolean) => void;
   setLoginLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  login: (credentials: { mobile: string; password?: string; otp?: string }) => Promise<void>;
+  loginWithOtp: (credentials: { mobile: string; otp?: string }) => Promise<void>;
+  loginWithPassword: (credentials: { email: string; password: string }) => Promise<void>;
   logout: () => void;
   fetchSetup: (platform: PlatformType, tenantDomain: string) => Promise<void>;
-  sendOtp: (mobile: string) => Promise<void>;
   clearError: () => void;
   setPlatform: (platform: PlatformType) => void;
   setTenantDomain: (domain: string) => void;
@@ -111,26 +111,7 @@ export const useAuthStore = create<AuthStore>()(
       setLoading(false);
     }
   },
-  
-  sendOtp: async (mobile: string) => {
-    const { platform, tenantDomain, setError } = get();
-    
-    if (!platform || !tenantDomain) {
-      throw new Error('Platform or tenant domain not set');
-    }
-    
-    try {
-      setError(null);
-      
-      await authApiService.sendOtp(mobile, platform, tenantDomain);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to send OTP';
-      setError(errorMessage);
-      throw error;
-    }
-  },
-  
-  login: async (credentials: { mobile: string; password?: string; otp?: string }) => {
+  loginWithOtp: async (credentials: { mobile: string; otp?: string }) => {
     const { platform, tenantDomain, setError, setUser, setSetupData, setLoginLoading } = get();
     
     if (!platform || !tenantDomain) {
@@ -143,7 +124,7 @@ export const useAuthStore = create<AuthStore>()(
       setLoginLoading(true);
       setError(null);
       
-      const response = await authApiService.login(credentials, platform, tenantDomain);
+      const response = await authApiService.loginWithOtp(credentials, platform, tenantDomain);
       
       if (response.status === 1 && response.data) {
         // Store complete setup data including modules, system config, and tenant config
@@ -155,14 +136,43 @@ export const useAuthStore = create<AuthStore>()(
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
-      setError(errorMessage);
       // Don't modify authentication state on error to prevent navigation loops
       throw error;
     } finally {
       setLoginLoading(false);
     }
   },
-  
+  loginWithPassword: async (credentials: { email: string; password: string }) => {
+    const { platform, tenantDomain, setError, setUser, setSetupData, setLoginLoading } = get();
+    
+    if (!platform || !tenantDomain) {
+      const errorMessage = 'Platform or tenant domain not set';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+    
+    try {
+      setLoginLoading(true);
+      setError(null);
+      
+      const response = await authApiService.loginWithPassword(credentials, platform, tenantDomain);
+      
+      if (response.status === 1 && response.data) {
+        // Store complete setup data including modules, system config, and tenant config
+        setSetupData(response.data);
+        // Set user data and mark as authenticated
+        setUser(response.data.user);
+      } else {
+        throw new Error('Login failed');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Login failed';
+      // Don't modify authentication state on error to prevent navigation loops
+      throw error;
+    } finally {
+      setLoginLoading(false);
+    }
+  },
   logout: () => {
     set({
       isAuthenticated: false,
