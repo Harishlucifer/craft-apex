@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { ModuleLayout } from "@repo/shared-state/components";
 import { Card } from "@repo/ui/components/ui/card";
 import {
@@ -17,7 +18,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@repo/ui/ui";
+} from "@repo/ui/components/ui/dropdown-menu";
 import { Search, Plus, Filter, Loader2, MoreHorizontal } from "lucide-react";
 import { useCurrentModule } from "@repo/shared-state/contexts";
 import { leadsApiService, LeadApplication, LeadsApiResponse } from "@repo/shared-state/api";
@@ -46,15 +47,19 @@ const sourceColors: Record<string, string> = {
 
 export function LeadListPage() {
   const currentModule = useCurrentModule();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [journeyTypeFilter, setJourneyTypeFilter] = useState("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
+  // Initialize state from URL params
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "");
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || "all");
+  const [journeyTypeFilter, setJourneyTypeFilter] = useState(searchParams.get('journey_type') || "all");
   const [leads, setLeads] = useState<LeadApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
-    page: 1,
-    size: 10,
+    page: parseInt(searchParams.get('page') || '1'),
+    size: parseInt(searchParams.get('size') || '10'),
     total: 0
   });
   const [applicationStatuses, setApplicationStatuses] = useState<Record<string, string>>({});
@@ -106,10 +111,16 @@ export function LeadListPage() {
     fetchLeads(1);
   }, []); // Only run on mount
 
+  // Watch for pagination changes
+  useEffect(() => {
+    fetchLeads(pagination.page);
+  }, [pagination.page]);
+
   // Handle filter changes
   useEffect(() => {
     if (statusFilter !== "all" || journeyTypeFilter !== "all") {
       fetchLeads(1);
+      updateURLParams({ status: statusFilter, journey_type: journeyTypeFilter, page: '1' });
     }
   }, [statusFilter, journeyTypeFilter]);
 
@@ -125,7 +136,9 @@ export function LeadListPage() {
   }, [searchTerm]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+    const value = e.target.value;
+    setSearchTerm(value);
+    updateURLParams({ search: value, page: '1' });
   };
 
   const handleRetry = () => {
@@ -135,6 +148,20 @@ export function LeadListPage() {
 
   const handlePageChange = (newPage: number) => {
     setPagination(prev => ({ ...prev, page: newPage }));
+    updateURLParams({ page: newPage.toString() });
+  };
+
+  // Update URL parameters
+  const updateURLParams = (params: Record<string, string>) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    Object.entries(params).forEach(([key, value]) => {
+      if (value && value !== 'all' && value !== '') {
+        newSearchParams.set(key, value);
+      } else {
+        newSearchParams.delete(key);
+      }
+    });
+    setSearchParams(newSearchParams);
   };
 
   const uniqueStatuses = Object.keys(applicationStatuses);
@@ -294,7 +321,7 @@ export function LeadListPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate(`/lead/${lead.application_id}`)}>
                               View
                             </DropdownMenuItem>
                             <DropdownMenuItem>

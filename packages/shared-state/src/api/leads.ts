@@ -167,6 +167,14 @@ export class LeadsApiService extends BaseApiService {
     // BaseApiService returns the raw API response, not wrapped in ApiResponse
     return response as unknown as LeadsApiResponse;
   }
+
+  async fetchLead(id: string): Promise<LeadApplication> {
+    const response = await this.get<LeadApplication>(
+      `/alpha/v1/application/${id}`
+    );
+    
+    return response as unknown as LeadApplication;
+  }
 }
 
 export const leadsApiService = LeadsApiService.getInstance();

@@ -9,6 +9,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { ModulePage } from "./pages/ModulePage";
 import { TaskListPage } from "./pages/TaskListPage";
 import { LeadListPage } from "./pages/LeadListPage";
+import { LeadDetailPage } from "./pages/LeadDetailPage";
 import { ProtectedRoute } from "@repo/shared-state/components";
 import { Toaster } from "@repo/ui/ui";
 import "./App.css";
@@ -51,6 +52,16 @@ function App() {
             <ModuleProvider>
               <ProtectedRoute requireModuleAccess={true}>
                 <LeadListPage />
+              </ProtectedRoute>
+            </ModuleProvider>
+          }
+        />
+        <Route
+          path="/lead/:id"
+          element={
+            <ModuleProvider>
+              <ProtectedRoute requireModuleAccess={true}>
+                <LeadDetailPage />
               </ProtectedRoute>
             </ModuleProvider>
           }
