@@ -13,7 +13,8 @@
     "./api": "./dist/api/index.js",
     "./hooks": "./dist/hooks/index.js",
     "./contexts": "./dist/contexts/index.js",
-    "./components": "./dist/components/index.js"
+    "./components": "./dist/components/index.js",
+    "./config": "./dist/config/index.js"
   },
   "license": "MIT",
   "scripts": {

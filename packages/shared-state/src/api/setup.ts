@@ -1,6 +1,5 @@
 import { SetupResponse, SetupApiHeaders, PlatformType } from '@repo/types/setup';
-
-const SETUP_BASE_URL = 'https://apx-lender.lendingstack.in/alpha/v1';
+import { getApiEndpoint } from '../config';
 
 export class SetupApiService {
   private static instance: SetupApiService;
@@ -22,7 +21,7 @@ export class SetupApiService {
     };
     
     try {
-      const response = await fetch(`${SETUP_BASE_URL}/setup`, {
+      const response = await fetch(`${getApiEndpoint()}/alpha/v1/setup`, {
         method: 'POST',
         headers,
         body: JSON.stringify({}),

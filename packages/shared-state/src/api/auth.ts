@@ -1,6 +1,5 @@
 import { PlatformType } from "@repo/types/setup";
-
-const AUTH_BASE_URL = "https://apx-lender.lendingstack.in";
+import { getApiEndpoint } from "../config";
 
 export interface LoginCredentials {
   mobile: string;
@@ -48,7 +47,7 @@ export class AuthApiService {
     const headers = this.getAuthHeaders(platform, tenantDomain);
 
     try {
-      const response = await fetch(`${AUTH_BASE_URL}/alpha/v2/auth/login-with-mfa`, {
+      const response = await fetch(`${getApiEndpoint()}/alpha/v2/auth/login-with-mfa`, {
         method: "POST",
         headers,
         body: JSON.stringify(requestPayload),
@@ -91,7 +90,7 @@ export class AuthApiService {
     const headers = this.getAuthHeaders(platform, tenantDomain);
 
     try {
-      const response = await fetch(`${AUTH_BASE_URL}/alpha/v2/auth/login-with-otp`, {
+      const response = await fetch(`${getApiEndpoint()}/alpha/v2/auth/login-with-otp`, {
         method: "POST",
         headers,
         body: JSON.stringify(requestPayload),
@@ -136,7 +135,7 @@ export class AuthApiService {
 
     try {
       const response = await fetch(
-        `${AUTH_BASE_URL}/alpha/v2/auth/login-with-password`,
+        `${getApiEndpoint()}/alpha/v2/auth/login-with-password`,
         {
           method: "POST",
           headers,
