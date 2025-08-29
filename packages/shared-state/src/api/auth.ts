@@ -166,12 +166,39 @@ export class AuthApiService {
     console.log("Logout called - implement when API endpoint is available");
   }
 
-  async refreshToken(): Promise<any> {
-    // TODO: Implement token refresh when endpoint is available
-    // For now, this is a placeholder for future implementation
-    console.log(
-      "Token refresh called - implement when API endpoint is available"
-    );
+  async refreshToken(
+    refreshToken: string,
+    platform: PlatformType,
+    tenantDomain: string
+  ): Promise<LoginResponse> {
+    const headers = this.getAuthHeaders(platform, tenantDomain);
+
+    try {
+      const response = await fetch(`${getApiEndpoint()}/alpha/v1/auth/refresh`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+
+      const data = await response.json();
+      console.log("Refresh token response :: ", data);
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            `Refresh token API failed: ${response.status} ${response.statusText}`
+        );
+      }
+
+      if (data.status !== 1) {
+        throw new Error(data.error || "Failed to refresh token");
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Refresh token API Error:", error);
+      throw error;
+    }
   }
 }
 

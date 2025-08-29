@@ -3,18 +3,16 @@ import { PlatformType } from '@repo/types/setup';
 import { useAuthStore } from '../stores/auth';
 
 interface UseSetupOptions {
-  platform: PlatformType;
-  tenantDomain: string;
   enabled?: boolean;
 }
 
-export const useSetup = ({ platform, tenantDomain, enabled = true }: UseSetupOptions) => {
-  const { fetchSetup, setupData, isLoading, error } = useAuthStore();
+export const useSetup = ({ enabled = true }: UseSetupOptions = {}) => {
+  const { fetchSetup, setupData, isLoading, error, platform, tenantDomain } = useAuthStore();
 
   const query = useQuery({
     queryKey: ['setup', platform, tenantDomain],
     queryFn: async () => {
-      await fetchSetup(platform, tenantDomain);
+      await fetchSetup(platform!, tenantDomain!);
       return useAuthStore.getState().setupData;
     },
     enabled: enabled && !!platform && !!tenantDomain,

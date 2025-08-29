@@ -1,42 +1,28 @@
 import { SetupResponse, SetupApiHeaders, PlatformType } from '@repo/types/setup';
-import { getApiEndpoint } from '../config';
+import { BaseApiService } from './base';
 
-export class SetupApiService {
-  private static instance: SetupApiService;
+export class SetupApiService extends BaseApiService {
+  private static setupInstance: SetupApiService;
   
-  private constructor() {}
-  
-  public static getInstance(): SetupApiService {
-    if (!SetupApiService.instance) {
-      SetupApiService.instance = new SetupApiService();
-    }
-    return SetupApiService.instance;
+  private constructor() {
+    super();
   }
   
-  async fetchSetup(platform: PlatformType, tenantDomain: string): Promise<SetupResponse> {
-    const headers: SetupApiHeaders & Record<string, string> = {
-      'x-platform': platform,
-      'x-tenant-domain': tenantDomain,
-      'Content-Type': 'application/json',
-    };
-    
-    try {
-      const response = await fetch(`${getApiEndpoint()}/alpha/v1/setup`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({}),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Setup API failed: ${response.status} ${response.statusText}`);
-      }
-      
-      const data: SetupResponse = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Setup API Error:', error);
-      throw error;
+  public static getInstance(): SetupApiService {
+    if (!SetupApiService.setupInstance) {
+      SetupApiService.setupInstance = new SetupApiService();
     }
+    return SetupApiService.setupInstance;
+  }
+  
+  async fetchSetup(): Promise<SetupResponse> {
+    // Platform and tenant domain headers are automatically added by BaseApiService
+    const response = await this.post<SetupResponse>(
+      '/alpha/v1/setup',
+      {}
+    );
+    
+    return response as unknown as SetupResponse;
   }
   
 

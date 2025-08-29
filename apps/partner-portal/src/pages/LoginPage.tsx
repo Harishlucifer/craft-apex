@@ -12,13 +12,7 @@ import { toast } from "sonner";
 export const LoginPage: React.FC = () => {
   const { isAuthenticated } = useAuthStore();
 
-  // Get tenant domain from URL or environment
-  const tenantDomain = window.location.hostname;
-
-  const { setupData, isLoading, error } = useSetup({
-    platform: "PARTNER_PORTAL",
-    tenantDomain,
-  });
+  const { setupData, isLoading, error } = useSetup();
 
   const platformConfig = usePlatformConfig("PARTNER_PORTAL");
 
