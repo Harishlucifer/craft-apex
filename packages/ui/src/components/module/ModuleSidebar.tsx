@@ -7,6 +7,7 @@ import {
 
 import { NavMain } from "@repo/ui/components/ui/nav-main"
 import { NavUser } from "@repo/ui/components/ui/nav-user"
+import { NavLogo } from "@repo/ui/components/ui/nav-logo"
 import {
   Sidebar,
   SidebarContent,
@@ -31,6 +32,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }, [user]);
   
   // Get tenant branding data
+  const tenantIcon = setupData?.tenant?.TENANT_ICON;
   const tenantLogo = setupData?.tenant?.TENANT_LOGO;
   const tenantName = setupData?.tenant?.TENANT_NAME;
   
@@ -40,15 +42,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <div className="flex items-center justify-center">
-          {tenantLogo && (
-            <img 
-              src={tenantLogo} 
-              alt={tenantName || 'Tenant Logo'} 
-              className="w-full h-14 px-3 rounded-sm object-contain"
-            />
-          )}
-        </div>
+        <NavLogo 
+          tenantLogo={tenantLogo}
+          tenantIcon={tenantIcon}
+          tenantName={tenantName}
+        />
       </SidebarHeader>
       <SidebarContent>
         {mainNavItems.length > 0 && <NavMain items={mainNavItems} />}
