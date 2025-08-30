@@ -4,7 +4,7 @@ import {
   getModulePermissions,
 } from "@repo/ui/utils/moduleTransformer";
 import { useCurrentModule } from "@repo/shared-state/contexts";
-import { ModuleLayout } from "@repo/shared-state/components";
+import { ModuleLayout } from "@repo/ui/module";
 import { Card } from "@repo/ui/card";
 
 export function ModulePage() {

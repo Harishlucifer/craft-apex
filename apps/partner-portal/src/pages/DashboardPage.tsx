@@ -7,7 +7,7 @@ import {
 } from '@repo/ui/components/ui/sidebar';
 import { Separator } from '@repo/ui/components/ui/separator';
 import { ModuleProvider } from '@repo/shared-state/contexts';
-import { AppSidebar, ModuleBreadcrumb, ModuleContent } from '@repo/shared-state/components';
+import { AppSidebar, ModuleBreadcrumb, ModuleContent } from '@repo/ui/module';
 
 export function DashboardPage() {
   const { logout } = useAuthStore();

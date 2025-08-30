@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useBreadcrumbs } from '../contexts';
+import { useBreadcrumbs } from '@repo/shared-state/contexts';
 import {
   Breadcrumb,
   BreadcrumbItem,

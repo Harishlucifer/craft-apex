@@ -7,7 +7,7 @@ import {
 } from '@repo/ui/components/ui/sidebar';
 import { Separator } from '@repo/ui/components/ui/separator';
 import { ModuleBreadcrumb } from './ModuleBreadcrumb';
-import { ModuleProvider } from '../contexts';
+import { ModuleProvider } from '@repo/shared-state/contexts';
 
 interface ModuleLayoutProps {
   children: React.ReactNode;

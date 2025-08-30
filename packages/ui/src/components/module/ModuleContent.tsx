@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCurrentModule } from '../contexts';
+import { useCurrentModule } from '@repo/shared-state/contexts';
 
 interface ModuleContentProps {
   children: React.ReactNode;
