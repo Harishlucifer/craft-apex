@@ -1,0 +1,1432 @@
+{
+  "data": {
+    "id": "171032766537068928",
+    "name": "PARTNER FULLFLEDGED FLOW",
+    "description": "",
+    "start_date": "2024-11-12",
+    "end_date": "",
+    "workflow_type": "PARTNER_ONBOARDING",
+    "allocation_rule_id": "173582079968513240",
+    "is_default": 1,
+    "configuration": {
+      "utilities": [
+        {
+          "icon": "ri-phone-line",
+          "name": "Disposition",
+          "ui_component": "CALL_DISPOSITION",
+          "enable_display": true
+        },
+        {
+          "icon": "ri-database-line",
+          "name": "Lead Status",
+          "ui_component": "LEAD_STATUS",
+          "enable_display": true
+        },
+        {
+          "icon": "ri-gallery-line",
+          "name": "Marketing Assets",
+          "ui_component": "MARKETING_MEDIA",
+          "enable_display": true
+        },
+        {
+          "icon": "ri-task-line",
+          "name": "Disposition Streams",
+          "is_mobile": true,
+          "ui_component": "DISPOSITION_STREAMS",
+          "enable_display": true
+        },
+        {
+          "icon": "ri-task-line",
+          "name": "Add Task",
+          "ui_component": "ADD_TASK",
+          "enable_display": false
+        },
+        {
+          "icon": "ri-calculator-line",
+          "name": "EMI calculator",
+          "ui_component": "EMI_CALCULATOR",
+          "enable_display": false
+        },
+        {
+          "icon": "ri-map-pin-5-line",
+          "name": "Pincode Eligibility check",
+          "ui_component": "PINCODE_ELIGIBILITY_CHECK",
+          "enable_display": false
+        },
+        {
+          "icon": "ri-calculator-line",
+          "name": "Affordability calculator",
+          "ui_component": "AFFORDABILITY_CALCULATOR",
+          "enable_display": true
+        },
+        {
+          "icon": "ri-links-line",
+          "name": "Shareable Link",
+          "ui_component": "SHAREABLE_LINKS",
+          "enable_display": true
+        },
+        {
+          "icon": "ri-road-map-line",
+          "name": "Branch Locator",
+          "ui_component": "BRANCH_LOCATOR",
+          "enable_display": false
+        }
+      ],
+      "utility_mode": "GLOBAL"
+    },
+    "mode": "TESTING",
+    "status": 1,
+    "created_at": "2025-08-15T17:07:42+05:30",
+    "updated_at": "2025-08-15T17:07:42+05:30",
+    "stages": [
+      {
+        "id": "171032766552897340",
+        "name": "Basic Details",
+        "description": "Basic Details",
+        "sequence": 1,
+        "allocation_rule_id": "170201570112054589",
+        "validation_rule_id": "0",
+        "configuration": null,
+        "workflow_id": "171032766537068928",
+        "status": 1,
+        "task_start_date": "2025-08-06T17:45:33+05:30",
+        "task_end_date": "2025-08-06T17:45:33+05:30",
+        "task_status": "2",
+        "steps": [
+          {
+            "id": "174765010630866898",
+            "name": "Basic details",
+            "description": "",
+            "configuration": {
+              "form_builder": {
+                "fields": [
+                  {
+                    "name": "application.apply_capacity",
+                    "label": "Applying as",
+                    "source": {
+                      "api": "/alpha/v2/lookup/group?group_code=APPLY_CAPACITY",
+                      "labelKey": "lu_name",
+                      "valueKey": "lu_key"
+                    },
+                    "fieldType": "dropdown",
+                    "validation": {
+                      "required": true
+                    }
+                  },
+                  {
+                    "name": "application.status",
+                    "label": "Apply Capacity",
+                    "hidden": true,
+                    "fieldType": "hidden",
+                    "dependentOn": [],
+                    "defaultValue": 1
+                  },
+                  {
+                    "name": "application.entity_type",
+                    "label": "Business Type",
+                    "source": {
+                      "api": "/alpha/v2/lookup/group?group_code=ENTITY_TYPE",
+                      "labelKey": "lu_name",
+                      "valueKey": "lu_key"
+                    },
+                    "fieldType": "dropdown",
+                    "dependentOn": [],
+                    "conditionalOn": {
+                      "field": "application.apply_capacity",
+                      "values": [
+                        "ENTITY"
+                      ],
+                      "conditionalValueKey": "lu_key"
+                    }
+                  },
+                  {
+                    "name": "application.name",
+                    "label": "Company Name",
+                    "fieldType": "text",
+                    "validation": {
+                      "conditionalOn": {
+                        "field": "application.apply_capacity",
+                        "values": [
+                          "ENTITY"
+                        ],
+                        "conditionalValueKey": "lu_key"
+                      }
+                    },
+                    "placeholder": "Enter business name",
+                    "conditionalOn": {
+                      "field": "application.apply_capacity",
+                      "values": [
+                        "ENTITY"
+                      ],
+                      "conditionalValueKey": "lu_key"
+                    }
+                  },
+                  {
+                    "name": "application.contact_person",
+                    "label": "Contact Person Name",
+                    "fieldType": "text",
+                    "validation": {
+                      "message": "Name must be between 3 and 30 characters",
+                      "required": true,
+                      "maxLength": 30,
+                      "minLength": 3
+                    },
+                    "placeholder": "Enter contact name",
+                    "conditionalOn": {
+                      "field": "application.apply_capacity",
+                      "values": [
+                        "ENTITY"
+                      ],
+                      "conditionalValueKey": "lu_key"
+                    }
+                  },
+                  {
+                    "name": "application.contact_person",
+                    "label": "Name",
+                    "autoFill": [
+                      {
+                        "mappings": [
+                          {
+                            "type": "value",
+                            "sourceField": "application.contact_person",
+                            "targetField": "application.name"
+                          }
+                        ],
+                        "condition": {
+                          "field": "application.apply_capacity",
+                          "values": [
+                            "PERSON"
+                          ]
+                        }
+                      }
+                    ],
+                    "fieldType": "text",
+                    "validation": {
+                      "message": "Name must be between 3 and 30 characters",
+                      "required": true,
+                      "maxLength": 30,
+                      "minLength": 3
+                    },
+                    "placeholder": "Enter name",
+                    "conditionalOn": {
+                      "field": "application.apply_capacity",
+                      "values": [
+                        "PERSON"
+                      ],
+                      "conditionalValueKey": "lu_key"
+                    }
+                  },
+                  {
+                    "name": "application.mobile",
+                    "label": "Mobile",
+                    "fieldType": "text",
+                    "validation": {
+                      "regex": {
+                        "message": "Enter valid mobile number",
+                        "pattern": "^\\d{10}$"
+                      },
+                      "required": true,
+                      "maxLength": 10,
+                      "minLength": 10
+                    },
+                    "placeholder": "Enter mobile number"
+                  },
+                  {
+                    "name": "application.email",
+                    "label": "Email",
+                    "fieldType": "text",
+                    "validation": {
+                      "regex": {
+                        "message": "Please enter a valid email address",
+                        "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+                      },
+                      "required": true
+                    },
+                    "placeholder": "Enter your email"
+                  },
+                  {
+                    "name": "application.onboarding_territory_id",
+                    "label": "Onboarding Territory",
+                    "source": {
+                      "api": "/alpha/v1/user/least/territory?status=3",
+                      "labelKey": "name",
+                      "valueKey": "id"
+                    },
+                    "fieldType": "dropdown",
+                    "validation": {
+                      "required": false
+                    }
+                  },
+                  {
+                    "name": "relationship_managers[0]",
+                    "label": "Relationship manager",
+                    "source": {
+                      "api": "/alpha/v2/master/employees?page=1&keyword={{relationship_managers[0]}}",
+                      "labelKey": "name",
+                      "valueKey": "user_id"
+                    },
+                    "fieldType": "dropdown-search",
+                    "dependentOn": [
+                      "relationship_managers[0]"
+                    ]
+                  }
+                ],
+                "formStyle": "row mx-auto"
+              }
+            },
+            "step_type": "MANUAL",
+            "sequence": 1,
+            "ui_component": "FORM_BUILDER",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "171032766552897340",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": "175448253347902244",
+            "task_start_date": "2025-08-06T17:45:33+05:30",
+            "task_end_date": "2025-08-06T17:45:33+05:30",
+            "task_status": "2",
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          }
+        ]
+      },
+      {
+        "id": "171032766584319114",
+        "name": "Data Capture",
+        "description": "Data capture",
+        "sequence": 2,
+        "allocation_rule_id": "170201570112054589",
+        "validation_rule_id": "0",
+        "configuration": {
+          "ask": true
+        },
+        "workflow_id": "171032766537068928",
+        "status": 1,
+        "task_start_date": "2025-08-06T17:45:34+05:30",
+        "task_end_date": null,
+        "task_status": "1",
+        "steps": [
+          {
+            "id": "171041253238387119",
+            "name": "Individual",
+            "description": "Individual",
+            "configuration": null,
+            "step_type": "MANUAL",
+            "sequence": 3,
+            "ui_component": "INDIVIDUAL",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "170201570112051301",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": null,
+            "stage_id": "171032766584319114",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": "175448253355443687",
+            "task_start_date": "2025-08-06T17:45:34+05:30",
+            "task_end_date": null,
+            "task_status": "1",
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          },
+          {
+            "id": "174057549239373328",
+            "name": "Financial Details",
+            "description": "Individual Financial Details",
+            "configuration": {
+              "form_builder": {
+                "sections": [
+                  {
+                    "title": "Most Recent Financial Year",
+                    "fields": [
+                      {
+                        "name": "application.data.financial_details.recent.year",
+                        "label": "Year",
+                        "hidden": false,
+                        "disabled": true,
+                        "fieldType": "text",
+                        "validation": {
+                          "message": "Year is required",
+                          "required": true
+                        },
+                        "defaultValue": "FY-2023-24"
+                      },
+                      {
+                        "name": "application.data.financial_details.recent.annual_income",
+                        "label": "Annual Income",
+                        "dataType": "int",
+                        "fieldType": "amount",
+                        "validation": {
+                          "message": "annual income is required",
+                          "required": true
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "application.data.financial_details.recent.interest",
+                        "label": "Depreciation / Interest",
+                        "dataType": "int",
+                        "fieldType": "amount",
+                        "validation": {
+                          "message": "Interest is required",
+                          "required": false
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "application.data.financial_details.recent.other_expenses",
+                        "label": "Other Expenses",
+                        "dataType": "int",
+                        "fieldType": "amount",
+                        "validation": {
+                          "message": "Expenses is required",
+                          "required": false
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "application.data.financial_details.recent.net_income",
+                        "label": "Net Income",
+                        "dataType": "int",
+                        "fieldType": "amount",
+                        "validation": {
+                          "message": "net income is required",
+                          "required": true
+                        },
+                        "defaultValue": ""
+                      }
+                    ]
+                  },
+                  {
+                    "title": "Previous Financial Year",
+                    "fields": [
+                      {
+                        "name": "application.data.financial_details.previous.year",
+                        "label": "Year",
+                        "hidden": false,
+                        "disabled": true,
+                        "fieldType": "text",
+                        "validation": {
+                          "message": "Year is required",
+                          "required": true
+                        },
+                        "defaultValue": "FY-2022-23"
+                      },
+                      {
+                        "name": "application.data.financial_details.previous.annual_income",
+                        "label": "Annual Income",
+                        "dataType": "int",
+                        "fieldType": "amount",
+                        "validation": {
+                          "message": "annual income is required",
+                          "required": true
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "application.data.financial_details.previous.interest",
+                        "label": "Depreciation / Interest",
+                        "dataType": "int",
+                        "fieldType": "amount",
+                        "validation": {
+                          "message": "Interest is required",
+                          "required": false
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "application.data.financial_details.previous.other_expenses",
+                        "label": "Other Expenses",
+                        "dataType": "int",
+                        "fieldType": "amount",
+                        "validation": {
+                          "message": "Expenses is required",
+                          "required": false
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "application.data.financial_details.previous.net_income",
+                        "label": "Net Income",
+                        "dataType": "int",
+                        "fieldType": "amount",
+                        "validation": {
+                          "message": "net income is required",
+                          "required": true
+                        },
+                        "defaultValue": ""
+                      }
+                    ]
+                  },
+                  {
+                    "title": "Two Years Ago",
+                    "fields": [
+                      {
+                        "name": "application.data.financial_details.two_years_ago.year",
+                        "label": "Year",
+                        "hidden": false,
+                        "disabled": true,
+                        "fieldType": "text",
+                        "validation": {
+                          "message": "Year is required",
+                          "required": true
+                        },
+                        "defaultValue": "FY-2021-22"
+                      },
+                      {
+                        "name": "application.data.financial_details.two_years_ago.annual_income",
+                        "label": "Annual Income",
+                        "dataType": "int",
+                        "fieldType": "amount",
+                        "validation": {
+                          "message": "annual income is required",
+                          "required": true
+                        },
+                        "defaultValue": "FY-2023-24"
+                      },
+                      {
+                        "name": "application.data.financial_details.two_years_ago.interest",
+                        "label": "Depreciation / Interest",
+                        "dataType": "int",
+                        "fieldType": "amount",
+                        "validation": {
+                          "message": "Interest is required",
+                          "required": false
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "application.data.financial_details.two_years_ago.other_expenses",
+                        "label": "Other Expenses",
+                        "dataType": "int",
+                        "fieldType": "amount",
+                        "validation": {
+                          "message": "Expenses is required",
+                          "required": false
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "application.data.financial_details.two_years_ago.net_income",
+                        "label": "Net Income",
+                        "dataType": "int",
+                        "fieldType": "amount",
+                        "validation": {
+                          "message": "net income is required",
+                          "required": true
+                        },
+                        "defaultValue": ""
+                      }
+                    ]
+                  }
+                ],
+                "formStyle": "row mx-auto",
+                "startWithIndex": 0
+              }
+            },
+            "step_type": "MANUAL",
+            "sequence": 4,
+            "ui_component": "FORM_BUILDER",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "170201570112051301",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "171032766584319114",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          },
+          {
+            "id": "174054794930726917",
+            "name": "Past Work Experience",
+            "description": "Individual Past Work Experience",
+            "configuration": {
+              "form_builder": {
+                "sections": [
+                  {
+                    "fields": [
+                      {
+                        "name": "primary.personal.work_info[{index}].company_name",
+                        "label": "Company Name",
+                        "hidden": false,
+                        "fieldType": "text",
+                        "validation": {
+                          "required": true
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "primary.personal.work_info[{index}].data.onb_person_details.from_date",
+                        "label": "From Date",
+                        "hidden": false,
+                        "fieldType": "date-picker",
+                        "validation": {
+                          "required": true
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "primary.personal.work_info[{index}].data.onb_person_details.to_date",
+                        "label": "To Date",
+                        "hidden": false,
+                        "fieldType": "date-picker",
+                        "validation": {
+                          "required": true
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "primary.personal.work_info[{index}].data.onb_person_details.association",
+                        "label": "Association",
+                        "hidden": false,
+                        "source": {
+                          "options": [
+                            {
+                              "label": "On-Roll Employee",
+                              "value": "On-Roll"
+                            },
+                            {
+                              "label": "Contract Employee",
+                              "value": "Contract Employee"
+                            }
+                          ]
+                        },
+                        "fieldType": "dropdown",
+                        "validation": {
+                          "required": true
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "primary.personal.work_info[{index}].designation",
+                        "label": "Nature of Job",
+                        "hidden": false,
+                        "source": {
+                          "api": "/alpha/v2/lookup/group?group_code=NATURE_OF_WORK",
+                          "labelKey": "lu_name",
+                          "valueKey": "lu_key"
+                        },
+                        "fieldType": "dropdown",
+                        "validation": {
+                          "required": false
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "formStyle": "row mx-auto",
+                "repeatable": true,
+                "requestAction": {
+                  "method": "DELETE",
+                  "payload": {
+                    "work_information_id": "$primary.personal.work_info[{index}].work_information_id"
+                  },
+                  "endpoint": "/alpha/v1/application"
+                },
+                "startWithIndex": 0
+              }
+            },
+            "step_type": "MANUAL",
+            "sequence": 8,
+            "ui_component": "FORM_BUILDER",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "170201570112051301",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "171032766584319114",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          },
+          {
+            "id": "174054794931749031",
+            "name": "Existing Empanelment",
+            "description": "Existing Empanelment",
+            "configuration": {
+              "form_builder": {
+                "sections": [
+                  {
+                    "fields": [
+                      {
+                        "name": "empanelments[{index}].client_name",
+                        "label": "Name of Bank",
+                        "hidden": false,
+                        "source": {
+                          "api": "/alpha/v1/lookup/bank",
+                          "labelKey": "bankName",
+                          "valueKey": "bankCode"
+                        },
+                        "dataType": "string",
+                        "fieldType": "dropdown",
+                        "validation": {
+                          "message": "Bank name is required",
+                          "required": true
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "empanelments[{index}].business_period",
+                        "label": "Empanelled No of Months",
+                        "hidden": false,
+                        "fieldType": "text",
+                        "validation": {
+                          "required": true
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "empanelments[{index}].data.status",
+                        "label": "Status",
+                        "hidden": false,
+                        "source": {
+                          "options": [
+                            {
+                              "label": "Active",
+                              "value": "Active"
+                            },
+                            {
+                              "label": "Expired",
+                              "value": "Expired"
+                            },
+                            {
+                              "label": "Suspended",
+                              "value": "Suspended"
+                            },
+                            {
+                              "label": "Pending",
+                              "value": "Pending"
+                            }
+                          ]
+                        },
+                        "fieldType": "dropdown",
+                        "validation": {
+                          "required": true
+                        }
+                      },
+                      {
+                        "name": "empanelments[{index}].business_volume",
+                        "label": "Disbursed amount (per month)",
+                        "hidden": false,
+                        "dataType": "int",
+                        "fieldType": "amount",
+                        "validation": {
+                          "required": true
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "formStyle": "row mx-auto",
+                "repeatable": true,
+                "requestAction": {
+                  "method": "DELETE",
+                  "payload": {
+                    "empanelment_id": "$empanelments[{index}].empanelment_id"
+                  },
+                  "endpoint": "/alpha/v1/application"
+                },
+                "startWithIndex": 0
+              }
+            },
+            "step_type": "MANUAL",
+            "sequence": 9,
+            "ui_component": "FORM_BUILDER",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "171032766584319114",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          },
+          {
+            "id": "174054794932156527",
+            "name": "Proposed Volume",
+            "description": "Proposed Volume",
+            "configuration": {
+              "form_builder": {
+                "sections": [
+                  {
+                    "fields": [
+                      {
+                        "name": "application.data.proposed_target[0].loan_type_code",
+                        "label": "Loan Type",
+                        "hidden": false,
+                        "source": {
+                          "api": "/alpha/v1/master/loan-type?status=1",
+                          "labelKey": "name",
+                          "valueKey": "code"
+                        },
+                        "disabled": false,
+                        "fieldType": "dropdown",
+                        "validation": {
+                          "message": "loan type is required",
+                          "required": true
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "application.data.proposed_target[0].file_login_count",
+                        "label": "No of File Login Per Month",
+                        "hidden": false,
+                        "fieldType": "text",
+                        "validation": {
+                          "required": true
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "application.data.proposed_target[0].disbursement_amount",
+                        "label": "Disbursement Amount Per month",
+                        "hidden": false,
+                        "dataType": "int",
+                        "fieldType": "amount",
+                        "validation": {
+                          "required": true
+                        },
+                        "defaultValue": ""
+                      }
+                    ]
+                  },
+                  {
+                    "fields": [
+                      {
+                        "name": "application.data.proposed_target[1].loan_type_code",
+                        "label": "Loan Type",
+                        "hidden": false,
+                        "source": {
+                          "api": "/alpha/v1/master/loan-type?status=1",
+                          "labelKey": "name",
+                          "valueKey": "code"
+                        },
+                        "disabled": false,
+                        "fieldType": "dropdown",
+                        "validation": {
+                          "message": "loan type is required",
+                          "required": false
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "application.data.proposed_target[1].file_login_count",
+                        "label": "No of File Login Per Month",
+                        "hidden": false,
+                        "fieldType": "text",
+                        "validation": {
+                          "required": false
+                        },
+                        "defaultValue": ""
+                      },
+                      {
+                        "name": "application.data.proposed_target[1].disbursement_amount",
+                        "label": "Disbursement Amount Per month",
+                        "hidden": false,
+                        "dataType": "int",
+                        "fieldType": "amount",
+                        "validation": {
+                          "required": false
+                        },
+                        "defaultValue": ""
+                      }
+                    ]
+                  }
+                ],
+                "formStyle": "row mx-auto",
+                "startWithIndex": 0
+              }
+            },
+            "step_type": "MANUAL",
+            "sequence": 10,
+            "ui_component": "FORM_BUILDER",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "171032766584319114",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          },
+          {
+            "id": "171032766707862636",
+            "name": "Bank Details",
+            "description": "Bank details",
+            "configuration": null,
+            "step_type": "MANUAL",
+            "sequence": 11,
+            "ui_component": "BANK_DETAILS",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": null,
+            "stage_id": "171032766584319114",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          },
+          {
+            "id": "174479463985901784",
+            "name": "Penny Drop",
+            "description": "",
+            "configuration": {},
+            "step_type": "MANUAL",
+            "sequence": 12,
+            "ui_component": "PENNY_DROP",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "171032766584319114",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          }
+        ]
+      },
+      {
+        "id": "171032766677759091",
+        "name": "KYC",
+        "description": "KYC Documentation",
+        "sequence": 3,
+        "allocation_rule_id": "170201570112054589",
+        "validation_rule_id": "0",
+        "configuration": {
+          "ask": true
+        },
+        "workflow_id": "171032766537068928",
+        "status": 1,
+        "task_start_date": null,
+        "task_end_date": null,
+        "steps": [
+          {
+            "id": "171032766692776461",
+            "name": "Document Upload",
+            "description": "Document Upload",
+            "configuration": null,
+            "step_type": "MANUAL",
+            "sequence": 13,
+            "ui_component": "DOCUMENT_CHECKLIST_WITHOUT_LOAN_CODE",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "171032766677759091",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          },
+          {
+            "id": "174479463986581351",
+            "name": "KYC Check",
+            "description": "",
+            "configuration": {},
+            "step_type": "MANUAL",
+            "sequence": 14,
+            "ui_component": "KYC_VERIFICATION",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "171032766677759091",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          },
+          {
+            "id": "174503968147784669",
+            "name": "Bank Statement Parser",
+            "description": "",
+            "configuration": {
+              "show_details": true
+            },
+            "step_type": "MANUAL",
+            "sequence": 17,
+            "ui_component": "BANK_STATEMENT_PARSER",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "171032766677759091",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          }
+        ]
+      },
+      {
+        "id": "174054855535248863",
+        "name": "Branch Recommendation",
+        "description": "Branch Recommendation",
+        "sequence": 4,
+        "allocation_rule_id": "0",
+        "validation_rule_id": "0",
+        "configuration": "\"\\\"\\\\\\\"{}\\\\\\\"\\\"\"",
+        "workflow_id": "171032766537068928",
+        "status": 1,
+        "task_start_date": null,
+        "task_end_date": null,
+        "steps": [
+          {
+            "id": "174054855535562090",
+            "name": "Bureau Check",
+            "description": "Bureau Check",
+            "configuration": {
+              "show_details": true
+            },
+            "step_type": "MANUAL",
+            "sequence": 18,
+            "ui_component": "CREDIT_BUREAU",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "174054855535248863",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          },
+          {
+            "id": "174054861474884192",
+            "name": "Branch Approval",
+            "description": "Branch Approval",
+            "configuration": {},
+            "step_type": "MANUAL",
+            "sequence": 19,
+            "ui_component": "PARTNER_APPROVAL_REJECTION",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "174054855535248863",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          },
+          {
+            "id": "174644161130385461",
+            "name": "Verification Flow",
+            "description": "",
+            "configuration": {},
+            "step_type": "MANUAL",
+            "sequence": 21,
+            "ui_component": "VERIFICATION_FLOW",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "174054855535248863",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          },
+          {
+            "id": "174054861475109315",
+            "name": "Territory/RM Mapping",
+            "description": "Territory/RM Mapping",
+            "configuration": {},
+            "step_type": "MANUAL",
+            "sequence": 22,
+            "ui_component": "RM_MAPPING",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "174054855535248863",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          },
+          {
+            "id": "174054855535815897",
+            "name": "Bank Statement Analyzer",
+            "description": "Bank Statement Analyzer",
+            "configuration": {},
+            "step_type": "MANUAL",
+            "sequence": 23,
+            "ui_component": "BANK_STATEMENT_ANALYSIS",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "174054855535248863",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          }
+        ]
+      },
+      {
+        "id": "174054874442366535",
+        "name": "HQ Approval",
+        "description": "HQ Approval",
+        "sequence": 5,
+        "allocation_rule_id": "0",
+        "validation_rule_id": "0",
+        "configuration": "\"{}\"",
+        "workflow_id": "171032766537068928",
+        "status": 1,
+        "task_start_date": null,
+        "task_end_date": null,
+        "steps": [
+          {
+            "id": "174054874443197410",
+            "name": "HQ Approval/Decline",
+            "description": "HQ Approval/Decline",
+            "configuration": {},
+            "step_type": "MANUAL",
+            "sequence": 24,
+            "ui_component": "PARTNER_APPROVAL_REJECTION",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "174054874442366535",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          },
+          {
+            "id": "174521898835938859",
+            "name": "Partner Welcome Letter",
+            "description": "",
+            "configuration": {},
+            "step_type": "MANUAL",
+            "sequence": 25,
+            "ui_component": "PARTNER_WELCOME_LETTER",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "174054874442366535",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          },
+          {
+            "id": "174487821520533622",
+            "name": "Partner Agreement",
+            "description": "",
+            "configuration": {},
+            "step_type": "MANUAL",
+            "sequence": 26,
+            "ui_component": "PARTNER_AGREEMENT",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "174054874442366535",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          },
+          {
+            "id": "174738741129353862",
+            "name": "Target Assignment",
+            "description": "Target Assignment",
+            "configuration": {},
+            "step_type": "MANUAL",
+            "sequence": 27,
+            "ui_component": "PARTNER_TARGET_ATTACHMENT",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "174054874442366535",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          },
+          {
+            "id": "174548959807346381",
+            "name": "Partner Payout Attachment",
+            "description": "",
+            "configuration": {},
+            "step_type": "MANUAL",
+            "sequence": 28,
+            "ui_component": "PARTNER_PAYOUT_ATTACHMENT",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "174054874442366535",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          },
+          {
+            "id": "174054874443701568",
+            "name": "DSA Code Generation",
+            "description": "DSA Code Generation",
+            "configuration": {},
+            "step_type": "MANUAL",
+            "sequence": 29,
+            "ui_component": "DSA_CODE_GENERATION",
+            "conditional_component": "",
+            "automatic_component": "",
+            "display_mode": "ALL",
+            "allocation_rule_id": "0",
+            "validation_rule_id": "0",
+            "completion_rule_id": "0",
+            "field_master_id": "",
+            "allocation_configuration": {},
+            "stage_id": "174054874442366535",
+            "workflow_id": "171032766537068928",
+            "status": 1,
+            "task_id": null,
+            "task_start_date": null,
+            "task_end_date": null,
+            "workflow_instance_id": "175448253304572264",
+            "edit_mode": true,
+            "username": "",
+            "user_id": "",
+            "user_type": ""
+          }
+        ]
+      }
+    ],
+    "workflow_instance_id": "175448253304572264",
+    "workflow_instance": {
+      "workflow_instance_id": "175448253304572264",
+      "workflow_id": "171032766537068928",
+      "reference_type": "",
+      "reference_id": "0",
+      "start_date": "2025-08-06 17:45:33 +0530 IST",
+      "end_date": "{{0001-01-01 00:00:00 +0000 UTC false}}",
+      "source_id": "175448253262725268",
+      "source_type": "PARTNER_ONBOARDING",
+      "previous_instance_id": "{{0 false}}",
+      "active_task_id": "{{175448253355443687 true}}",
+      "completed_task_id": "{{175448253347902244 true}}",
+      "status": "1"
+    },
+    "last_active_stage_id": "171032766584319114",
+    "last_active_step_id": "171041253238387119"
+  },
+  "status": 1
+}

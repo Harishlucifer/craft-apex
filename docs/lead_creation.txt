@@ -1,0 +1,357 @@
+GET METHOD https://apx-lender.lendingstack.in/alpha/v1/application/175584891550330757
+
+Respones
+{
+    "application_id": "175584891550330757",
+    "message": "Loan Application Fetched",
+    "result": {
+        "application": {
+            "application_id": "175584891550330757",
+            "application_code": "LSK-700715",
+            "loan_type_code": "HL",
+            "type": "FULL_FLEDGED_APPLICATION",
+            "apply_capacity": "PERSON",
+            "loan_amount": "2500000.00",
+            "salutation": "Messrs",
+            "applicant_name": "venkateshprasanna",
+            "contact_name": "venkateshprasanna",
+            "mobile": "7708286657",
+            "email": "",
+            "lead_source": "EMPLOYEE_PORTAL",
+            "lead_id": "",
+            "purpose_of_loan": "",
+            "external_lead_id": "",
+            "external_journey_type": "MARKETING",
+            "external_lead_type": "",
+            "submission_mode": "",
+            "entity_type": "",
+            "employment_type": "SALARIED",
+            "loan_code": "",
+            "loan_status": "",
+            "data_synced": 0,
+            "origin_platform": "INTERNAL",
+            "loan_info": null,
+            "partner_code": "",
+            "terms_and_conditions": 0,
+            "channel_id": "",
+            "channel_name": "",
+            "territory_id": "1742820979107",
+            "represented_user_id": "",
+            "processed_user_id": "174530529898650540",
+            "status": 1,
+            "onboarding_id": "175584891550828642",
+            "utm_tags": null
+        },
+        "applicants": [
+            {
+                "applicant_type": "PRIMARY",
+                "applicant_category": "PERSON",
+                "applicant_id": "175584891550928559",
+                "business": null,
+                "personal": {
+                    "person_id": "175584891550928559",
+                    "salutation": "Messers",
+                    "first_name": "venkateshprasanna",
+                    "middle_name": "",
+                    "last_name": "",
+                    "gender": "MALE",
+                    "mobile": "7708286657",
+                    "email": "venkatesh@loanwiser.in",
+                    "dob": "2007-08-09",
+                    "external_id": "",
+                    "share_percentage": 0,
+                    "primary_id_type": "",
+                    "primary_id_value": "ASJPV7890O",
+                    "secondary_id_type": "",
+                    "secondary_id_value": "",
+                    "marital_status": "",
+                    "employment_type": "SALARIED",
+                    "monthly_emi": "0",
+                    "relationship_type": "",
+                    "profession": "",
+                    "qualification": "",
+                    "maiden_type": "",
+                    "maiden_name": "",
+                    "aadhaar_kyc": 0,
+                    "e_signature": 0,
+                    "is_financial_applicant": 0,
+                    "work_info": [
+                        {
+                            "work_information_id": "175584894669086213",
+                            "company_name": "",
+                            "cin": "",
+                            "company_type": "",
+                            "designation": "",
+                            "current_work_experience": "0",
+                            "total_work_experience": "0",
+                            "epf_deduction": 0,
+                            "salary_mode": "UPI",
+                            "income_info": [
+                                {
+                                    "income_id": "175584894669396980",
+                                    "source_type": "",
+                                    "year": "",
+                                    "month": "",
+                                    "amount": "10000.00",
+                                    "considered_amount": "",
+                                    "income_period": "MONTHLY",
+                                    "financial_line_item_id": "171032766552809876",
+                                    "is_tax_filed": 0
+                                },
+                                {
+                                    "income_id": "175584894669397166",
+                                    "source_type": "",
+                                    "year": "",
+                                    "month": "",
+                                    "amount": "10000.00",
+                                    "considered_amount": "",
+                                    "income_period": "MONTHLY",
+                                    "financial_line_item_id": "171032766552809877",
+                                    "is_tax_filed": 0
+                                }
+                            ],
+                            "company_address": {
+                                "address_id": "",
+                                "address_type": "",
+                                "address_line": "",
+                                "locality": "",
+                                "landmark": "",
+                                "city": "",
+                                "state": "",
+                                "pincode": "",
+                                "residing_in_month": 0,
+                                "area_id": 0,
+                                "residence_type": "",
+                                "premise": "",
+                                "proof_document_id": "",
+                                "same_as_type": ""
+                            },
+                            "business_financials": null,
+                            "data": null
+                        }
+                    ],
+                    "other_income_info": [
+                        {
+                            "income_id": "175584894669214586",
+                            "source_type": "",
+                            "year": "",
+                            "month": "",
+                            "amount": "0.00",
+                            "considered_amount": "",
+                            "income_period": "MONTHLY",
+                            "financial_line_item_id": "171032766552809880",
+                            "is_tax_filed": 0
+                        },
+                        {
+                            "income_id": "175584894669255911",
+                            "source_type": "",
+                            "year": "",
+                            "month": "",
+                            "amount": "0.00",
+                            "considered_amount": "",
+                            "income_period": "MONTHLY",
+                            "financial_line_item_id": "171032766552809881",
+                            "is_tax_filed": 0
+                        },
+                        {
+                            "income_id": "175584894669302992",
+                            "source_type": "",
+                            "year": "",
+                            "month": "",
+                            "amount": "0.00",
+                            "considered_amount": "",
+                            "income_period": "MONTHLY",
+                            "financial_line_item_id": "171032766552809879",
+                            "is_tax_filed": 0
+                        }
+                    ],
+                    "addresses": [
+                        {
+                            "address_id": "175584894668782458",
+                            "address_type": "CURRENT_RESIDENCE",
+                            "address_line": "2 163, SELAMPAGOUNDAMPALAYAM",
+                            "locality": "anjnjs",
+                            "landmark": "",
+                            "city": "Namakkal",
+                            "state": "TAMIL NADU",
+                            "pincode": "637212",
+                            "residing_in_month": 0,
+                            "area_id": 148757,
+                            "residence_type": "",
+                            "premise": "",
+                            "proof_document_id": "",
+                            "same_as_type": ""
+                        }
+                    ],
+                    "person_bank_account": null,
+                    "data": {
+                        "credit_score": "700",
+                        "is_applicant_nri": "NO"
+                    }
+                }
+            }
+        ],
+        "reference_details": null,
+        "activities": null,
+        "property_details": [
+            {
+                "application_property_id": "175584891550636280",
+                "property_identified": 0,
+                "nature_of_property": "",
+                "property_type": "",
+                "property_sub_type": "",
+                "property_category": "",
+                "loan_purpose": "",
+                "property_ownership": "",
+                "property_status": "",
+                "property_sub_status": "",
+                "transaction_type": "",
+                "building_approval": "",
+                "record_issued_by": "",
+                "no_of_units": 0,
+                "developer_name": "",
+                "developer_id": null,
+                "project_name": "",
+                "property_address": "2 163, SELAMPAGOUNDAMPALAYAM",
+                "project_id": null,
+                "pincode_id": "148756",
+                "state": "TAMIL NADU",
+                "city": "Namakkal",
+                "pincode": "637212",
+                "latitude": 0,
+                "longitude": 0,
+                "on_east": "",
+                "on_west": "",
+                "on_north": "",
+                "on_south": "",
+                "survey_no": "",
+                "administrative_area_code": "",
+                "administrative_area_name": "",
+                "door_no": "",
+                "floor_no": "",
+                "plot_no": "",
+                "shop_no": "",
+                "landmark": "",
+                "age_of_property": "",
+                "plot_sqft": "",
+                "built_up_sqft": "",
+                "plot_value": 0,
+                "property_value": 0,
+                "data": null,
+                "property_owners": null
+            }
+        ],
+        "existing_loans": null,
+        "vehicle_detail": null,
+        "participant_details": {
+            "CUSTOMER": {
+                "participant_id": "175584891551646083",
+                "participant_type": "CUSTOMER",
+                "user_id": "174473578762162895",
+                "user_type": "CUSTOMER",
+                "user_name": "Venkateshprasanna ramamsamy",
+                "user_code": "",
+                "user_email": null,
+                "user_mobile": "7708286657",
+                "user_role_id": "170868785744245616",
+                "user_role_name": "Administrator",
+                "user_role_code": "ADMINISTRATOR",
+                "reporting_user": {
+                    "user_id": "0",
+                    "user_name": "",
+                    "user_type": "",
+                    "user_code": ""
+                },
+                "channel_id": "0",
+                "channel_code": "",
+                "channel_category": "",
+                "channel_name": "",
+                "channel_mobile": "",
+                "territory_id": "0",
+                "territory_name": "",
+                "created_at": "2025-08-22 13-18-36",
+                "relationship_manager": {
+                    "reporting_user": {
+                        "user_id": "",
+                        "user_name": "",
+                        "user_type": "",
+                        "user_code": ""
+                    }
+                }
+            },
+            "PROCESSED_BY": {
+                "participant_id": "175584891621801887",
+                "participant_type": "PROCESSED_BY",
+                "user_id": "174530529898650540",
+                "user_type": "EMPLOYEE",
+                "user_name": "Pandiyan G",
+                "user_code": "BO101",
+                "user_email": "pandiyan@lendingstack.in",
+                "user_mobile": "8220402007",
+                "user_role_id": "170868785744245615",
+                "user_role_name": "Administrator",
+                "user_role_code": "ADMINISTRATOR",
+                "reporting_user": {
+                    "user_id": "174296759460374829",
+                    "user_name": "Admin Department",
+                    "user_type": "EMPLOYEE",
+                    "user_code": "RO500009"
+                },
+                "channel_id": "0",
+                "channel_code": "",
+                "channel_category": "",
+                "channel_name": "",
+                "channel_mobile": "",
+                "territory_id": "1742820979107",
+                "territory_name": "CBE-GANDHIPURAM",
+                "created_at": "2025-08-22 13-18-36",
+                "relationship_manager": {
+                    "reporting_user": {
+                        "user_id": "",
+                        "user_name": "",
+                        "user_type": "",
+                        "user_code": ""
+                    }
+                }
+            },
+            "SOURCED_BY": {
+                "participant_id": "175584891551334489",
+                "participant_type": "SOURCED_BY",
+                "user_id": "174747239947994093",
+                "user_type": "EMPLOYEE",
+                "user_name": "Venkatesh R",
+                "user_code": "LSK9988",
+                "user_email": "venkateshprasanna@loanwiser.in",
+                "user_mobile": "9890989099",
+                "user_role_id": "170868785744245615",
+                "user_role_name": "Administrator",
+                "user_role_code": "ADMINISTRATOR",
+                "reporting_user": {
+                    "user_id": "174296759460374829",
+                    "user_name": "Admin Department",
+                    "user_type": "EMPLOYEE",
+                    "user_code": "RO500009"
+                },
+                "channel_id": "0",
+                "channel_code": "",
+                "channel_category": "",
+                "channel_name": "",
+                "channel_mobile": "",
+                "territory_id": "1742820979107",
+                "territory_name": "CBE-GANDHIPURAM",
+                "created_at": "2025-08-22 13-18-36",
+                "relationship_manager": {
+                    "reporting_user": {
+                        "user_id": "",
+                        "user_name": "",
+                        "user_type": "",
+                        "user_code": ""
+                    }
+                }
+            }
+        },
+        "additional_fields": {},
+        "customer_link": "https://apx.lendingstack.in/sh/8xyHMKuHg"
+    },
+    "status": 1
+}

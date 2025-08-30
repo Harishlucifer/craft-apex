@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { ModuleLayout } from "@repo/shared-state/components";
+import { ModuleLayout } from "@repo/ui/module";
 import { Card } from "@repo/ui/components/ui/card";
 import {
   Table,
@@ -21,7 +21,8 @@ import {
 } from "@repo/ui/components/ui/dropdown-menu";
 import { Search, Plus, Filter, Loader2, MoreHorizontal } from "lucide-react";
 import { useCurrentModule } from "@repo/shared-state/contexts";
-import { leadsApiService, LeadApplication, LeadsApiResponse } from "@repo/shared-state/api";
+import { leadsApiService } from "@repo/shared-state/api";
+import { LeadApplication, LeadsApiResponse} from "@repo/types/application";
 
 const statusColors: Record<string, string> = {
   'New': 'bg-blue-100 text-blue-800',

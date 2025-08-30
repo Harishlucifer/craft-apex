@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ModuleLayout } from "@repo/shared-state/components";
+import { ModuleLayout } from "@repo/ui/module";
 import { Card } from "@repo/ui/components/ui/card";
 import { Button } from "@repo/ui/components/ui/button";
 import { Badge } from "@repo/ui/components/ui/badge";
 import { ArrowLeft, Edit, Trash2, Phone, Mail, MapPin } from "lucide-react";
-import { leadsApiService, LeadApplication } from "@repo/shared-state/api";
+import { leadsApiService } from "@repo/shared-state/api";
+import type { LeadApplication } from "@repo/types/application";
 
 const statusColors: Record<string, string> = {
   'New': 'bg-blue-100 text-blue-800',

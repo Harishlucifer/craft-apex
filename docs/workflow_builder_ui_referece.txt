@@ -1,0 +1,525 @@
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchWorkflow, handleNextStep, handleBackStep, setCurrentStageIndex, setCurrentStepIndex, executeWorkflow, setLoading, handleApplicationSubmit } from './stepper';
+// import DynamicForm from '../../components/DynamicForm';
+import { useParams } from 'react-router-dom';
+// import { handleDynamicFormSubmit } from '../../redux/formSlice';
+import { handleApplicationData } from './stepper';
+import { useNavigate } from 'react-router-dom';
+import { AxiosProvider, Provider, DynamicForm } from '../src';
+import axiosInstance from './axiosInstance';
+
+type Step = {
+    id: string;
+    name: string;
+    ui_component?: string;
+    edit_mode?: boolean;
+    configuration?: Record<string, any>;
+};
+
+type Stage = {
+    id: string;
+    name: string;
+    steps: Step[];
+};
+
+type Workflow = {
+    stages: Stage[];
+};
+
+type DyanmaicData = {
+    data: any;
+    isValidForm: boolean;
+}
+
+const DynamicStepper: React.FC = () => {
+    const { applicationId } = useParams<{ applicationId: string }>();
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const dynamicFormRef = useRef<any>(null); // Ref to access DynamicForm methods
+
+    // Redux selectors
+    const workflow = useSelector((state: any) => state.stepper.workflow) as Workflow | null;
+    const currentStageIndex = useSelector((state: any) => state.stepper.currentStageIndex) as number;
+    const currentStepIndex = useSelector((state: any) => state.stepper.currentStepIndex) as number;
+    const applicationData = useSelector((state: any) => state.stepper.applicationData) as any;
+    const loading = useSelector((state: any) => state.stepper.loading) as boolean;
+    const error = useSelector((state: any) => state.stepper.error) as string | null;
+
+    useEffect(() => {
+        dispatch(handleApplicationData({ applicationId }));
+        dispatch(fetchWorkflow({ applicationId }));
+    }, [dispatch, applicationId]);
+
+    const hasWorkflow = workflow && workflow.stages && workflow.stages.length > 0;
+    const currentStage = hasWorkflow ? workflow.stages[currentStageIndex] : undefined;
+    const currentStep = currentStage?.steps?.[currentStepIndex];
+
+    const handleFormSubmitSuccess = async (result: DyanmaicData) => {
+        console.log('Form submitted successfully with data:', result.data);
+        if (currentStep?.edit_mode) {
+            dispatch(setLoading(true));
+            try {
+                console.log("submittedData :: ", result);
+                if (result.data == null) {
+                    console.log("submittedData :: ", result);
+                    dispatch(setLoading(true));
+                    return; // Do not proceed to next step if form submission failed
+                }
+
+                const submitResult = await dispatch<any>(handleApplicationSubmit({ data: result.data, navigate })).unwrap();
+                console.log("submitResult :: ", submitResult);
+
+                // Execute the next step in the workflow after form submission
+                const workflowResult = await dispatch<any>(executeWorkflow({ executeStepId: currentStep.id })).unwrap();
+                if (workflowResult?.error) {
+                    alert('Error ❌ ' + workflowResult.errorMessage);
+                }
+            } catch (error) {
+                console.error('Error while submitting form or executing workflow:', error);
+            } finally {
+                dispatch(setLoading(false));
+            }
+        } else {
+            dispatch(handleNextStep());
+        }
+    };
+
+    const triggerFormSubmit = async () => {
+        if (dynamicFormRef.current) {
+            dynamicFormRef.current.submitFormExternally(); // Trigger submission from outside
+        }
+    };
+
+    const backStep = () => {
+        dispatch(handleBackStep());
+    };
+
+    if (!workflow) {
+        return (
+            <div className='container'>
+                <p className='d-flex align-items-center justify-content-center p-4'>
+                    Loading workflow...
+                </p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className='container'>
+                <p className='d-flex align-items-center justify-content-center p-4'>
+                    Error loading workflow: {error}
+                </p>
+            </div>
+        );
+    }
+
+    if (!hasWorkflow) {
+        return (
+            <div className='container'>
+                <p className='d-flex align-items-center justify-content-center p-4'>
+                    No workflow available
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="container">
+            <h1 className="text-center my-4">Complete Integration Redux</h1>
+            <div className="container-fluid p-1">
+                <div className="row">
+                    {/* Top Stages Navigation */}
+                    <div className="col-12 mb-4">
+                        <div className="nav nav-pills justify-content-center">
+                            {workflow.stages.map((stage, stageIndex) => (
+                                <button
+                                    key={stage.id}
+                                    className={`nav-link ${stageIndex === currentStageIndex ? 'active' : ''}`}
+                                    onClick={() => dispatch(setCurrentStageIndex(stageIndex))}
+                                >
+                                    {stage.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Sidebar Steps Navigation */}
+                    <div className="col-3">
+                        <ul className="list-group">
+                            {currentStage?.steps.map((step, stepIndex) => (
+                                <li
+                                    key={step.id}
+                                    className={`list-group-item ${stepIndex === currentStepIndex ? 'active' : ''}`}
+                                    onClick={() => dispatch(setCurrentStepIndex(stepIndex))}
+                                >
+                                    {step.name}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {/* Step Content */}
+                    <div className="col-9">
+                        <div className="card">
+                            <div className="card-body">
+                                <StepContent 
+                                    step={currentStep} 
+                                    applicationData={applicationData} 
+                                    handleFormSubmitSuccess={handleFormSubmitSuccess} 
+                                    dynamicFormRef={dynamicFormRef} 
+                                />
+                            </div>
+                        </div>
+
+                        {/* Navigation Buttons */}
+                        <div className="mt-4 d-flex justify-content-between">
+                            <button
+                                className="btn btn-secondary rounded-3"
+                                disabled={currentStageIndex === 0 && currentStepIndex === 0}
+                                onClick={backStep}
+                            >
+                                <span className='mx-4'>Back</span>
+                            </button>
+                            <button
+                                className="btn btn-primary rounded-3"
+                                disabled={loading || (currentStageIndex === workflow.stages.length - 1 && currentStepIndex === currentStage!.steps.length - 1)}
+                                onClick={() => triggerFormSubmit()}
+                            >
+                                {loading ? (
+                                    <>
+                                        <div className="spinner-border spinner-border-sm text-light me-2" role="status"></div>
+                                        <span>Loading...</span>
+                                    </>
+                                ) : (
+                                    <span className='mx-4'>
+                                        {currentStageIndex === workflow.stages.length - 1 && currentStepIndex === currentStage!.steps.length - 1
+                                            ? 'Done'
+                                            : currentStep?.edit_mode
+                                                ? 'Save & Next'
+                                                : 'Next'}
+                                    </span>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+type StepContentProps = {
+    step: Step | undefined;
+    applicationData: any;
+    handleFormSubmitSuccess: (data: any) => void;
+    dynamicFormRef: React.RefObject<any>;
+};
+
+const StepContent: React.FC<StepContentProps> = ({ step, applicationData, handleFormSubmitSuccess, dynamicFormRef }) => {
+    console.log("step content");
+    let content: React.ReactNode = step?.ui_component ?? "NOTHING";
+    let configuration;
+    try {
+        configuration = step?.configuration ?? {};
+    } catch (error) {
+        configuration = {}; // Provide a default empty object if parsing fails
+    }
+    switch (step?.ui_component) {
+        case "FORM_BUILDER":
+            content = <AxiosProvider axiosInstance={axiosInstance}>
+                <DynamicForm 
+                    ref={dynamicFormRef} 
+                    componentName={step.id} 
+                    formJson={configuration?.form_builder} 
+                    existingObject={applicationData} 
+                    onSubmitSuccess={handleFormSubmitSuccess} 
+                />
+            </AxiosProvider>;
+            break;
+    }
+    return (
+        <Provider>
+            <div className='d-flex justify-content-center align-items-center'>
+                {content}
+            </div>
+        </Provider>
+    );
+};
+
+export default DynamicStepper;
+
+
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import axiosInstance from './axiosInstance';
+
+interface Step {
+    id: string;
+    name: string;
+}
+
+interface Stage {
+    id: string;
+    name: string;
+    steps: Step[];
+}
+
+interface Workflow {
+    stages: Stage[];
+    last_active_stage_id?: string;
+    last_active_step_id?: string;
+}
+
+interface StepperState {
+    applicationId: string | null;
+    applicationData: any | null;
+    workflow: Workflow | null;
+    currentStageIndex: number;
+    currentStepIndex: number;
+    currentStageId: string | null;
+    currentStepId: string | null;
+    loading: boolean;
+    error: string | null;
+}
+
+const initialState: StepperState = {
+    applicationId: null,
+    applicationData: null,
+    workflow: null,
+    currentStageIndex: 0,
+    currentStepIndex: 0,
+    currentStageId: null,
+    currentStepId: null,
+    loading: false,
+    error: null,
+};
+
+export const handleApplicationSubmit = createAsyncThunk(
+    'stepper/handleApplicationSubmit',
+    async (
+        { data, navigate }: { data: any; navigate: (path: string) => void },
+        { getState, dispatch }
+    ) => {
+        const state = getState() as { stepper: StepperState };
+        const changeRoute = state.stepper.applicationId;
+
+        try {
+            console.log('before submit :: ', data);
+            const response = await axiosInstance.post(
+                'http://127.0.0.1:5050/alpha/v2/application/create',
+                data
+            );
+            if (response.data.result) {
+                dispatch(
+                    setApplicationData({
+                        applicationId: response.data.application_id,
+                        applicationData: response.data.result,
+                    })
+                );
+            }
+
+            if (changeRoute === null) {
+                navigate(`/application/${response.data.application_id}`);
+            }
+        } catch (error: any) {
+            console.error('handleApplicationData exception :: ', error);
+            let message = 'Failed to submit form';
+            if (typeof error.error === 'object') {
+                message = error.error[0]?.message || message;
+            } else {
+                message = error.error || message;
+            }
+            return { error: true, errorMessage: message };
+        }
+    }
+);
+
+export const fetchWorkflow = createAsyncThunk(
+    'stepper/fetchWorkflow',
+    async (
+        { applicationId }: { applicationId?: string },
+        { dispatch }
+    ) => {
+        const payload: Record<string, string> = {
+            workflow_type: 'LEAD_CREATION',
+        };
+
+        if (applicationId) {
+            payload['source_id'] = applicationId;
+        }
+
+        try {
+            const response = await axiosInstance.post('alpha/v1/workflow/build', payload);
+            if (response.data.data) {
+                dispatch(handleWorkflow(response.data.data));
+            }
+        } catch (error) {
+            console.log('exception :: ', error);
+        }
+    }
+);
+
+export const executeWorkflow = createAsyncThunk(
+    'stepper/executeWorkflow',
+    async (
+        { executeStepId }: { executeStepId: string },
+        { getState, dispatch }
+    ) => {
+        const state = getState() as { stepper: StepperState };
+
+        const payload = {
+            workflow_type: 'LEAD_CREATION',
+            execute_step_id: executeStepId,
+            source_id: state.stepper.applicationId,
+        };
+
+        try {
+            const response = await axiosInstance.post(
+                'http://127.0.0.1:5050/alpha/v1/workflow/execution',
+                payload
+            );
+            if (response.data.data) {
+                dispatch(handleWorkflow(response.data.data));
+            }
+        } catch (error: any) {
+            console.log('exception :: ', error);
+            return {
+                error: true,
+                errorMessage: error.error || 'Failed to execute workflow',
+            };
+        }
+    }
+);
+
+export const handleApplicationData = createAsyncThunk(
+    'stepper/handleApplicationData',
+    async (
+        { applicationId }: { applicationId: string | undefined },
+        { dispatch }
+    ) => {
+        if (applicationId) {
+            try {
+                const response = await axiosInstance.get(
+                    `http://127.0.0.1:5050/alpha/v2/application/${applicationId}`
+                );
+                if (response.data.result) {
+                    dispatch(
+                        setApplicationData({
+                            applicationId,
+                            applicationData: response.data.result,
+                        })
+                    );
+                }
+            } catch (error) {
+                console.log('handleApplicationData exception :: ', error);
+            }
+        }
+    }
+);
+
+const stepperSlice = createSlice({
+    name: 'stepper',
+    initialState,
+    reducers: {
+        setApplicationData: (
+            state,
+            action: PayloadAction<{ applicationId: string; applicationData: any }>
+        ) => {
+            state.applicationId = action.payload.applicationId;
+            state.applicationData = action.payload.applicationData;
+        },
+        setCurrentStageIndex: (state, action: PayloadAction<number>) => {
+            state.currentStageIndex = action.payload;
+            state.currentStepIndex = 0;
+        },
+        setCurrentStepIndex: (state, action: PayloadAction<number>) => {
+            state.currentStepIndex = action.payload;
+        },
+        handleNextStep: (state) => {
+            const currentStage = state.workflow?.stages[state.currentStageIndex];
+
+            if (
+                currentStage &&
+                state.currentStepIndex < currentStage.steps.length - 1
+            ) {
+                state.currentStepIndex += 1;
+                state.currentStepId = currentStage.steps[state.currentStepIndex].id;
+            } else if (
+                state.workflow &&
+                state.currentStageIndex < state.workflow.stages.length - 1
+            ) {
+                state.currentStageIndex += 1;
+                state.currentStageId =
+                    state.workflow.stages[state.currentStageIndex].id;
+                state.currentStepIndex = 0;
+                state.currentStepId =
+                    state.workflow.stages[state.currentStageIndex].steps[0].id;
+            }
+        },
+        handleBackStep: (state) => {
+            if (state.currentStepIndex > 0) {
+                state.currentStepIndex -= 1;
+                state.currentStepId =
+                    state.workflow?.stages[state.currentStageIndex]?.steps[state.currentStepIndex]?.id ||
+                    null;
+            } else if (state.currentStageIndex > 0) {
+                state.currentStageIndex -= 1;
+                state.currentStageId =
+                    state.workflow?.stages[state.currentStageIndex]?.id || null;
+                const prevStageSteps =
+                    state.workflow?.stages[state.currentStageIndex]?.steps.length || 0;
+                state.currentStepIndex = prevStageSteps - 1;
+                state.currentStepId =
+                    state.workflow?.stages[state.currentStageIndex]?.steps[state.currentStepIndex]?.id ||
+                    null;
+            }
+        },
+        handleWorkflow: (state, action: PayloadAction<Workflow>) => {
+            state.workflow = action.payload;
+            state.loading = false;
+
+            const lastActiveStageId = action.payload.last_active_stage_id;
+            const lastActiveStepId = action.payload.last_active_step_id;
+
+            if (lastActiveStageId && lastActiveStepId) {
+                state.currentStageId = lastActiveStageId;
+                state.currentStepId = lastActiveStepId;
+
+                const currentStageIndex = action.payload.stages.findIndex(
+                    (stage) => stage.id === lastActiveStageId
+                );
+                if (currentStageIndex !== -1) {
+                    state.currentStageIndex = currentStageIndex;
+
+                    const currentStepIndex = action.payload.stages[
+                        currentStageIndex
+                    ].steps.findIndex((step) => step.id === lastActiveStepId);
+                    if (currentStepIndex !== -1) {
+                        state.currentStepIndex = currentStepIndex;
+                    }
+                }
+            } else {
+                state.currentStageIndex = 0;
+                state.currentStepIndex = 0;
+                state.currentStageId = action.payload.stages[0]?.id || null;
+                state.currentStepId = action.payload.stages[0]?.steps[0]?.id || null;
+            }
+        },
+        setLoading: (state, action: PayloadAction<boolean>) => {
+            state.loading = action.payload;
+        },
+    }
+});
+
+export const {
+    setApplicationData,
+    setCurrentStageIndex,
+    setCurrentStepIndex,
+    handleNextStep,
+    handleBackStep,
+    handleWorkflow,
+    setLoading,
+} = stepperSlice.actions;
+
+export default stepperSlice.reducer;

@@ -6,12 +6,10 @@
     "dist"
   ],
   "exports": {
-    "./api": "./dist/api.js",
-    "./user": "./dist/user.js",
-    "./product": "./dist/product.js",
-    "./order": "./dist/order.js",
-    "./common": "./dist/common.js",
-    "./setup": "./dist/setup.js"
+    "./setup": "./dist/setup.js",
+    "./onboarding": "./dist/onboarding.js",
+    "./application": "./dist/application.js",
+    "./partner": "./dist/partner.js"
   },
   "license": "MIT",
   "scripts": {
