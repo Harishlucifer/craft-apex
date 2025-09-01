@@ -1,33 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ModuleLayout } from "@repo/shared-state/components";
+import { ModuleLayout } from "@repo/ui/module";
 import { Card } from "@repo/ui/components/ui/card";
 import { Button } from "@repo/ui/components/ui/button";
-import { Badge } from "@repo/ui/components/ui/badge";
 import { ArrowLeft, Edit, Trash2, Phone, Mail, MapPin } from "lucide-react";
 import { leadsApiService, LeadApplication } from "@repo/shared-state/api";
+import { DynamicStagesAndSteps } from "@/pages/DynamicStagesAndSteps";
+import {BasicDetailsStep1, BasicDetailsStep2,DataCaptureStep1,DataCaptureStep2,KYCStep1,BranchRecommendationStep,HQApprovalStep} from "@/pages/SampleStepComponents";
+import { useAuthStore } from "@repo/shared-state/stores";
 
-const statusColors: Record<string, string> = {
-  'New': 'bg-blue-100 text-blue-800',
-  'In Progress': 'bg-yellow-100 text-yellow-800',
-  'Under Review': 'bg-orange-100 text-orange-800',
-  'Approved': 'bg-green-100 text-green-800',
-  'Rejected': 'bg-red-100 text-red-800',
-  'Pending': 'bg-gray-100 text-gray-800',
-  'Completed': 'bg-green-100 text-green-800',
-  'Cancelled': 'bg-red-100 text-red-800',
-  'On Hold': 'bg-yellow-100 text-yellow-800',
-};
-
-const sourceColors: Record<string, string> = {
-  'Website': 'bg-blue-100 text-blue-800',
-  'Mobile App': 'bg-green-100 text-green-800',
-  'Partner Portal': 'bg-purple-100 text-purple-800',
-  'Employee Portal': 'bg-orange-100 text-orange-800',
-  'API': 'bg-gray-100 text-gray-800',
-  'Direct': 'bg-yellow-100 text-yellow-800',
-  'Referral': 'bg-pink-100 text-pink-800',
-};
 
 export function LeadDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +16,75 @@ export function LeadDetailPage() {
   const [lead, setLead] = useState<LeadApplication | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const user = useAuthStore((state) => state.user);
+
+  interface Step {
+  id: string;
+  name: string;
+  description: string;
+  configuration: Record<string, any>;
+  step_type: string;                // e.g. "MANUAL"
+  sequence: number;
+  ui_component: string;             // e.g. "FORM_BUILDER"
+  conditional_component: string;
+  automatic_component: string;
+  display_mode: string;             // e.g. "ALL"
+  allocation_rule_id: string;
+  validation_rule_id: string;
+  completion_rule_id: string;
+  field_master_id: string;
+  allocation_configuration: Record<string, any>;
+  stage_id: string;
+  workflow_id: string;
+  status: number;
+  task_id: string;
+  task_start_date: string;          // ISO datetime
+  task_end_date: string;            // ISO datetime
+  task_status: string;
+  workflow_instance_id: string;
+  edit_mode: boolean;
+  username: string;
+  user_id: string;
+  user_type: string;
+}
+
+// Stage inside a Workflow
+interface Stage {
+  id: string;
+  name: string;
+  description: string;
+  sequence: number;
+  allocation_rule_id: string;
+  validation_rule_id: string;
+  configuration: Record<string, any>;
+  workflow_id: string;
+  status: number;
+  task_start_date: string;
+  task_end_date: string;
+  task_status: string;
+  steps: Step[];
+}
+
+// Root Workflow
+ interface Workflow {
+  id: string;
+  name: string;
+  description: string;
+  start_date: string; // e.g. "2025-02-27"
+  end_date: string;   // may be empty
+  workflow_type: string; // e.g. "LEAD_CREATION"
+  allocation_rule_id: string;
+  is_default: number;     // 1 or 0
+  configuration: any | null;
+  mode: string;           // e.g. "TESTING"
+  status: number;
+  created_at: string;     // ISO datetime
+  updated_at: string;     // ISO datetime
+  stages: Stage[];
+}
+
+  const [workflowData, setWorkflowData] = useState<Workflow | null>(null);
+  
 
   useEffect(() => {
     if (!id) {
@@ -42,7 +92,6 @@ export function LeadDetailPage() {
       setLoading(false);
       return;
     }
-
     const fetchLead = async () => {
       try {
         setLoading(true);
@@ -59,8 +108,135 @@ export function LeadDetailPage() {
     };
 
     fetchLead();
+    fetchWorkflow()
   }, [id]);
 
+  const apiUrl = import.meta.env.VITE_API_ENDPOINT;
+ const fetchWorkflow = async () => {
+  const payload = {
+    workflow_type: "LEAD_CREATION",
+    source_id: id,
+  };
+
+  try {
+    const res = await fetch(`${apiUrl}/alpha/v1/workflow/build`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${user?.access_token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    // If the server returned no content
+    if (res.status === 204) {
+      console.log("✅ Workflow created, no content returned");
+      return;
+    }
+
+    // Get raw response first
+    const text = await res.text();
+
+    if (!text) {
+      console.log("⚠️ Empty response body");
+      return;
+    }
+
+    // Try parsing as JSON
+    const data = JSON.parse(text);
+    setWorkflowData(data.data);
+    console.log("✅ Workflow response:", data);
+  } catch (err) {
+    console.error("❌ fetchWorkflow error:", err);
+  }
+};
+
+
+   const stages = [
+    {
+      id: 'basic-details',
+      title: 'Basic Details',
+      description: 'Personal & Location Information',
+      steps: [
+        {
+          id: 'personal-info',
+          title: 'Personal Information',
+          description: 'Basic personal details',
+          content: <BasicDetailsStep1 />
+        },
+        {
+          id: 'location-info',
+          title: 'Location Details',
+          description: 'Address and identification',
+          content: <BasicDetailsStep2 />
+        }
+      ]
+    },
+    {
+      id: 'data-capture',
+      title: 'Data Capture',
+      description: 'Business & Financial Information',
+      steps: [
+        {
+          id: 'business-info',
+          title: 'Business Information',
+          description: 'Company details and registration',
+          content: <DataCaptureStep1 />
+        },
+        {
+          id: 'financial-info',
+          title: 'Financial Information',
+          description: 'Banking and financial details',
+          content: <DataCaptureStep2 />
+        }
+      ]
+    },
+    {
+      id: 'kyc',
+      title: 'KYC',
+      description: 'Document Verification',
+      steps: [
+        {
+          id: 'document-upload',
+          title: 'Document Upload',
+          description: 'Required document submission',
+          content: <KYCStep1 />
+        }
+      ]
+    },
+    {
+      id: 'branch-recommendation',
+      title: 'Branch Recommendation',
+      description: 'Branch Assignment',
+      steps: [
+        {
+          id: 'branch-selection',
+          title: 'Branch Selection',
+          description: 'Choose your preferred branch',
+          content: <BranchRecommendationStep />
+        }
+      ]
+    },
+    {
+      id: 'hq-approval',
+      title: 'HQ Approval',
+      description: 'Final Review & Approval',
+      steps: [
+        {
+          id: 'final-review',
+          title: 'Final Review',
+          description: 'Application review and submission',
+          content: <HQApprovalStep />
+        }
+      ]
+    }
+  ];
+
+  const partnerInfo = {
+    name: 'Saravanan',
+    journeyType: 'Full Fledged Partner',
+    mobile: '9992299921'
+  };
   const handleBack = () => {
     // Navigate back to the list with preserved state
     navigate(-1);
@@ -102,123 +278,7 @@ export function LeadDetailPage() {
 
   return (
     <ModuleLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={handleBack}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to List
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                Lead Details - {lead.code}
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                {lead.name}
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <Edit className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
-            <Button variant="outline" className="text-red-600 hover:text-red-700">
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </Button>
-          </div>
-        </div>
-
-        {/* Lead Information */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Basic Information */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Company Name</label>
-                <p className="text-lg font-medium">{lead.name}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Contact Person</label>
-                <p className="text-lg">{lead.contact_name || '-'}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <span>{lead.mobile || '-'}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span>{lead.sourced_by?.user_name || '-'}</span>
-              </div>
-            </div>
-          </Card>
-
-          {/* Status & Details */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Status & Details</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Status</label>
-                <div className="mt-1">
-                  <Badge
-                    variant="outline"
-                    className={statusColors[lead.application_status] || "bg-gray-100 text-gray-800"}
-                  >
-                    {lead.application_status}
-                  </Badge>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Source</label>
-                <div className="mt-1">
-                  <Badge
-                    variant="outline"
-                    className={sourceColors[lead.origin_platform] || "bg-gray-100 text-gray-800"}
-                  >
-                    {lead.origin_platform}
-                  </Badge>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Loan Amount</label>
-                <p className="text-lg font-medium">
-                  ₹{lead.loan_amount?.toLocaleString() || '-'}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Assigned To</label>
-                <p className="text-lg">{lead.sourced_by?.user_name || '-'}</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Timeline */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Timeline</h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between py-3 border-b">
-              <div>
-                <p className="font-medium">Lead Created</p>
-                <p className="text-sm text-muted-foreground">
-                  {new Date(lead.createdAt).toLocaleString()}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center justify-between py-3 border-b">
-              <div>
-                <p className="font-medium">Last Updated</p>
-                <p className="text-sm text-muted-foreground">
-                  {new Date(lead.updatedAt).toLocaleString()}
-                </p>
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
+      <DynamicStagesAndSteps stages={workflowData?.stages || []} partnerInfo={partnerInfo} />
     </ModuleLayout>
   );
 }

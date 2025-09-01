@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { ModuleLayout } from "@repo/shared-state/components";
+import { ModuleLayout } from "@repo/ui/module";
 import { Card } from "@repo/ui/components/ui/card";
 import {
   Table,
