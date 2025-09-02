@@ -1,125 +1,66 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@repo/ui/components/ui/button';
 import { Card } from '@repo/ui/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui/components/ui/tabs';
-import { ChevronLeft, ChevronRight, Check, Circle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useParams } from 'react-router-dom';
+import { useWorkflow } from '../hooks/workflow';
+import { Step } from '@/stores/workflow';
 
-  interface Step {
-  id: string;
-  name: string;
-  description: string;
-  configuration: Record<string, any>;
-  step_type: string;                // e.g. "MANUAL"
-  sequence: number;
-  ui_component: string;             // e.g. "FORM_BUILDER"
-  conditional_component: string;
-  automatic_component: string;
-  display_mode: string;             // e.g. "ALL"
-  allocation_rule_id: string;
-  validation_rule_id: string;
-  completion_rule_id: string;
-  field_master_id: string;
-  allocation_configuration: Record<string, any>;
-  stage_id: string;
-  workflow_id: string;
-  status: number;
-  task_id: string;
-  task_start_date: string;          // ISO datetime
-  task_end_date: string;            // ISO datetime
-  task_status: string;
-  workflow_instance_id: string;
-  edit_mode: boolean;
-  username: string;
-  user_id: string;
-  user_type: string;
-}
-
-// Stage inside a Workflow
-interface Stage {
-  id: string;
-  name: string;
-  description: string;
-  sequence: number;
-  allocation_rule_id: string;
-  validation_rule_id: string;
-  configuration: Record<string, any>;
-  workflow_id: string;
-  status: number;
-  task_start_date: string;
-  task_end_date: string;
-  task_status: string;
-  steps: Step[];
-}
 
 interface DynamicStagesAndStepsProps {
-  stages: Stage[];
-  onComplete?: () => void;
+  onComplete?: (data: any) => any;
   className?: string;
   partnerInfo?: {
     name: string;
     journeyType: string;
     mobile: string;
   };
+  executeWorkflow?: (currentStepData: Step) => Promise<boolean>;
 }
 
+
+
 export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
-  stages=[],
-  onComplete,
+  // onComplete,
   className,
-  partnerInfo
+  partnerInfo,
 }) => {
-  const [currentStage, setCurrentStage] = useState(0);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [completedStages, setCompletedStages] = useState<Set<number>>(new Set());
-  const [completedSteps, setCompletedSteps] = useState<Map<number, Set<number>>>(new Map());
+  const { id } = useParams<{id: string}>();
+  
+  // Use our custom workflow hook instead of local state
+  const {
+    workflow: workflowData,
+    currentStageIndex: currentStage,
+    currentStepIndex: currentStep,
+    currentStageData,
+    currentStepData,
+    completedStages,
+    completedSteps,
+    progress,
+    fetchWorkflow,
+    handleNextStep,
+    goToPreviousStep,
+    goToStage
+  } = useWorkflow(id);
 
-  const currentStageData = stages[currentStage] || { steps: [] };
-  const currentStepData = currentStageData?.steps[currentStep];
+  // Fetch workflow data when component mounts or id changes
+  useEffect(() => {
+    if (id) {
+      fetchWorkflow(id, "LEAD_CREATION");
+    }
+  }, [id]);
 
+
+  // Use handleNextStep from our hook instead of local implementation
   const goToNext = () => {
-    const stepsInCurrentStage = currentStageData.steps.length;
-    
-    if (currentStep < stepsInCurrentStage - 1) {
-      // Move to next step in current stage
-      const stageCompletedSteps = completedSteps.get(currentStage) || new Set();
-      stageCompletedSteps.add(currentStep);
-      setCompletedSteps(new Map(completedSteps.set(currentStage, stageCompletedSteps)));
-      setCurrentStep(prev => prev + 1);
-    } else if (currentStage < stages.length - 1) {
-      // Move to next stage
-      const stageCompletedSteps = completedSteps.get(currentStage) || new Set();
-      stageCompletedSteps.add(currentStep);
-      setCompletedSteps(new Map(completedSteps.set(currentStage, stageCompletedSteps)));
-      setCompletedStages(prev => new Set([...prev, currentStage]));
-      setCurrentStage(prev => prev + 1);
-      setCurrentStep(0);
-    } else {
-      // Complete the entire process
-      const stageCompletedSteps = completedSteps.get(currentStage) || new Set();
-      stageCompletedSteps.add(currentStep);
-      setCompletedSteps(new Map(completedSteps.set(currentStage, stageCompletedSteps)));
-      setCompletedStages(prev => new Set([...prev, currentStage]));
-      onComplete?.();
-    }
+      handleNextStep()
   };
+  
+  // These functions are now handled by the workflow hook
 
-  const goToPrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
-    } else if (currentStage > 0) {
-      setCurrentStage(prev => prev - 1);
-      setCurrentStep(stages[currentStage - 1]?.steps.length - 1 || 0);
-    }
-  };
-
-  const goToStage = (stageIndex: number) => {
-    if (stageIndex <= currentStage || completedStages.has(stageIndex)) {
-      setCurrentStage(stageIndex);
-      setCurrentStep(0);
-    }
-  };
-
+  // Helper functions for UI state
   const getStageStatus = (stageIndex: number) => {
     if (completedStages.has(stageIndex)) return 'completed';
     if (stageIndex === currentStage) return 'active';
@@ -127,18 +68,20 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
   };
 
   const getStepStatus = (stageIndex: number, stepIndex: number) => {
-    const stageSteps = completedSteps.get(stageIndex);
-    if (stageSteps?.has(stepIndex)) return 'completed';
-    if (stageIndex === currentStage && stepIndex === currentStep) return 'active';
-    return 'inactive';
+    const stage = workflowData?.stages?.[stageIndex];
+    const step = stage?.steps?.[stepIndex];
+    if (!step) return 'inactive';
+
+    // step.id is a string, and completedSteps is a Map<string, string>
+    const stepStatus = step.id ? completedSteps.get(step.id) : undefined;
+
+    if (stepStatus && stepStatus === "2") return "completed"; // task_status = 2 means completed
+    if (stageIndex === currentStage && stepIndex === currentStep) return "active";
+
+    return "inactive";
   };
 
-  const totalSteps = stages.reduce((acc, stage) => acc + stage.steps.length, 0);
-  const completedStepsCount = Array.from(completedSteps.values()).reduce(
-    (acc, stepSet) => acc + stepSet.size, 0
-  );
-  const progress = ((completedStepsCount + (currentStepData ? 1 : 0)) / totalSteps) * 100;
-
+  console.log('progress: ', progress)
   return (
     <div className={cn("w-full max-w-7xl mx-auto", className)}>
       {/* Header with Partner Info */}
@@ -177,7 +120,7 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
             </div>
             <div className="w-full bg-muted rounded-full h-2">
               <div 
-                className="bg-gradient-primary h-2 rounded-full transition-all duration-500"
+                className="bg-blue-600 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -185,59 +128,82 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
 
           {/* Stage Progress */}
           <div className="space-y-6">
-            {stages.map((stage, stageIndex) => (
-              <div key={stage.id} className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300",
-                    getStageStatus(stageIndex) === 'completed' && "bg-step-completed text-white",
-                    getStageStatus(stageIndex) === 'active' && "bg-step-active text-white",
-                    getStageStatus(stageIndex) === 'inactive' && "bg-step-inactive text-muted-foreground"
-                  )}>
-                    {getStageStatus(stageIndex) === 'completed' ? (
-                      <Check className="w-4 h-4" />
-                    ) : (
-                      stageIndex + 1
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <h4 className={cn(
-                      "font-medium text-sm transition-colors",
-                      getStageStatus(stageIndex) === 'active' && "text-primary",
-                      getStageStatus(stageIndex) === 'completed' && "text-step-completed",
-                      getStageStatus(stageIndex) === 'inactive' && "text-muted-foreground"
-                    )}>
-                      {stage.name}
-                    </h4>
-                    {stage.description && (
-                      <p className="text-xs text-muted-foreground">{stage.description}</p>
-                    )}
-                  </div>
-                </div>
+            {workflowData?.stages.map((stage, stageIndex) => {
+              const stageStatus = getStageStatus(stageIndex);
 
-                {/* Steps within stage */}
-                <div className="ml-11 space-y-2">
-                  {stage.steps.map((step, stepIndex) => (
-                    <div key={step.id} className="flex items-center gap-2">
-                      <Circle className={cn(
-                        "w-3 h-3 transition-colors",
-                        getStepStatus(stageIndex, stepIndex) === 'completed' && "text-step-completed fill-current",
-                        getStepStatus(stageIndex, stepIndex) === 'active' && "text-step-active fill-current",
-                        getStepStatus(stageIndex, stepIndex) === 'inactive' && "text-step-inactive"
-                      )} />
-                      <span className={cn(
-                        "text-xs transition-colors",
-                        getStepStatus(stageIndex, stepIndex) === 'active' && "text-primary font-medium",
-                        getStepStatus(stageIndex, stepIndex) === 'completed' && "text-step-completed",
-                        getStepStatus(stageIndex, stepIndex) === 'inactive' && "text-muted-foreground"
-                      )}>
-                        {step.name}
-                      </span>
+              return (
+                  <div key={stage.id} className="space-y-3">
+                    {/* Stage Row */}
+                    <div className="flex items-center gap-3">
+                      <div
+                          className={cn(
+                              "w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold border transition-all duration-300",
+                              stageStatus === "completed" && "bg-emerald-600 text-white border-emerald-600",
+                              stageStatus === "active" && "bg-blue-600 text-white border-blue-600",
+                              stageStatus === "inactive" && "bg-gray-100 text-gray-500 border-gray-300"
+                          )}
+                      >
+                        {stageStatus === "completed" ? (
+                            <Check className="w-4 h-4" />
+                        ) : (
+                            stageIndex + 1
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h4
+                            className={cn(
+                                "font-medium text-sm transition-colors",
+                                stageStatus === "active" && "text-blue-600",
+                                stageStatus === "completed" && "text-emerald-600",
+                                stageStatus === "inactive" && "text-gray-500"
+                            )}
+                        >
+                          {stage.name}
+                        </h4>
+                        {stage.description && (
+                            <p className="text-xs text-muted-foreground">{stage.description}</p>
+                        )}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+
+                    {/* Steps inside stage */}
+                    <div className="ml-11 space-y-2">
+                      {stage.steps.map((step, stepIndex) => {
+                        const stepStatus = getStepStatus(stageIndex, stepIndex);
+
+                        return (
+                            <div key={step.id} className="flex items-center gap-2">
+                              <div
+                                  className={cn(
+                                      "w-3 h-3 rounded-full border transition-colors",
+                                      stepStatus === "completed" &&
+                                      "bg-emerald-600 border-emerald-600",
+                                      stepStatus === "active" &&
+                                      "bg-blue-600 border-blue-600",
+                                      stepStatus === "inactive" &&
+                                      "bg-gray-200 border-gray-300"
+                                  )}
+                              />
+                              <span
+                                  className={cn(
+                                      "text-xs transition-colors",
+                                      stepStatus === "active" &&
+                                      "text-blue-600 font-medium",
+                                      stepStatus === "completed" &&
+                                      "text-emerald-600",
+                                      stepStatus === "inactive" &&
+                                      "text-gray-500"
+                                  )}
+                              >
+                  {step.name}
+                </span>
+                            </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+              );
+            })}
           </div>
         </div>
 
@@ -246,7 +212,7 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
           {/* Stage Tabs */}
           <Tabs value={currentStage.toString()} onValueChange={(value) => goToStage(parseInt(value))}>
             <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-5 mb-3">
-              {stages.map((stage, index) => (
+              {workflowData?.stages.map((stage, index) => (
                 <TabsTrigger 
                   key={stage.id} 
                   value={index.toString()}
@@ -272,7 +238,7 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
                   {/* Step Content */}
                   <div className="min-h-[400px] md:min-h-[500px]">
                     <div className="animate-fade-in" key={`${currentStage}-${currentStep}`}>
-                      {currentStepData?.ui_component}
+                      {currentStepData?.ui_component} - {currentStepData?.name}
                     </div>
                   </div>
                 </div>
@@ -284,7 +250,10 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
           <div className="flex justify-between items-center mt-3 gap-4">
             <Button
               variant="outline"
-              onClick={goToPrevious}
+              onClick={() => {
+                console.log('Back button clicked, calling goToPreviousStep');
+                goToPreviousStep();
+              }}
               disabled={currentStage === 0 && currentStep === 0}
               className="flex items-center gap-2"
             >
@@ -293,16 +262,16 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
             </Button>
 
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Step {currentStep + 1} of {currentStageData?.steps.length}</span>
+              <span>Step {currentStep + 1} of {currentStageData?.steps != null ?currentStageData?.steps.length : 0}</span>
               <span>•</span>
-              <span>Stage {currentStage + 1} of {stages.length}</span>
+              <span>Stage {currentStage + 1} of {workflowData?.stages.length}</span>
             </div>
 
             <Button
               onClick={goToNext}
               className="flex items-center gap-2 text-black bg-gradient-primary hover:shadow-glow hover:text-white border"
             >
-              {currentStage === stages.length - 1 && currentStep === currentStageData?.steps.length - 1 ? (
+              {currentStage === (workflowData?.stages.length ?? 0 - 1) && currentStep === (currentStageData?.steps.length ?? 0 - 1) ? (
                 <>Complete <Check className="w-4 h-4" /></>
               ) : (
                 <>Save & Next <ChevronRight className="w-4 h-4" /></>
