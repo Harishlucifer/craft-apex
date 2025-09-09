@@ -141,11 +141,6 @@ export function LeadListPage() {
     updateURLParams({ search: value, page: '1' });
   };
 
-  const handleRetry = () => {
-    setError(null);
-    fetchLeads();
-  };
-
   const handlePageChange = (newPage: number) => {
     setPagination(prev => ({ ...prev, page: newPage }));
     updateURLParams({ page: newPage.toString() });

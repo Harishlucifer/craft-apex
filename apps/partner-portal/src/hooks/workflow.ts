@@ -2,7 +2,6 @@ import {useCallback} from 'react';
 import {useAuthStore} from '@repo/shared-state/stores';
 import {useWorkflowStore, Step, Workflow} from '../stores/workflow';
 import {useMutation, useQueryClient} from '@repo/shared-state/query';
-import {toast} from "sonner";
 
 export const useWorkflow = (sourceId?: string) => {
     const apiUrl = import.meta.env.VITE_API_ENDPOINT;
@@ -23,7 +22,6 @@ export const useWorkflow = (sourceId?: string) => {
         setWorkflow,
         setWorkflowType,
         setLoading,
-        goToNextStep,
         goToPreviousStep,
         goToStage,
         markStepCompleted,
@@ -127,20 +125,11 @@ export const useWorkflow = (sourceId?: string) => {
         [executeWorkflowMutation]
     );
 
-    /**
-     * Handle next step navigation
-     */
-    const handleNextStep = useCallback(async () => {
-        if (!sourceId || !currentStepData) return;
-        const executed = await executeWorkflow(currentStepData, sourceId, workflowType);
-        if (executed) toast.success('Step executed successfully',{position: 'top-right',duration: 1500});
-        else toast.error('Step execution failed',{position: 'top-right'});
-    }, [sourceId, currentStepData, executeWorkflow, goToNextStep, workflowType]);
-
     return {
         // State
         workflow,
         workflowType,
+        executeWorkflow,
         currentStageIndex,
         currentStepIndex,
         currentStageData,
@@ -156,8 +145,6 @@ export const useWorkflow = (sourceId?: string) => {
 
         // Actions
         fetchWorkflow,
-        executeWorkflow,
-        handleNextStep,
         goToPreviousStep,
         goToStage,
         markStepCompleted,

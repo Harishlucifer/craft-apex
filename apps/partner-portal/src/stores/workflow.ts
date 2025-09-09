@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
+import React from "react";
 
 // Types
 export interface Step {
@@ -84,6 +85,13 @@ export interface WorkflowInstance {
   status: string;
 }
 
+export interface StepComponentData {
+  step: Step;
+  ref: React.RefObject<any> | React.MutableRefObject<any>;
+  handleSubmit: (values: any) => void;
+}
+
+
 interface WorkflowState {
   // State
   workflowType: string;
@@ -92,8 +100,6 @@ interface WorkflowState {
   currentStepIndex: number;
   loading: boolean;
   askAvailableWorkflowStages: any[];
-  workflowLastStep: string;
-  workflowLastStage: string;
   status: string;
   completedStages: Set<number>;
   completedSteps: Map<string, string>;
@@ -128,8 +134,6 @@ export const useWorkflowStore = create<WorkflowState>()(
               currentStepIndex: 0,
               loading: false,
               askAvailableWorkflowStages: [],
-              workflowLastStep: "",
-              workflowLastStage: "",
               status: "",
               completedStages: new Set(),
               completedSteps: new Map(),
@@ -150,8 +154,6 @@ export const useWorkflowStore = create<WorkflowState>()(
 
               get progress() {
                 const { workflow, completedSteps } = get()|| {} as WorkflowState;
-                console.log('workflow:', workflow);
-                console.log('completedSteps:', completedSteps);
                 if (!workflow?.stages?.length) return 0;
 
                 const totalSteps = workflow.stages.reduce(
@@ -175,7 +177,6 @@ export const useWorkflowStore = create<WorkflowState>()(
 
                 const { workflow } = state;
 
-                console.log('setCurrentStageIndex called with:', currentStageIndex);
 
                 if (!workflow?.stages?.[currentStageIndex]) {
                   console.log('No stage found at index:', currentStageIndex);
@@ -193,7 +194,6 @@ export const useWorkflowStore = create<WorkflowState>()(
 
                 const { workflow, currentStageIndex } = state;
 
-                console.log('setCurrentStepIndex called with:', currentStepIndex, 'currentStageIndex:', currentStageIndex);
 
                 if (!workflow?.stages?.[currentStageIndex]?.steps) {
                   console.log('No steps found for stage:', currentStageIndex);
@@ -256,21 +256,18 @@ export const useWorkflowStore = create<WorkflowState>()(
                 // derive completed stages & steps
                 const completedStages = new Set(
                     workflow.stages
-                        ?.filter((s) => s.task_status === "2")
+                        ?.filter((s) => s.task_status === "2" || s.task_status === "1")
                         .map((_s, index) => index)
                 );
 
                 const completedSteps = new Map();
                 workflow.stages?.forEach((stage) => {
                   stage.steps?.forEach((step) => {
-                    console.log('steps - ',step)
                     if (step.task_status === "2") {
-                      console.log('step completed - ',step)
                       completedSteps.set(step.id, step.task_status);
                     }
                   });
                 });
-                console.log('completedSteps - ',completedSteps)
 
                 // ✅ Calculate progress here
                 const totalSteps = workflow.stages?.reduce(
@@ -281,11 +278,8 @@ export const useWorkflowStore = create<WorkflowState>()(
                 const completedStepsCount = [...completedSteps.values()].filter(
                     (status) => status === "2" // assuming "2" = completed
                 ).length;
-                console.log('completedStepsCount -',completedStepsCount)
-                console.log('totalSteps -',totalSteps)
 
                 const progress = totalSteps > 0 ? (completedStepsCount / totalSteps)*100 : 0;
-                console.log('progress -',progress)
 
                 set({
                   workflow,
@@ -294,8 +288,6 @@ export const useWorkflowStore = create<WorkflowState>()(
                   currentStepIndex,
                   currentStageData:currentStage,
                   currentStepData:currentStep,
-                  workflowLastStage: workflow.last_active_stage_id || "",
-                  workflowLastStep: workflow.last_active_step_id || "",
                   status: workflow.workflow_instance?.status || "",
                   askAvailableWorkflowStages: workflow.stages?.map((s) => ({
                     id: s.id,
@@ -357,11 +349,13 @@ export const useWorkflowStore = create<WorkflowState>()(
                     currentStepIndex: newStepIndex,
                     currentStepData: workflow?.stages[currentStageIndex]?.steps[newStepIndex],
                   });
+
                 } else if (currentStageIndex > 0) {
                   // Go to previous stage’s last step
                   const previousStageIndex = currentStageIndex - 1;
                   const previousStage = workflow.stages[previousStageIndex];
-                  const lastStepIndex = previousStage?.steps?.length ?? 0 - 1;
+
+                  const lastStepIndex = (previousStage?.steps?.length ?? 0) - 1;
 
                   set({
                     currentStageIndex: previousStageIndex,

@@ -11,12 +11,13 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-
     "@repo/shared-state": "*",
     "@repo/types": "*",
     "@repo/ui": "*",
     "@tanstack/react-query": "^5.17.0",
     "@types/react-router-dom": "^5.3.3",
+    "axios": "^1.11.0",
+    "craft-ux": "1.1.7",
     "lucide-react": "^0.542.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

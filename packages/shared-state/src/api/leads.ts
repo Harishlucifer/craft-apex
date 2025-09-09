@@ -1,5 +1,11 @@
 import { BaseApiService } from './base';
 
+export interface LeadApiResponse {
+  application_id:string,
+  message:string,
+  result:any,
+  status:number,
+}
 export interface LeadApplication {
   application_id: string;
   type: string;
@@ -168,12 +174,12 @@ export class LeadsApiService extends BaseApiService {
     return response as unknown as LeadsApiResponse;
   }
 
-  async fetchLead(id: string): Promise<LeadApplication> {
-    const response = await this.get<LeadApplication>(
-      `/alpha/v1/application/${id}`
+  async fetchLead(id: string,version:string = "V1"): Promise<LeadApiResponse> {
+    const response = await this.get<LeadApiResponse>(
+      `/alpha/${version}/application/${id}`
     );
     
-    return response as unknown as LeadApplication;
+    return response as unknown as LeadApiResponse;
   }
 }
 
