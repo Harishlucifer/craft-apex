@@ -6,50 +6,50 @@ import { Button } from "@repo/ui/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { DynamicStagesAndSteps } from "@/pages/workflow/DynamicStagesAndSteps.tsx";
 import { useQuery } from "@tanstack/react-query";
-import { LeadAPI } from "@/api/LeadAPI.ts";
-import { useLeadStore, Lead } from "@/stores/Lead.ts";
+import { PartnerAPI } from "@/api/PartnerAPI.ts";
+import { usePartnerStore, Partner } from "@/stores/Partner.ts";
 
-export function LeadDetailPage() {
+export function PartnerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const leadApi = new LeadAPI(); // API instance
+  const partnerApi = new PartnerAPI(); // API instance
 
-  // Access Lead store state
+  // Access Partner store state
   const {
-    leadataV1,
-    leadataV2,
+    partnerdataV1,
+    partnerdataV2,
     loading: storeLoading,
     error: storeError,
-    setLeadData,
+    setPartnerData,
     setLoading,
     setError,
     clearError
-  } = useLeadStore();
+  } = usePartnerStore();
 
-  const [lead, setLead] = useState<Lead | null>(null);
+  const [partner, setPartner] = useState<Partner | null>(null);
 
   // ✅ Read loan_type and journey_type from query params
-  const loanType = searchParams.get("loan_type");
+  const partnerType = searchParams.get("partner_type");
   const journeyType = searchParams.get("journey_type");
 
-  // ✅ Fetch lead from API only if `id` exists
+  // ✅ Fetch partner from API only if `id` exists
   const {
-    data: apiLead,
-    isLoading: isLeadLoading,
-    isError: isLeadError,
-    error: leadError,
+    data: apiPartner,
+    isLoading: isPartnerLoading,
+    isError: isPartnerError,
+    error: partnerError,
   } = useQuery({
-    queryKey: ["lead", id],
+    queryKey: ["partner", id],
     queryFn: async () => {
-      if (!id) throw new Error("Lead ID is required");
+      if (!id) throw new Error("Partner ID is required");
       setLoading(true);
       clearError();
       try {
-        const response = await leadApi.fetchLead(id, "V2");
+        const response = await partnerApi.fetchPartner(id, "V2");
         return response.result;
       } catch (error) {
-        setError(error instanceof Error ? error.message : "Failed to fetch lead");
+        setError(error instanceof Error ? error.message : "Failed to fetch partner");
         throw error;
       } finally {
         setLoading(false);
@@ -60,40 +60,40 @@ export function LeadDetailPage() {
 
   // ✅ Handle case when id is missing but loan_type & journey_type are in URL
   useEffect(() => {
-    if (!id && loanType && journeyType) {
-      setLead({
+    if (!id && partnerType && journeyType) {
+      setPartner({
         application: {
-          loan_type_code: loanType,
-          type: journeyType,
+          partner_type: partnerType,
+          journey_type: journeyType,
         },
       });
     }
-  }, [id, loanType, journeyType]);
+  }, [id, partnerType, journeyType]);
 
-  // ✅ Update lead state when API data arrives
+  // ✅ Update partner state when API data arrives
   useEffect(() => {
-    if (apiLead) {
-      setLead(apiLead);
+    if (apiPartner) {
+      setPartner(apiPartner);
       // Store in Zustand store for global access
-      setLeadData(apiLead, "V2");
+      setPartnerData(apiPartner, "V2");
     }
-  }, [apiLead, setLeadData]);
+  }, [apiPartner, setPartnerData]);
 
   // ✅ Use store data if available
   useEffect(() => {
-    if (!lead && leadataV2) {
-      setLead(leadataV2);
+    if (!partner && partnerdataV2) {
+      setPartner(partnerdataV2);
     }
-  }, [lead, leadataV2]);
+  }, [partner, partnerdataV2]);
 
   const handleBack = () => {
     navigate(-1);
   };
 
   // Combine loading states
-  const isLoading = isLeadLoading || storeLoading;
-  const hasError = isLeadError || !!storeError;
-  const errorMessage = leadError instanceof Error ? leadError.message : storeError;
+  const isLoading = isPartnerLoading || storeLoading;
+  const hasError = isPartnerError || !!storeError;
+  const errorMessage = partnerError instanceof Error ? partnerError.message : storeError;
 
   if (isLoading) {
     return (
@@ -101,14 +101,14 @@ export function LeadDetailPage() {
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading lead details...</p>
+              <p className="text-muted-foreground">Loading partner details...</p>
             </div>
           </div>
         </ModuleLayout>
     );
   }
 
-  if ((hasError && id) || (!lead && id)) {
+  if ((hasError && id) || (!partner && id)) {
     return (
         <ModuleLayout>
           <div className="space-y-6">
@@ -121,9 +121,9 @@ export function LeadDetailPage() {
             <Card className="p-6">
               <div className="text-center py-8">
                 <p className="text-red-600 mb-4">
-                  {errorMessage || "Lead not found"}
+                  {errorMessage || "Partner not found"}
                 </p>
-                <Button onClick={handleBack}>Return to Lead List</Button>
+                <Button onClick={handleBack}>Return to Partner List</Button>
               </div>
             </Card>
           </div>
@@ -131,7 +131,7 @@ export function LeadDetailPage() {
     );
   }
 
-  console.log('lead ', lead)
+  console.log('partner ', partner)
 
   return (
       <ModuleLayout>
@@ -141,19 +141,19 @@ export function LeadDetailPage() {
               <div>
                 <span className="text-sm text-muted-foreground">Name:</span>
                 <span className="ml-2 font-medium text-foreground">
-                {lead?.application?.name ?? lead?.application?.contact_person ?? "-"}
+                {partner?.application?.name ?? partner?.application?.contact_person ?? partner?.applicant_name ?? "-"}
               </span>
               </div>
               <div>
                 <span className="text-sm text-muted-foreground">Journey Type:</span>
                 <span className="ml-2 font-medium text-foreground">
-                {lead?.type ?? lead?.application?.type}
+                {partner?.type ?? partner?.application?.type}
               </span>
               </div>
               <div>
                 <span className="text-sm text-muted-foreground">Mobile No:</span>
                 <span className="ml-2 font-medium text-foreground">
-                {lead?.application?.mobile ?? "-"}
+                {partner?.application?.mobile ?? partner?.mobile ?? "-"}
               </span>
               </div>
             </div>
@@ -164,11 +164,11 @@ export function LeadDetailPage() {
         </div>
 
         <DynamicStagesAndSteps
-            dataInfo={lead}
-            api={leadApi}
-            sourceId={lead?.application?.application_id || apiLead?.application?.application_id}
-            workflowType={"LEAD_CREATION"}
-            navigateUrl={"/lead/list"}
+            dataInfo={partner}
+            api={partnerApi}
+            sourceId={partner?.application?.application_id || apiPartner?.application?.application_id}
+            workflowType={"PARTNER_ONBOARDING"}
+            navigateUrl={"/partner/list"}
         />
       </ModuleLayout>
   );

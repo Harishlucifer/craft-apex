@@ -117,6 +117,9 @@ export const useAuthStore = create<AuthStore>()(
               // If user is already authenticated (not guest), set user data
               if (response.data.user.user_type !== "GUEST") {
                 set({ user: response.data.user, isAuthenticated: true });
+              }else {
+                console.log('User is guest')
+                set({ user: response.data.user, isAuthenticated: false });
               }
             } else {
               throw new Error("Setup API returned invalid response");
@@ -161,10 +164,11 @@ export const useAuthStore = create<AuthStore>()(
               platform,
               tenantDomain
             );
-            if (response.status < 0) {
+            console.log("loginWithMFA response", response);
+            if (!response.status) {
               throw new Error(response.error || "Login failed");
             }
-            if (response.status === 1 && response.data) {
+            if (response.status&& response.data) {
               // Store complete setup data including modules, system config, and tenant config
               setSetupData(response.data);
               // Set user data and mark as authenticated

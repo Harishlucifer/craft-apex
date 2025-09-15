@@ -175,7 +175,10 @@ export function LeadListPage() {
               Manage and track your sales leads and opportunities
             </p>
           </div>
-          <Button className="flex items-center gap-2">
+          <Button
+              className="flex items-center gap-2"
+              onClick={() => navigate("/lead/create")}
+          >
             <Plus className="h-4 w-4" />
             Add New Lead
           </Button>
@@ -316,7 +319,7 @@ export function LeadListPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => navigate(`/lead/${lead.application_id}`)}>
+                            <DropdownMenuItem onClick={() => navigate(`/lead/create/${lead.application_id}?loan_type=${lead.loan_type_code}&journey_type=${lead.type}`)}>
                               View
                             </DropdownMenuItem>
                             <DropdownMenuItem>

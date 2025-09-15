@@ -53,13 +53,15 @@ export class AuthApiService {
         body: JSON.stringify(requestPayload),
       });
 
+      console.log("Login with MFA response :: ", response);
       const data = await response.json();
       console.log("Login with OTP response :: ", data);
 
-      if (!response.ok) {
+      // Check for successful HTTP status code (200)
+      if (response.status !== 200) {
         throw new Error(
           data.error ||
-            `Login with OTP API failed: ${response.status} ${response.statusText}`
+            `Login with MFA API failed: HTTP ${response.status} ${response.statusText}`
         );
       }
 
@@ -69,12 +71,7 @@ export class AuthApiService {
         return data;
       } else {
         // OTP send - check for successful OTP send (status 6 indicates success)
-        if (data.status < 0) {
-          throw new Error(data.error || "Failed to send OTP");
-        }
-        if (data.status !== 6) {
-          throw new Error(data.message || "Failed to send OTP");
-        }
+       
         return data;
       }
     } catch (error) {
@@ -99,10 +96,11 @@ export class AuthApiService {
       const data = await response.json();
       console.log("Login with OTP response :: ", data);
 
-      if (!response.ok) {
+      // Check for successful HTTP status code (200)
+      if (response.status !== 200) {
         throw new Error(
           data.error ||
-            `Login with OTP API failed: ${response.status} ${response.statusText}`
+            `Login with OTP API failed: HTTP ${response.status} ${response.statusText}`
         );
       }
 
@@ -146,10 +144,11 @@ export class AuthApiService {
       const data = await response.json();
       console.log("Login with Password response :: ", data);
 
-      if (!response.ok) {
+      // Check for successful HTTP status code (200)
+      if (response.status !== 200) {
         throw new Error(
           data.error ||
-            `Login with Password API failed: ${response.status} ${response.statusText}`
+            `Login with Password API failed: HTTP ${response.status} ${response.statusText}`
         );
       }
 
@@ -183,10 +182,11 @@ export class AuthApiService {
       const data = await response.json();
       console.log("Refresh token response :: ", data);
 
-      if (!response.ok) {
+      // Check for successful HTTP status code (200)
+      if (response.status !== 200) {
         throw new Error(
           data.error ||
-            `Refresh token API failed: ${response.status} ${response.statusText}`
+            `Refresh token API failed: HTTP ${response.status} ${response.statusText}`
         );
       }
 
