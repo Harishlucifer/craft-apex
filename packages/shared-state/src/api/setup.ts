@@ -17,9 +17,11 @@ export class SetupApiService extends BaseApiService {
   
   async fetchSetup(): Promise<SetupResponse> {
     // Platform and tenant domain headers are automatically added by BaseApiService
+    // Skip auth headers for setup API as it should work for both guest and authenticated users
     const response = await this.post<SetupResponse>(
       '/alpha/v1/setup',
-      {}
+      {},
+      { skipAuth: true }
     );
     
     return response as unknown as SetupResponse;

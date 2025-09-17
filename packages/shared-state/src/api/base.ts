@@ -14,6 +14,7 @@ export interface RequestConfig {
   timeout?: number;
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   body?: any;
+  skipAuth?: boolean;
 }
 
 export class BaseApiService {
@@ -38,13 +39,16 @@ export class BaseApiService {
     return this.baseURL;
   }
 
-  private getAuthHeaders(): Record<string, string> {
+  private getAuthHeaders(options: { skipAuth?: boolean } = {}): Record<string, string> {
     const authStore = useAuthStore.getState();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
 
-    if (authStore.user?.access_token) {
+    // Skip authorization header if explicitly requested or if user is a guest
+    const shouldSkipAuth = options.skipAuth || authStore.user?.user_type === 'GUEST';
+
+    if (!shouldSkipAuth && authStore.user?.access_token) {
       headers['Authorization'] = `Bearer ${authStore.user.access_token}`;
     }
 
@@ -61,7 +65,7 @@ export class BaseApiService {
 
   private async makeRequest<T>(url: string, config: RequestConfig = {}): Promise<ApiResponse<T>> {
     const fullUrl = url.startsWith('http') ? url : `${this.getBaseURL()}${url}`;
-    const headers = { ...this.getAuthHeaders(), ...config.headers };
+    const headers = { ...this.getAuthHeaders({ skipAuth: config.skipAuth }), ...config.headers };
     
     const requestConfig: RequestInit = {
       method: config.method || 'GET',
