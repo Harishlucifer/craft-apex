@@ -1,9 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import {useEffect } from 'react';
 import { Card } from '@repo/ui/components/ui/card';
 import { Button } from '@repo/ui/components/ui/button';
 import { useAuthStore } from '@repo/shared-state/stores';
-import { useThemeStore, useNotificationStore } from '@repo/shared-state/store';
 import { usePlatformConfig, useSetup } from '@repo/shared-state/hooks';
 import { applyTenantBranding } from '../utils/branding';
 import { 
@@ -12,7 +10,6 @@ import {
   Shield, 
   ArrowRight, 
   CheckCircle, 
-  Clock, 
   Star,
   TrendingUp,
   Award,
@@ -21,22 +18,12 @@ import {
 } from 'lucide-react';
 
 export function DashboardPage() {
-  const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuthStore();
-  const { notifications, addNotification, clearNotifications } = useNotificationStore();
   const platformConfig = usePlatformConfig('CUSTOMER_PORTAL');
   
   // Setup API integration
   const { setupData, isLoading: setupLoading, error: setupError, refetch } = useSetup();
   
-  // Local state for dashboard metrics
-  const [dashboardStats, setDashboardStats] = useState({
-    totalApplications: 0,
-    approvedLoans: 0,
-    averageRate: 0,
-    processingTime: 0
-  });
-
   // Apply tenant branding when platform config is loaded
   useEffect(() => {
     if (platformConfig?.branding) {
@@ -48,24 +35,6 @@ export function DashboardPage() {
       });
     }
   }, [platformConfig]);
-
-  // Process setup data when available
-  useEffect(() => {
-    if (setupData) {
-      // Simulate dashboard metrics from setup data
-      setDashboardStats({
-        totalApplications: 1247,
-        approvedLoans: 1089,
-        averageRate: 8.5,
-        processingTime: 24
-      });
-      
-      addNotification({
-        type: 'success',
-        message: `Welcome to ${setupData.tenant.TENANT_NAME} Loan Portal!`
-      });
-    }
-  }, [setupData, addNotification]);
 
   // Allow access without authentication for demo purposes
 
@@ -81,10 +50,6 @@ export function DashboardPage() {
 
   const handleLogout = () => {
     logout();
-    addNotification({
-      type: 'info',
-      message: 'Thanks for visiting! Come back soon.'
-    });
   };
 
   // Loading state
@@ -102,7 +67,7 @@ export function DashboardPage() {
   // Error state
   if (setupError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center">
+      <div className="min-h-screen max-w-sm bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-red-800 mb-2">Setup Error</h1>
@@ -163,56 +128,6 @@ export function DashboardPage() {
 
       {/* Main Content */}
       <main className="w-full px-2 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Dashboard Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mb-12 lg:mb-16">
-          <Card className="p-6 bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Applications</p>
-                <p className="text-3xl font-bold text-[#2d5483]">{dashboardStats.totalApplications.toLocaleString()}</p>
-              </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </Card>
-          
-          <Card className="p-6 bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Approved Loans</p>
-                <p className="text-3xl font-bold text-green-600">{dashboardStats.approvedLoans.toLocaleString()}</p>
-              </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </Card>
-          
-          <Card className="p-6 bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Average Rate</p>
-                <p className="text-3xl font-bold text-orange-600">{dashboardStats.averageRate}%</p>
-              </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-                <Star className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </Card>
-          
-          <Card className="p-6 bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Processing Time</p>
-                <p className="text-3xl font-bold text-purple-600">{dashboardStats.processingTime}h</p>
-              </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Clock className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </Card>
-        </div>
 
         {/* Hero Section */}
         <div className="text-center mb-12 lg:mb-16">
@@ -329,48 +244,6 @@ export function DashboardPage() {
             </Card>
           </div>
         </div>
-
-        {/* Notifications */}
-        {notifications.length > 0 && (
-          <div className="mb-12">
-            <div className="w-full">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Updates</h3>
-              <div className="space-y-3">
-                {notifications.slice(-3).map((notification: any) => (
-                  <Card 
-                    key={notification.id}
-                    className={`p-4 border-0 shadow-md ${
-                      notification.type === 'success' ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-800' :
-                      notification.type === 'error' ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-800' :
-                      notification.type === 'warning' ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-800' :
-                      'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      {notification.type === 'success' && <CheckCircle className="w-5 h-5 flex-shrink-0" />}
-                      {notification.type === 'error' && <AlertCircle className="w-5 h-5 flex-shrink-0" />}
-                      {notification.type === 'warning' && <AlertCircle className="w-5 h-5 flex-shrink-0" />}
-                      {notification.type === 'info' && <Star className="w-5 h-5 flex-shrink-0" />}
-                      <span className="font-medium">{notification.message}</span>
-                    </div>
-                  </Card>
-                ))}
-                {notifications.length > 0 && (
-                  <div className="text-center">
-                    <Button 
-                      onClick={clearNotifications}
-                      variant="outline"
-                      size="sm"
-                      className="text-gray-600 hover:text-gray-900"
-                    >
-                      Clear all notifications ({notifications.length})
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </main>
 
       {/* Modern Footer */}

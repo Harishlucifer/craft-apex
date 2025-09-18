@@ -25,8 +25,8 @@ function App() {
                 <Route path="/partner/create" element={<PartnerDetailPage/>}/>
                  <Route path="/partner/create/:id" element={<PartnerDetailPage/>}/>
                 {/* Redirect root paths to dashboard */}
-                <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
-                <Route path="/dashboard" element={<DashboardPage/>}/>
+                <Route path="/" element={<Navigate to="/partner/dashboard" replace/>}/>
+                <Route path="/dashboard" element={<Navigate to="/partner/dashboard" replace/>}/>
 
                 {/* Dashboard route - protected but no module access required */}
                 <Route
