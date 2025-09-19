@@ -53,6 +53,7 @@ export interface TenantConfig {
   APPLICATION_PSEUDO: string;
   BANK_PARSER_INTEGRATION: string;
   CUSTOMER_PORTAL_URL: string;
+  CONSUMER_DASHBOARD_TYPE?: string;
   DEFAULT_NOTIFICATION_PROVIDER: string;
   EMPLOYEE_PORTAL_URL: string;
   GOOGLE_MAP_API_KEY: string;

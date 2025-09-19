@@ -43,6 +43,7 @@ export class LeadAPI extends WorkflowAPI {
             const res = await fetch(`${this.apiUrl}/alpha/v2/application/create`, {
                 method: "POST",
                 headers: {
+                    "X-Platform": "CUSTOMER_PORTAL",
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${this.user?.access_token}`,
                 },
@@ -86,6 +87,7 @@ export class LeadAPI extends WorkflowAPI {
         const res = await fetch(`${this.apiUrl}${endpoint}`, {
             method: "GET",
             headers: {
+                "X-Platform": "CUSTOMER_PORTAL",
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${this.user?.access_token}`,
             },
