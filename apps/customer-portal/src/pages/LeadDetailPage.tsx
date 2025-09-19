@@ -1,6 +1,5 @@
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ModuleLayout } from "@repo/ui/module";
 import { Card } from "@repo/ui/components/ui/card";
 import { Button } from "@repo/ui/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -130,14 +129,14 @@ export function LeadDetailPage() {
   console.log('lead ', lead)
 
   return (
-    <div>
- <div className="bg-card border-b border-border p-2 mb-1 rounded-t-lg">
+    <div className="p-4">
+        <div className="bg-card border-b border-border p-2 mb-1 rounded-t-lg">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               <div>
                 <span className="text-sm text-muted-foreground">Name:</span>
                 <span className="ml-2 font-medium text-foreground">
-                {lead?.application?.name ?? lead?.application?.contact_person ?? "-"}
+                {lead?.application?.applicant_name ?? lead?.application?.contact_person ?? "-"}
               </span>
               </div>
               <div>
@@ -163,7 +162,7 @@ export function LeadDetailPage() {
             api={leadApi}
             sourceId={lead?.application?.application_id || apiLead?.application?.application_id}
             workflowType={"LEAD_CREATION"}
-            navigateUrl={"/lead/list"}
+            navigateUrl={"/dashboard"}
         />
     </div>
        

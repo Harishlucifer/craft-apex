@@ -1,6 +1,7 @@
 import {Step} from "@/stores/workflow.js";
 import FormBuilderRenderPage from "@/pages/FormBuilderRenderPage";
 import {forwardRef} from "react";
+import MobileEmailOtpVerification from "@/components/stepComponents/MobileEmailOTPVerirfication";
 
 export interface StepComponentProps {
     step: Step;
@@ -22,6 +23,8 @@ const WorkflowStepComponentLoader = forwardRef((props: StepComponentProps, ref) 
     switch (props.step.ui_component) {
         case "FORM_BUILDER":
             return <FormBuilderRenderPage {...stepProps}  />
+            case "MOBILE_EMAIL_OTP_VERIFICATION":
+                return <MobileEmailOtpVerification {...stepProps} />
         default:
             return (<div className='flex align-middle justify-center my-60'>
                 <h3>{props.step.ui_component} - Component not found</h3>

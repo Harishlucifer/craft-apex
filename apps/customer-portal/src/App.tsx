@@ -1,18 +1,35 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
-import './App.css';
 import { LeadDetailPage } from './pages/LeadDetailPage';
+import { Layout } from './components/layout';
+import './App.css';
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* Login page without header */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/lead/create" element={<LeadDetailPage />} />
-        <Route path="/lead/create/:id" element={<LeadDetailPage />} />
-        <Route path="/" element={<Navigate to="/" replace />} />
+        
+        {/* All other pages with header */}
+        <Route path="/" element={
+          <Layout>
+            <DashboardPage />
+          </Layout>
+        } />
+        <Route path="/lead/create" element={
+          <Layout>
+            <LeadDetailPage />
+          </Layout>
+        } />
+        <Route path="/lead/create/:id" element={
+          <Layout>
+            <LeadDetailPage />
+          </Layout>
+        } />
+        
+        {/* Fallback routes */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
