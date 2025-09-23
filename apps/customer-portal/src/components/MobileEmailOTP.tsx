@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, Smartphone, RefreshCw, Mail, AlertCircle } from 'lucide-react';
 import { notificationAPI } from '../api/NotificationAPI';
-import { useAuthStore } from '@repo/shared-state/stores';
 import { StepComponentProps } from './WorkflowStepComponentLoader';
 
 

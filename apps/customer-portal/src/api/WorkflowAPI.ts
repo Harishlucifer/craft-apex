@@ -54,6 +54,7 @@ export class WorkflowAPI {
         }
         const res = await fetch(url, {
             headers: {
+                "X-Platform": "CUSTOMER_PORTAL",
                 Authorization: `Bearer ${this.user?.access_token}`,
             },
         });
@@ -74,6 +75,7 @@ export class WorkflowAPI {
             const res = await fetch(`${this.apiUrl}/alpha/v1/workflow/build`, {
                 method: "POST",
                 headers: {
+                    "X-Platform": "CUSTOMER_PORTAL",
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${this.user?.access_token}`,
                 },
@@ -116,6 +118,7 @@ export class WorkflowAPI {
             const res = await fetch(`${this.apiUrl}/alpha/v1/workflow/execution`, {
                 method: "POST",
                 headers: {
+                    "X-Platform": "CUSTOMER_PORTAL",
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${this.user?.access_token}`,
                 },
