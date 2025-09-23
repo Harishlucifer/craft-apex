@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { CheckCircle, TrendingUp} from "lucide-react";
+import {StepComponentProps} from "@/components/WorkflowStepComponentLoader.tsx";
 
 // --- Interfaces ---
 interface LenderOffer {
@@ -111,14 +112,10 @@ interface RecommendedOffersResponse {
     };
     status: number;
 }
-interface ApplicationStatusProps {
-    applicationData:any;
-    onBack: () => void;
-    onNext: () => void;
-}
+
 
 // --- Component ---
-const RecommendedOffers: React.FC<ApplicationStatusProps>  = ({applicationData,onBack,onNext}) => {
+const RecommendedOffers: React.FC<StepComponentProps>  = ({data:applicationData,onBack,onNext}) => {
     console.log(applicationData);
     console.log(onBack);
     console.log(onNext);
