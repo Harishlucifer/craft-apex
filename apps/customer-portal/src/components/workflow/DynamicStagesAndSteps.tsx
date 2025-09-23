@@ -282,8 +282,13 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
           stages={workflow.stages}
           currentStageIndex={currentStageIndex}
           onStageClick={(stageIndex) => {
-            // Only allow navigation to completed stages or current stage
-            if (stageIndex <= currentStageIndex) {
+            const targetStage = workflow.stages[stageIndex];
+            
+            // Allow navigation if:
+            // 1. It's a completed stage or current stage (existing logic)
+            // 2. OR the stage task_status is "1" or "2" (new requirement)
+            if (stageIndex <= currentStageIndex || 
+                (targetStage && (targetStage.task_status === "1" || targetStage.task_status === "2"))) {
               goToStage(stageIndex);
             }
           }}

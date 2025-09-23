@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { DynamicStagesAndSteps } from './workflow/DynamicStagesAndSteps';
 import { LeadAPI } from '../api/LeadAPI';
@@ -10,8 +10,10 @@ function LeadWorkflowPage() {
   const navigate = useNavigate();
   const leadApi = new LeadAPI(); // API instance
 
+
+
   // Get URL parameters
-  const applicationId = searchParams.get("application_id");
+ const {id :applicationId}=useParams();
   const journeyType = searchParams.get("journey_type");
   const loanType = searchParams.get("loan_type");
 
@@ -72,7 +74,7 @@ function LeadWorkflowPage() {
       // Store in Zustand store for global access
       setLeadData(leadData, "V2");
     }
-  }, [leadData, setLeadData]);
+  }, [leadData, setLeadData,leadataV2]);
 
   // Use store data if available
   useEffect(() => {
