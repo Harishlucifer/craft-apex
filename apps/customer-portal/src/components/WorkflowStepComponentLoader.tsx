@@ -1,6 +1,4 @@
 import { forwardRef } from "react";
-// import { LandingPage } from './LandingPage';
-import { OTPVerification } from './OTPVerification';
 import { MobileEmailOTP } from './MobileEmailOTP';
 import { PersonalDetails } from './PersonalDetails';
 import { IncomeDetails } from './IncomeDetails';
@@ -95,7 +93,7 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
             );
         case "DOCUMENT_VERIFICATION":
             return (
-                <DocumentVerification 
+                <DocumentVerification
                     applicationData={props.data || {} as ApplicationData}
                     updateApplicationData={() => {}}
                     onNext={props.onNext || (() => {})}
@@ -105,10 +103,7 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
         case "LENDER_RECOMMENDATION_OFFER_SELECTION":
             return (
                 <RecommendedOffers
-                    applicationData={props.data || {} as ApplicationData}
-                    updateApplicationData={() => {}}
-                    onNext={props.onNext || (() => {})}
-                    onBack={props.onBack || (() => {})} />
+                    {...stepProps} />
             );
         case "APPLICATION_STATUS":
             return (
