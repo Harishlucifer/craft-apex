@@ -1,13 +1,13 @@
 import { forwardRef } from "react";
-import { LandingPage } from './LandingPage';
+// import { LandingPage } from './LandingPage';
 import { OTPVerification } from './OTPVerification';
 import { PersonalDetails } from './PersonalDetails';
 import { IncomeDetails } from './IncomeDetails';
 import { EligibilityResults } from './EligibilityResults';
 import { DocumentVerification } from './DocumentVerification';
-import { LenderSelection } from './LenderSelection';
 import { ApplicationStatus } from './ApplicationStatus';
 import { ApplicationData } from './workflow/DynamicStagesAndSteps';
+import RecommendedOffers from "@/components/RecommendedOffers.tsx";
 
 export interface Step {
     id: string;
@@ -51,7 +51,7 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
     };
 
     switch (props.step.ui_component) {
-        case "MOBILE_EMAIL_OTP_VERIFICATION":
+        case "":
             return (
                 <OTPVerification 
                     isReturningCustomer={props.isReturningCustomer || false}
@@ -96,14 +96,12 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
                     onBack={props.onBack || (() => {})}
                 />
             );
-        case "LENDER_SELECTION":
+        case "MOBILE_EMAIL_OTP_VERIFICATION":
             return (
-                <LenderSelection 
-                    applicationData={props.applicationData || {} as ApplicationData}
-                    updateApplicationData={props.updateApplicationData || (() => {})}
+                <RecommendedOffers
+                    applicationData={props.updateApplicationData || (() => {})}
                     onNext={props.onNext || (() => {})}
-                    onBack={props.onBack || (() => {})}
-                />
+                    onBack={props.onBack || (() => {})} />
             );
         case "APPLICATION_STATUS":
             return (
