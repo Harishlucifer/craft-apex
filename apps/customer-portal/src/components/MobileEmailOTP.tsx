@@ -158,7 +158,8 @@ export const MobileEmailOTP: React.FC<StepComponentProps> = ({
           const applicationDataPayload = {
             application: {
               ...applicationData?.application,
-              contact_person: fullName || "",
+              contact_name: fullName || "",
+              applicant_name: fullName || "",
               mobile: mobileNumber?.toString() || "",
               email: email || "",
               apply_capacity: "PERSON",
