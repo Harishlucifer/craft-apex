@@ -51,7 +51,7 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
     };
 
     switch (props.step.ui_component) {
-        case "":
+        case "MOBILE_EMAIL_OTP_VERIFICATION":
             return (
                 <OTPVerification 
                     isReturningCustomer={props.isReturningCustomer || false}
@@ -96,7 +96,7 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
                     onBack={props.onBack || (() => {})}
                 />
             );
-        case "MOBILE_EMAIL_OTP_VERIFICATION":
+        case "LENDER_RECOMMENDATION_OFFER_SELECTION":
             return (
                 <RecommendedOffers
                     applicationData={props.updateApplicationData || (() => {})}
