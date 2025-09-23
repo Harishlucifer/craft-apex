@@ -1,14 +1,14 @@
 import { forwardRef } from "react";
-import { LandingPage } from './LandingPage';
+// import { LandingPage } from './LandingPage';
 import { OTPVerification } from './OTPVerification';
 import { MobileEmailOTP } from './MobileEmailOTP';
 import { PersonalDetails } from './PersonalDetails';
 import { IncomeDetails } from './IncomeDetails';
 import { EligibilityResults } from './EligibilityResults';
 import { DocumentVerification } from './DocumentVerification';
-import { LenderSelection } from './LenderSelection';
 import { ApplicationStatus } from './ApplicationStatus';
 import { ApplicationData } from './workflow/DynamicStagesAndSteps';
+import RecommendedOffers from "@/components/RecommendedOffers.tsx";
 import FormBuilderRenderPage from "./FormBuilderRenderPage";
 
 export interface Step {
@@ -54,7 +54,7 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
             return <FormBuilderRenderPage {...stepProps}  />
         case "MOBILE_EMAIL_OTP_VERIFICATION":
             return (
-                <MobileEmailOTP 
+                <MobileEmailOTP
                     step={props.step}
                     handleSubmitSuccess={props.handleSubmitSuccess}
                     handleBack={props.handleBack}
@@ -102,14 +102,13 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
                     onBack={props.onBack || (() => {})}
                 />
             );
-        case "LENDER_SELECTION":
+        case "LENDER_RECOMMENDATION_OFFER_SELECTION":
             return (
-                <LenderSelection 
+                <RecommendedOffers
                     applicationData={props.data || {} as ApplicationData}
                     updateApplicationData={() => {}}
                     onNext={props.onNext || (() => {})}
-                    onBack={props.onBack || (() => {})}
-                />
+                    onBack={props.onBack || (() => {})} />
             );
         case "APPLICATION_STATUS":
             return (
