@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { ChevronLeft, Upload, CheckCircle, AlertCircle, Camera, FileText } from 'lucide-react';
+import { ChevronLeft, Upload, CheckCircle, Camera, FileText } from 'lucide-react';
+import axios from 'axios';
+import Swal from 'sweetalert2';
+import {useAuthStore} from "@repo/shared-state/stores";
+
 
 interface DocumentVerificationProps {
   applicationData: any;
@@ -13,6 +17,34 @@ interface DocumentStatus {
   verified: boolean;
   extractedData?: any;
 }
+
+const documentTypes = [
+    {
+        id: 'aadhaar',
+        name: 'Aadhaar Card',
+        description: 'Front side of your Aadhaar card',
+        icon: FileText,
+        required: true,
+        documentId: '2',
+    },
+    {
+        id: 'pan',
+        name: 'PAN Card',
+        description: 'Clear image of your PAN card',
+        icon: FileText,
+        required: true,
+        documentId: '1'
+    },
+    {
+        id: 'income',
+        name: 'Income Proof',
+        description: 'Latest salary slip or ITR',
+        icon: FileText,
+        required: true,
+        documentId: '25'
+    }
+];
+
 
 export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
   applicationData,
@@ -34,70 +66,90 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
     verifiedDOB: ''
   });
 
-  const handleFileUpload = (docType: string, file: File) => {
-    setIsProcessing(docType);
-    
-    // Simulate OCR processing
-    setTimeout(() => {
-      const mockData = {
-        aadhaar: {
-          aadhaarNumber: '1234 5678 9012',
-          residenceAddress: 'Sample Address, Bangalore, Karnataka - 560001'
-        },
-        pan: {
-          verifiedPAN: applicationData.panNumber,
-          verifiedDOB: applicationData.dob
-        },
-        income: {
-          monthlyIncome: '₹45,000',
-          employer: 'Sample Company Ltd'
-        }
-      };
+    const apiUrl = import.meta.env.VITE_API_ENDPOINT;
+    const accessToken = useAuthStore.getState().user?.access_token;
 
+  const handleFileUpload = async (docType: string, file: File, documentId:string) => {
+    setIsProcessing(docType);
+
+    try {
+      // Configuration values
+      const onboardingID = '172500917292060119';
+      const applicantId = '172500917292285752';
+      const checkListItemId = '';
+      const applicantCategory = 'PERSON';
+      const password = '';
+      
+      // Create form data
+      const formData = new FormData();
+      formData.append('document', file);
+      formData.append('applicant_id', applicantId);
+      formData.append('document_id', documentId);
+      formData.append('checklist_item_id', checkListItemId);
+      formData.append('applicant_category', applicantCategory);
+      formData.append('password', password);
+
+      // API call with axios
+      const response = await axios.post(
+          `${apiUrl}/alpha/v1/onboarding/${onboardingID}/document`,
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      // Show success message
+      Swal.fire({
+        title: 'Success!',
+        text: response.data.message || 'Document uploaded successfully',
+        icon: 'success',
+        timer: 2500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+
+      // Update UI state
       setDocuments(prev => ({
         ...prev,
-        [docType]: { uploaded: true, verified: true, extractedData: mockData[docType as keyof typeof mockData] }
+        [docType]: { 
+          uploaded: true, 
+          verified: true,
+          extractedData: response.data
+        }
       }));
 
-      if (docType === 'aadhaar') {
+      // Update application data if needed
+      if (response.data.aadhaarNumber || response.data.residenceAddress) {
         setExtractedData(prev => ({
           ...prev,
-          aadhaarNumber: '1234 5678 9012',
-          residenceAddress: 'Sample Address, Bangalore, Karnataka - 560001'
+          aadhaarNumber: response.data.aadhaarNumber || prev.aadhaarNumber,
+          residenceAddress: response.data.residenceAddress || prev.residenceAddress
         }));
+        
         updateApplicationData({
-          aadhaarNumber: '1234 5678 9012',
-          residenceAddress: 'Sample Address, Bangalore, Karnataka - 560001'
+          aadhaarNumber: response.data.aadhaarNumber,
+          residenceAddress: response.data.residenceAddress
         });
       }
-
+      
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      // Handle error state in your UI
+      setDocuments(prev => ({
+        ...prev,
+        [docType]: { 
+          uploaded: false, 
+          verified: false,
+          error: 'Failed to upload document. Please try again.'
+        }
+      }));
+    } finally {
       setIsProcessing(null);
-    }, 2000);
-  };
-
-  const documentTypes = [
-    {
-      id: 'aadhaar',
-      name: 'Aadhaar Card',
-      description: 'Front side of your Aadhaar card',
-      icon: FileText,
-      required: true
-    },
-    {
-      id: 'pan',
-      name: 'PAN Card',
-      description: 'Clear image of your PAN card',
-      icon: FileText,
-      required: true
-    },
-    {
-      id: 'income',
-      name: 'Income Proof',
-      description: 'Latest salary slip or ITR',
-      icon: FileText,
-      required: true
     }
-  ];
+  };
 
   const allDocumentsVerified = documentTypes.every(doc => documents[doc.id]?.verified);
 
@@ -191,7 +243,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
                       accept="image/*"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
-                        if (file) handleFileUpload(docType.id, file);
+                        if (file) handleFileUpload(docType.id, file, docType.documentId);
                       }}
                       className="hidden"
                       id={`upload-${docType.id}`}
