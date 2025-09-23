@@ -1,6 +1,6 @@
 // WorkflowAPI.ts
 import { useAuthStore } from "@repo/shared-state/stores";
-import { useWorkflowStore, Workflow, WorkflowState } from "../stores/workflow";
+import { useWorkflowStore, Workflow, WorkflowState } from "@/stores/workflow.ts";
 
 /**
  * Optional invalidate callback shape:
@@ -24,6 +24,7 @@ export interface WorkflowPayload {
         };
     };
 }
+
 
 export class WorkflowAPI {
     protected apiUrl: string;
@@ -53,7 +54,6 @@ export class WorkflowAPI {
         }
         const res = await fetch(url, {
             headers: {
-                "X-Platform": "CUSTOMER_PORTAL",
                 Authorization: `Bearer ${this.user?.access_token}`,
             },
         });
@@ -74,7 +74,6 @@ export class WorkflowAPI {
             const res = await fetch(`${this.apiUrl}/alpha/v1/workflow/build`, {
                 method: "POST",
                 headers: {
-                    "X-Platform": "CUSTOMER_PORTAL",
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${this.user?.access_token}`,
                 },
@@ -88,7 +87,7 @@ export class WorkflowAPI {
 
             const json = JSON.parse(text);
             const workflowData = json.data as Workflow;
-            console.log("workflowData", workflowData);
+
             if (workflowData) {
                 // Update zustand store so UI reacts
                 this.store.setWorkflow(workflowData);
@@ -99,46 +98,57 @@ export class WorkflowAPI {
             return workflowData;
         } catch (err) {
             console.error("❌ fetchWorkflow error:", err);
+            return null;
+        } finally {
             this.store.setLoading(false);
-            throw err;
         }
     }
 
     /**
-     * Execute workflow step (POST /workflow/execute)
-     * Returns success/failure and updated workflow data.
+     * Execute a workflow step on the backend (POST /workflow/execution)
+     * Updates the zustand store with returned workflow state if provided.
+     * Returns ExecutionResult.success = true if backend responded with 200 or 204.
      */
     async executeWorkflow(step_id: string, id: string, type: string = "LEAD_CREATION"): Promise<ExecutionResult> {
         this.store.setLoading(true);
 
         try {
-            const res = await fetch(`${this.apiUrl}/alpha/v1/workflow/execute`, {
+            const res = await fetch(`${this.apiUrl}/alpha/v1/workflow/execution`, {
                 method: "POST",
                 headers: {
-                    "X-Platform": "CUSTOMER_PORTAL",
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${this.user?.access_token}`,
                 },
                 body: JSON.stringify({
-                    step_id,
-                    source_id: id,
+                    execute_step_id: step_id,
                     workflow_type: type,
+                    source_id: id,
                 }),
             });
 
-            if (!res.ok) {
-                throw new Error(`Execute workflow failed: ${res.statusText}`);
+            // 204 -> nothing to parse, treat as success
+            if (res.status === 204) {
+                // Mark step as completed locally since server doesn't return updated workflow
+                this.store.goToNextStep();
+                // Optionally invalidate client cache
+                this.invalidate?.(["workflow", id, type]);
+                return { success: true, data: null };
             }
 
-            const json = await res.json();
+            const text = await res.text();
+            if (!text) return { success: false, data: null };
+
+            const json = JSON.parse(text);
             const workflowData = json.data as Workflow;
 
             if (workflowData) {
+                // Update store with returned workflow (server is authoritative)
                 this.store.setWorkflow(workflowData);
-                this.invalidate?.(["workflow", type]);
+                // trigger cache invalidation if provided
+                this.invalidate?.(["workflow", id, type]);
             }
 
-            return { success: true, data: workflowData };
+            return { success: res.status === 200, data: workflowData ?? null };
         } catch (err) {
             console.error("❌ executeWorkflow error:", err);
             return { success: false, data: null };
@@ -148,24 +158,16 @@ export class WorkflowAPI {
     }
 
     /**
-     * Create/Update data (POST /application/create)
-     * Override this in subclasses for specific behavior.
+     * Base createUpdate - intended to be overridden by child classes (LeadAPI/PartnerAPI).
      */
     async createUpdate(data: any): Promise<any> {
-        const res = await fetch(`${this.apiUrl}/alpha/v2/application/create`, {
-            method: "POST",
-            headers: {
-                "X-Platform": "CUSTOMER_PORTAL",
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${this.user?.access_token}`,
-            },
-            body: JSON.stringify(data),
-        });
-
-        if (!res.ok) throw new Error("Failed to create/update");
-        return res.json();
+        console.log('createUpdate not implemented in WorkflowAPI',data)
+        return {
+            source_id: null
+        };
     }
 
+    /* Optional helpers exposing store snapshot (useful but not required) */
     get workflow() {
         return this.store.workflow;
     }

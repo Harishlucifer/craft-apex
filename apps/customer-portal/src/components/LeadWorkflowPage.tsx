@@ -58,8 +58,8 @@ function LeadWorkflowPage() {
     if (!applicationId && (journeyType || loanType)) {
       setLead({
         application: {
-          journey_type: journeyType,
-          loan_type: loanType,
+          type: journeyType,
+          loan_type_code: loanType,
         },
       });
     }

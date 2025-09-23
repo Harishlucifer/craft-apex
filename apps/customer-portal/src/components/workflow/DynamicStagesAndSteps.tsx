@@ -42,79 +42,17 @@ export interface StepComponentRef {
   submitStepExternally: () => Promise<any>;
 }
 
-const WORKFLOW_STEPS: Step[] = [
-  {
-    id: '1',
-    name: 'Verify',
-    description: 'OTP verification step',
-    ui_component: 'OTP_VERIFICATION',
-    sequence: 1
-  },
-  {
-    id: '2',
-    name: 'Personal',
-    description: 'Personal details collection',
-    ui_component: 'PERSONAL_DETAILS',
-    sequence: 2
-  },
-  {
-    id: '3',
-    name: 'Income',
-    description: 'Income details collection',
-    ui_component: 'INCOME_DETAILS',
-    sequence: 3
-  },
-  {
-    id: '4',
-    name: 'Eligibility',
-    description: 'Eligibility results display',
-    ui_component: 'ELIGIBILITY_RESULTS',
-    sequence: 4
-  },
-  {
-    id: '5',
-    name: 'Documents',
-    description: 'Document verification step',
-    ui_component: 'DOCUMENT_VERIFICATION',
-    sequence: 5
-  },
-  {
-    id: '6',
-    name: 'Lenders',
-    description: 'Lender selection step',
-    ui_component: 'LENDER_SELECTION',
-    sequence: 6
-  },
-  {
-    id: '7',
-    name: 'Status',
-    description: 'Application status display',
-    ui_component: 'APPLICATION_STATUS',
-    sequence: 7
-  }
-];
 
 export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
   api,
   className,
-  sourceId,
   dataInfo,
   workflowType = "LEAD_CREATION",
   navigateUrl
 }) => {
+  const { id : sourceId } = useParams();
   const [currentStep, setCurrentStep] = useState(0);
   const [isReturningCustomer, setIsReturningCustomer] = useState(false);
-  const [applicationData, setApplicationData] = useState<ApplicationData>({
-    fullName: '',
-    mobileNumber: '',
-    employmentType: '',
-    panNumber: '',
-    dob: '',
-    residencePincode: '',
-    monthlyIncome: '',
-    workPincode: '',
-    existingEmi: ''
-  });
 
   const navigate = useNavigate();
   const formRef = useRef<any>(null);
@@ -257,40 +195,17 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
       toast.success("Data saved successfully", { position: "top-right" });
       if (data?.result) {
         setLeadData(data.result, "V2");
-        // Update application data with response
-        if (data.result.application) {
-          setApplicationData(prev => ({
-            ...prev,
-            applicationId: data.result.application.application_id,
-            ...data.result.application
-          }));
-        }
       }
     },
     onError: () => toast.error("Failed to save data", { position: "top-right" }),
   });
 
-  // Update application data when dataInfo changes
+  // Update lead data when dataInfo changes
   useEffect(() => {
     if (dataInfo) {
       setLeadData(dataInfo, "V2");
-      // Update application data with lead data
-      if (dataInfo.application) {
-        setApplicationData(prev => ({
-          ...prev,
-          applicationId: dataInfo.application.application_id,
-          fullName: dataInfo.application.name || prev.fullName,
-          mobileNumber: dataInfo.application.mobile || prev.mobileNumber,
-          panNumber: dataInfo.application.pan_number || prev.panNumber,
-          // Map other fields as needed
-        }));
-      }
     }
   }, [dataInfo, setLeadData]);
-
-  const updateApplicationData = (data: Partial<ApplicationData>) => {
-    setApplicationData(prev => ({ ...prev, ...data }));
-  };
 
   // Enhanced step navigation with API integration
   const nextStep = () => {
@@ -301,31 +216,40 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
     setCurrentStep(prev => Math.max(prev - 1, 0));
   };
 
-  // Handle step submission with API integration
-  const handleStepSubmit = async (stepData: any) => {
-    try {
-      // If we have workflow data, use the API to execute the step
-      if (currentStepData && sourceId) {
-        await executeWorkflowMutation.mutateAsync({
-          step_id: currentStepData.id,
-          id: sourceId,
-          payload: stepData
-        });
-      } else {
-        // For new applications, create/update the lead
-        const payload = {
-          ...applicationData,
-          ...stepData,
-          journey_type: journeyType,
-          loan_type: loanType
-        };
-        await createUpdateMutation.mutateAsync(payload);
+  // Handle step submission with API integration - following partner portal pattern
+  const handleStepSubmit = async (data: any) => {
+    if (currentStepData) {
+      try {
+        if (data?.isValidForm && data?.data != null) {
+          // Call createUpdate from API class
+          const createUpdateResponse = await createUpdateMutation.mutateAsync(data.data);
+          
+          // Get source_id from createUpdate response if sourceId is not present
+          const workflowId = sourceId || id || createUpdateResponse?.source_id;
+          
+          if (!workflowId) {
+            throw new Error("No valid ID found for workflow execution");
+          }
+          
+          // Update URL with ID if not present and we got source_id from create operation
+          if (!id && createUpdateResponse?.source_id) {
+            const currentPath = window.location.pathname;
+            const newPath = currentPath.includes('/create') 
+              ? currentPath.replace(/\/create$/, `/create/${createUpdateResponse.source_id}`)
+              : `${currentPath}/${createUpdateResponse.source_id}`;
+            navigate(newPath + window.location.search, { replace: true });
+          }
+          
+          // Execute workflow step after saving
+          await executeWorkflowMutation.mutateAsync({step_id: currentStepData.id, id: workflowId});
+        } else if (data?.isValidForm && data?.data == null) {
+          await executeWorkflowMutation.mutateAsync({step_id: currentStepData.id, id: sourceId ?? id ?? ""});
+        } else {
+          toast.error("Please fill all the required fields");
+        }
+      } catch (err: any) {
+        toast.error(err.message || "Failed to save step data ❌");
       }
-      
-      // Move to next step on success
-      nextStep();
-    } catch (error) {
-      console.error('Step submission failed:', error);
     }
   };
 
@@ -449,10 +373,8 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
         ref={formRef}
         step={step}
         handleSubmitSuccess={handleStepSubmit}
-        data={applicationData}
+        data={dataInfo}
         isReturningCustomer={isReturningCustomer}
-        applicationData={applicationData}
-        updateApplicationData={updateApplicationData}
         onNext={nextStep}
         onBack={handleBack}
         onVerified={nextStep}
