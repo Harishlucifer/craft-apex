@@ -240,7 +240,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
                     </p>
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/*,.pdf"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) handleFileUpload(docType.id, file, docType.documentId);
