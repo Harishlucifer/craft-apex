@@ -1,14 +1,13 @@
 import { forwardRef } from "react";
-// import { LandingPage } from './LandingPage';
-import { OTPVerification } from './OTPVerification';
+import { MobileEmailOTP } from './MobileEmailOTP';
 import { PersonalDetails } from './PersonalDetails';
 import { IncomeDetails } from './IncomeDetails';
+import { EligibilityResults } from './EligibilityResults';
 import { DocumentVerification } from './DocumentVerification';
-// import { ApplicationStatus } from './ApplicationStatus';
+import { ApplicationStatus } from './ApplicationStatus';
 import { ApplicationData } from './workflow/DynamicStagesAndSteps';
-import CreditBureauConsumer from "@/components/CreditBureauConsumer.tsx";
-import EligibilityResults from "@/components/EligibilityResults.tsx";
-import {LenderSelection} from "@/components/LenderSelection.tsx";
+import RecommendedOffers from "@/components/RecommendedOffers.tsx";
+import FormBuilderRenderPage from "./FormBuilderRenderPage";
 
 export interface Step {
     id: string;
@@ -21,11 +20,10 @@ export interface Step {
 
 export interface StepComponentProps {
     step: Step;
+    handleBack?: () => void;
     handleSubmitSuccess: (data: any) => any;
     data: any;
     isReturningCustomer?: boolean;
-    applicationData?: ApplicationData;
-    updateApplicationData?: (data: Partial<ApplicationData>) => void;
     onNext?: () => void;
     onBack?: () => void;
     onVerified?: () => void;
@@ -39,11 +37,9 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
     const stepProps = {
         step: props.step,
         handleSubmitSuccess: props.handleSubmitSuccess,
+        handleBack: props.handleBack,
         ref: ref,
         data: props.data,
-        isReturningCustomer: props.isReturningCustomer,
-        applicationData: props.applicationData,
-        updateApplicationData: props.updateApplicationData,
         onNext: props.onNext,
         onBack: props.onBack,
         onVerified: props.onVerified,
@@ -52,21 +48,28 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
     };
 
     switch (props.step.ui_component) {
-        case "s":
+         case "FORM_BUILDER":
+            return <FormBuilderRenderPage {...stepProps}  />
+        case "MOBILE_EMAIL_OTP_VERIFICATION":
             return (
-                <OTPVerification 
-                    isReturningCustomer={props.isReturningCustomer || false}
-                    applicationData={props.applicationData || {} as ApplicationData}
-                    updateApplicationData={props.updateApplicationData || (() => {})}
-                    onVerified={props.onVerified || (() => {})}
-                    onBack={props.onBack || (() => {})}
+                <MobileEmailOTP
+                    step={props.step}
+                    handleSubmitSuccess={props.handleSubmitSuccess}
+                    handleBack={props.handleBack}
+                    data={props.data}
+                    isReturningCustomer={props.isReturningCustomer}
+                    onNext={props.onNext}
+                    onBack={props.onBack}
+                    onVerified={props.onVerified}
+                    onApplyNew={props.onApplyNew}
+                    onContinueApplication={props.onContinueApplication}
                 />
             );
         case "PERSONAL_DETAILS":
             return (
                 <PersonalDetails 
-                    applicationData={props.applicationData || {} as ApplicationData}
-                    updateApplicationData={props.updateApplicationData || (() => {})}
+                    applicationData={props.data || {} as ApplicationData}
+                    updateApplicationData={() => {}}
                     onNext={props.onNext || (() => {})}
                     onBack={props.onBack || (() => {})}
                 />
@@ -74,43 +77,40 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
         case "INCOME_DETAILS":
             return (
                 <IncomeDetails 
-                    applicationData={props.applicationData || {} as ApplicationData}
-                    updateApplicationData={props.updateApplicationData || (() => {})}
+                    applicationData={props.data || {} as ApplicationData}
+                    updateApplicationData={() => {}}
                     onNext={props.onNext || (() => {})}
                     onBack={props.onBack || (() => {})}
                 />
             );
-        case "CREDIT_BUREAU_CONSUMER":
+        case "ELIGIBILITY_RESULTS":
             return (
-               <CreditBureauConsumer applicationData={props.applicationData || {} as ApplicationData}
-                                     onNext={props.onNext || (() => {})}
-                                     onBack={props.onBack || (() => {})}/>
-            );
-        case "LENDER_RECOMMENDATION_OFFER_SELECTION":
-            return (
-                <EligibilityResults  applicationData={props.applicationData || {} as ApplicationData}
-                                     onNext={props.onNext || (() => {})}
-                                     onBack={props.onBack || (() => {})}/>
+                <EligibilityResults 
+                    applicationData={props.data || {} as ApplicationData}
+                    onNext={props.onNext || (() => {})}
+                    onBack={props.onBack || (() => {})}
+                />
             );
         case "DOCUMENT_VERIFICATION":
             return (
-                <DocumentVerification 
-                    applicationData={props.applicationData || {} as ApplicationData}
-                    updateApplicationData={props.updateApplicationData || (() => {})}
+                <DocumentVerification
+                    applicationData={props.data || {} as ApplicationData}
+                    updateApplicationData={() => {}}
                     onNext={props.onNext || (() => {})}
                     onBack={props.onBack || (() => {})}
                 />
             );
-        case "MOBILE_EMAIL_OTP_VERIFICATION":
+        case "LENDER_RECOMMENDATION_OFFER_SELECTION":
             return (
-                // <ApplicationStatus
-                //     applicationData={props.applicationData || {} as ApplicationData}
-                //     onBack={props.onBack || (() => {})}
-                // />
-                <LenderSelection applicationData={props.applicationData || {} as ApplicationData}
-                                 updateApplicationData={props.updateApplicationData || (() => {})}
-                                 onNext={props.onNext || (() => {})}
-                                 onBack={props.onBack || (() => {})} />
+                <RecommendedOffers
+                    {...stepProps} />
+            );
+        case "APPLICATION_STATUS":
+            return (
+                <ApplicationStatus 
+                    applicationData={props.data || {} as ApplicationData}
+                    onBack={props.onBack || (() => {})}
+                />
             );
         default:
             return (
