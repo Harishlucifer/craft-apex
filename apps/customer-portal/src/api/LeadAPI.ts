@@ -76,7 +76,7 @@ export class LeadAPI extends WorkflowAPI {
     }
 
     /** Generic GET request helper */
-    protected async get<T>(endpoint: string): Promise<T> {
+    async get<T>(endpoint: string): Promise<T> {
         const res = await fetch(`${this.apiUrl}${endpoint}`, {
             method: "GET",
             headers: {
