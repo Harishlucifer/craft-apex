@@ -1,5 +1,5 @@
-import { WorkflowAPI, InvalidateFn } from "./WorkflowAPI";
-import { useLeadStore, Lead, LeadState, LeadsApiResponse } from "../stores/Lead";
+import {InvalidateFn, WorkflowAPI} from "./WorkflowAPI";
+import {Lead, LeadsApiResponse, LeadState, useLeadStore} from "../stores/Lead";
 
 // Define your types (adjust these as per your API response)
 export interface LeadsApiParams {
@@ -18,6 +18,12 @@ export interface LeadApiResponse {
     status: number;
     source_id?: string;
 }
+
+export interface OfferResponse {
+    result: any;
+    status: number;
+}
+
 
 export class LeadAPI extends WorkflowAPI {
     protected leadStore: LeadState;
@@ -146,4 +152,16 @@ export class LeadAPI extends WorkflowAPI {
             this.leadStore.setLoading(false);
         }
     }
+    /** Fetch Recommended Lender's Details **/
+    async fetchEligibleOffers(id: string, version: string = "V1"): Promise<OfferResponse> {
+        try {
+            const endpoint = `/alpha/${version.toLowerCase()}/application/${id}/recommendation`;
+            return await this.get<OfferResponse>(endpoint);
+        } catch (error) {
+            throw error instanceof Error ? error : 'Failed to fetch offers';
+        } finally {
+            this.leadStore.setLoading(false);
+        }
+    }
+
 }

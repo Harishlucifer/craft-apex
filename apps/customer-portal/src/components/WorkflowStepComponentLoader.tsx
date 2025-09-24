@@ -2,12 +2,11 @@ import { forwardRef } from "react";
 import { MobileEmailOTP } from './MobileEmailOTP';
 import { PersonalDetails } from './PersonalDetails';
 import { IncomeDetails } from './IncomeDetails';
-import { EligibilityResults } from './EligibilityResults';
 import { DocumentVerification } from './DocumentVerification';
-import { ApplicationStatus } from './ApplicationStatus';
 import { ApplicationData } from './workflow/DynamicStagesAndSteps';
-import RecommendedOffers from "@/components/RecommendedOffers.tsx";
 import FormBuilderRenderPage from "./FormBuilderRenderPage";
+import LenderSelection from "@/components/LenderSelection.tsx";
+import EligibilityResults from "@/components/EligibilityResults.tsx";
 
 export interface Step {
     id: string;
@@ -83,14 +82,6 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
                     onBack={props.onBack || (() => {})}
                 />
             );
-        case "ELIGIBILITY_RESULTS":
-            return (
-                <EligibilityResults 
-                    applicationData={props.data || {} as ApplicationData}
-                    onNext={props.onNext || (() => {})}
-                    onBack={props.onBack || (() => {})}
-                />
-            );
         case "DOCUMENT_VERIFICATION":
             return (
                 <DocumentVerification
@@ -100,17 +91,13 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
                     onBack={props.onBack || (() => {})}
                 />
             );
-        case "LENDER_RECOMMENDATION_OFFER_SELECTION":
+        case "CREDIT_BUREAU_CONSUMER":
             return (
-                <RecommendedOffers
-                    {...stepProps} />
+            <EligibilityResults {...stepProps}/>
             );
-        case "APPLICATION_STATUS":
+        case "":
             return (
-                <ApplicationStatus 
-                    applicationData={props.data || {} as ApplicationData}
-                    onBack={props.onBack || (() => {})}
-                />
+                <LenderSelection {...stepProps}/>
             );
         default:
             return (
