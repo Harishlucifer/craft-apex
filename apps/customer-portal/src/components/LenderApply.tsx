@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { CheckCircle, TrendingUp} from "lucide-react";
+import React, {useEffect, useState} from "react";
+import {CheckCircle, TrendingUp} from "lucide-react";
 
-// --- Interfaces ---
+interface ApplicationStatusProps {
+    applicationData:any;
+    onBack: () => void;
+    onNext: () => void;
+}
 interface LenderOffer {
     offer_id: string;
     application_id: string;
@@ -116,51 +120,25 @@ interface ApplicationStatusProps {
     onBack: () => void;
     onNext: () => void;
 }
-
-// --- Component ---
-const RecommendedOffers: React.FC<ApplicationStatusProps>  = ({applicationData,onBack,onNext}) => {
+const LenderApply:React.FC<ApplicationStatusProps>=({applicationData,onBack,onNext})=>{
     console.log(applicationData);
     console.log(onBack);
     console.log(onNext);
     const [offerData, setOfferData] = useState<RecommendedOffersResponse | null>(
         null
     );
+    const [vehiclePrice, setVehiclePrice] = useState<number>(150000);
+    const [downPayment, setDownPayment] = useState<number>(50000);
+    const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const url = `/alpha/v1/application/${applicationData.application_id}/recommendation`;
-                const response = await fetch(url);
 
-                if (!response.ok) {
-                    console.error("Failed to fetch:", response.status, response.statusText);
-                    return;
-                }
-
-                const data: RecommendedOffersResponse = await response.json();
-                // setOfferData(data);
-                console.log("Fetched data:", data);
-            } catch (error) {
-                console.error("Error fetching recommendation:", error);
-            }
-        };
-        fetchData().then(r => console.log(r));
-    }, [applicationData.application_id]);
-
+    const loanAmount = vehiclePrice - downPayment;
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 // Simulate API response
-                const url = `/alpha/v1/application/${applicationData.application_id}/recommendation`
-                const response = await fetch(url);
-                if (response.status){
-
-                }else {
-                    console.log(response)
-                }
-                const sampleJson: RecommendedOffersResponse =
-                    {
+                const sampleJson: RecommendedOffersResponse = {
                     result: {
                         lender: [
                             {
@@ -339,6 +317,7 @@ const RecommendedOffers: React.FC<ApplicationStatusProps>  = ({applicationData,o
                     },
                     status: 1,
                 };
+
                 setOfferData(sampleJson);
             } catch (error) {
                 console.error(error);
@@ -349,115 +328,186 @@ const RecommendedOffers: React.FC<ApplicationStatusProps>  = ({applicationData,o
 
     if (!offerData) return <p>Loading...</p>;
 
-    const finalOffers = offerData.result.lender
-        .map(lender => lender.computed_offer.find(o => o.formula_type === "FINAL_OFFER"))
-        .filter((offer): offer is ComputedOffer => !!offer);
-    const maxLoanAmount = finalOffers.length > 0
-        ? Math.max(...finalOffers.map(o => o.offer_loan_amount))
-        : 0;
-    const lowestEmi = finalOffers.length > 0
-        ? Math.min(...finalOffers.map(o => o.emi_amount))
-        : 0;
-    const bestInterestRate = finalOffers.length > 0
-        ? Math.min(...finalOffers.map(o => o.interest_rate))
-        : 0;
-
-    return (
-        <div className="col-12 mx-auto  space-y-6">
-            {/* Credit Score */}
-            <div className="bg-black text-white rounded-xl p-6 flex items-center justify-between">
-                {/* Left Side Content */}
-                <div className='p-0'>
-                    <p className="text-sm font-bold">Your Credit Score</p>
-                    <h2 className="text-4xl font-bold text-green-400 mb-4">742</h2>
-                    <p className="text-xs text-gray-300 font-bold">Excellent Credit Profile</p>
-                </div>
-                {/* Right Side Icon */}
-                <div className="bg-white p-3 mb-3 rounded-[5px]  shadow">
-                    <TrendingUp className="w-5 h-5 text-black " />
-                </div>
-            </div>
-            {/* Eligibility Info */}
-            {/* Eligibility Info */}
-            <div className="bg-white shadow rounded-xl p-6 text-center">
-                <CheckCircle className="mx-auto text-green-500 w-8 h-8 mb-2" />
-                <h3 className="font-semibold text-lg">Great News!</h3>
-                <p className="text-gray-500 text-sm">
-                    You're eligible for loans from {offerData.result.lender.length} lenders
-                </p>
-
-                {/* Display summary offers */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-                    <div className="p-4 rounded-lg bg-gray-50">
-                        <h4 className="text-xl font-bold">₹{maxLoanAmount.toLocaleString()}</h4>
-                        <p className="text-sm text-gray-500">Max Loan Amount</p>
+    return(
+        <div className="col-12 mx-auto space-y-6">
+                <div className="bg-white shadow rounded-xl  p-8">
+                    <h3 className="text-lg font-semibold mb-4">Down Payment Selection</h3>
+                    {/* Slider */}
+                    <div className="mb-4">
+                        <div className="text-right font-semibold text-xl mt-2">
+                            ₹{downPayment.toLocaleString()}
+                        </div>
+                        <input
+                            type="range"
+                            min={0}
+                            max={vehiclePrice}
+                            step={5000}
+                            value={downPayment}
+                            onChange={(e) => setDownPayment(Number(e.target.value))}
+                            className="w-full h-2 bg-black-200 rounded-lg  cursor-pointer accent-black"
+                        />
+                        <div className="flex justify-between text-sm text-gray-500">
+                            <span className='text-bold'>₹0</span>
+                            <span>₹{vehiclePrice.toLocaleString()}</span>
+                        </div>
                     </div>
-                    <div className="p-4 rounded-lg bg-gray-50">
-                        <h4 className="text-xl font-bold">{bestInterestRate}%</h4>
-                        <p className="text-sm text-gray-500">Best Interest Rate</p>
+                    {/* Quick-select buttons */}
+                    <div className="flex flex-wrap gap-3 mb-4">
+                        {[0, 25000, 50000, 75000, 100000].map((amount, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => setDownPayment(amount)}
+                                className={`px-4 py-2 rounded-full text-sm font-medium ${
+                                    downPayment === amount
+                                        ? "bg-black text-white"
+                                        : "bg-gray-100 text-gray-700"
+                                }`}
+                            >
+                                {amount === 0 ? "No Down Payment" : `₹${(amount / 1000).toFixed(0)}k`}
+                            </button>
+                        ))}
                     </div>
-                    <div className="p-4 rounded-lg bg-gray-50">
-                        <h4 className="text-xl font-bold">₹{lowestEmi.toLocaleString()}</h4>
-                        <p className="text-sm text-gray-500">Lowest EMI</p>
+                    {/* Loan details */}
+                    <div className="border-t pt-4 space-y-2 text-sm">
+                        <div className="bg-gray-100 rounded-lg p-5 space-y-2">
+                            <div className='flex justify-between'>
+                                <span>Vehicle Price: </span>
+                                <span className="font-medium">₹{vehiclePrice.toLocaleString()}</span>
+                            </div>
+                            <div className='flex justify-between'>
+                                <span>Down Payment: </span>
+                                <span className="font-medium">₹{downPayment.toLocaleString()}</span>
+                            </div>
+                        </div>
+                        <div className="flex justify-between font-bold text-base bg-gray-100 rounded-lg p-5">
+                            <span>Your Loan Amount:</span>
+                            <span>₹{loanAmount.toLocaleString()}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            {/* Loan Offers */}
             <div>
-                <h3 className="text-lg font-semibold mb-4">Available Loan Offers</h3>
+                <div className="@container bg-white shadow rounded-lg rounded-xl p-5 mb-3">
+                    <h3 className="text-lg font-semibold mb-0">Available Loan Offers</h3>
+                </div>
+
                 <div className="space-y-4">
                     {offerData.result.lender.map((lender, index) => {
-                        // Find FINAL_OFFER
                         const finalOffer = lender.computed_offer.find(
                             (offer) => offer.formula_type === "FINAL_OFFER"
                         );
+                        const isExpanded = expandedIndex === index;
+
                         return (
-                            <div key={index} className="bg-white shadow rounded-xl p-7 flex flex-col md:flex-row md:items-center md:justify-between">
-                                <div className="flex flex-col items-center space-y-2">
-                                    <img
-                                        src={lender.lender_logo}
-                                        alt={lender.lender_name}
-                                        className="h-24 w-24 object-contain rounded-lg"
-                                    />
-                                    <h4 className="font-semibold text-lg text-center">{lender.lender_name}</h4>
-                                    <p className="text-sm text-gray-500 text-center">Lender Code: {lender.lender_code}</p>
+                            <div
+                                key={index}
+                                className="bg-white shadow rounded-xl p-7 transition-all duration-300 ease-in-out"
+                            >
+                                {/* Top section: logo + name + apply */}
+                                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                                    <div className="flex flex-col items-center space-y-2">
+                                        <img
+                                            src={lender.lender_logo}
+                                            alt={lender.lender_name}
+                                            className="h-20 w-20 object-contain rounded-lg"
+                                        />
+                                        <h4 className="font-semibold text-lg text-center">
+                                            {lender.lender_name}
+                                        </h4>
+                                        <p className="text-sm text-gray-500 text-center">
+                                            Lender Code: {lender.lender_code}
+                                        </p>
+                                    </div>
+                                    {finalOffer ? (
+                                        <div className="grid grid-cols-3 md:grid-cols-4  gap-8 flex-row content-center align-middle text-center mt-4 md:mt-0">
+                                            <div>
+                                                <p className="text-sm font-bold text-gray-500">Final Loan Amount</p>
+                                                <h4 className="font-bold text-lg mt-[10px]">₹{finalOffer.offer_loan_amount.toLocaleString()}</h4>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-gray-500">Interest Rate</p>
+                                                <h4 className="font-bold text-lg mt-[10px]">{finalOffer.interest_rate}%</h4>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-gray-500">EMI Amount</p>
+                                                <h4 className="font-bold text-lg mt-[10px]">₹{finalOffer.emi_amount.toLocaleString()}</h4>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-gray-500">Tenure</p>
+                                                <h4 className="font-bold text-lg mt-[10px]">{finalOffer.tenure} months</h4>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-gray-500 mt-4 md:mt-0">No Final Offer Available</p>
+                                    )}
+                                    {!isExpanded && (
+                                        <div className="mt-4 md:mt-0">
+                                            <button
+                                                className="bg-black text-white px-5 py-2 rounded-[5px] shadow-md hover:bg-blue-700 hover:scale-105 transition-all duration-300 ease-out"
+                                                onClick={() => setExpandedIndex(index)}
+                                            >
+                                                Apply
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
-                                {/* Display FINAL_OFFER */}
-                                {finalOffer ? (
-                                    <div className="grid grid-cols-3 md:grid-cols-4  gap-8 flex-row content-center align-middle text-center mt-4 md:mt-0">
-                                        <div>
-                                            <p className="text-sm font-bold text-gray-500">Final Loan Amount</p>
-                                            <h4 className="font-bold text-lg mt-[10px]">₹{finalOffer.offer_loan_amount.toLocaleString()}</h4>
+                                {/* Expanded offer details */}
+                                {isExpanded && finalOffer && (
+                                    <div className="mt-6 border-t pt-6">
+                                        <div className="flex items-center mb-4">
+                                            <span className="text-lg font-semibold flex items-center">
+                                                ✅ Your Personalized Offer
+                                            </span>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-gray-500">Interest Rate</p>
-                                            <h4 className="font-bold text-lg mt-[10px]">{finalOffer.interest_rate}%</h4>
+
+                                        <div className="grid grid-cols-3 md:grid-cols-4 gap-6 text-center">
+                                            <div>
+                                                <p className="text-sm font-bold text-gray-500">
+                                                    Approved Amount
+                                                </p>
+                                                <h4 className="font-bold text-xl mt-2">
+                                                    ₹{finalOffer.offer_loan_amount.toLocaleString()}
+                                                </h4>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-gray-500">
+                                                    Interest Rate
+                                                </p>
+                                                <h4 className="font-bold text-xl mt-2">
+                                                    {finalOffer.interest_rate}%
+                                                </h4>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-gray-500">
+                                                    Monthly EMI
+                                                </p>
+                                                <h4 className="font-bold text-xl mt-2">
+                                                    ₹{finalOffer.emi_amount.toLocaleString()}
+                                                </h4>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-gray-500">Tenure</p>
+                                                <h4 className="font-bold text-xl mt-2">
+                                                    {finalOffer.tenure} months
+                                                </h4>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-gray-500">EMI Amount</p>
-                                            <h4 className="font-bold text-lg mt-[10px]">₹{finalOffer.emi_amount.toLocaleString()}</h4>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-gray-500">Tenure</p>
-                                            <h4 className="font-bold text-lg mt-[10px]">{finalOffer.tenure} months</h4>
+
+                                        <div className="mt-6 flex justify-end">
+                                            <button
+                                                className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-all"
+                                                onClick={() => alert("Offer Selected!")}
+                                            >
+                                                Select This Offer
+                                            </button>
                                         </div>
                                     </div>
-                                ) : (
-                                    <p className="text-sm text-gray-500 mt-4 md:mt-0">No Final Offer Available</p>
-                                )}
-
-                                {lender.lender_apply_status && (
-                                    <span className="mt-4 md:mt-0 md:ml-4 px-3 py-1 text-sm rounded-full bg-green-100 text-green-600 font-medium">
-                                        {lender.lender_apply_status}
-                                    </span>
                                 )}
                             </div>
-                        )
+                        );
                     })}
                 </div>
             </div>
         </div>
-    );
-};
-
-export default RecommendedOffers;
+    )
+}
+export default LenderApply;
