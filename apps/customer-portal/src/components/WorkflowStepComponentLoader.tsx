@@ -91,11 +91,11 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
                     onBack={props.onBack || (() => {})}
                 />
             );
-        case "CREDIT_BUREAU_CONSUMER":
+        case "LENDER_RECOMMENDATION_OFFER_SELECTION":
             return (
             <EligibilityResults {...stepProps}/>
             );
-        case "":
+        case "APPLICATION_STATUS":
             return (
                 <LenderSelection {...stepProps}/>
             );
