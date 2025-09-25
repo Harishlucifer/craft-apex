@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { ChevronLeft, Upload, CheckCircle, Camera, FileText } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronLeft, Upload, CheckCircle, Camera, FileText, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import {useAuthStore} from "@repo/shared-state/stores";
-
+import { LeadAPI } from '../api/LeadAPI';
 
 interface DocumentVerificationProps {
   applicationData: any;
@@ -16,6 +16,27 @@ interface DocumentStatus {
   uploaded: boolean;
   verified: boolean;
   extractedData?: any;
+}
+
+interface Document {
+    document_type: string;
+    id: string;
+    type: string;
+    files: any;
+    status: 'pending' | 'uploaded' | 'verified' | 'rejected';
+    url?: string;
+    uploaded_at?: string;
+    verified_at?: string;
+    verify_status: number;
+    document_name: string;
+    document_id: string;
+}
+
+interface DocumentResponse {
+    data: any;
+    status: number;
+    result: Document[];
+    message?: string;
 }
 
 const documentTypes = [
@@ -36,7 +57,7 @@ const documentTypes = [
         documentId: '1'
     },
     {
-        id: 'income',
+        id: 'bank_statement',
         name: 'Income Proof',
         description: 'Latest salary slip or ITR',
         icon: FileText,
@@ -57,7 +78,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
     pan: { uploaded: false, verified: false },
     income: { uploaded: false, verified: false }
   });
-
+  const [uploadedDocs, setUploadedDocs] = useState<any[]>([]);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
   const [extractedData, setExtractedData] = useState({
     aadhaarNumber: '',
@@ -68,18 +89,165 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
 
     const apiUrl = import.meta.env.VITE_API_ENDPOINT;
     const accessToken = useAuthStore.getState().user?.access_token;
+    const leadAPI = new LeadAPI();
+    console.log("applicationData", applicationData);
 
+    useEffect(() => {
+        if (applicationData?.application?.onboarding_id) {
+            fetchDocuments();
+        }
+    }, [applicationData]);
+
+    const handleDeleteDocument = async (docType: string, fileId: string) => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'You are about to delete this document. This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const onboardingID = applicationData.application?.onboarding_id;
+        if (!onboardingID) return;
+
+        await axios.delete(
+          `${apiUrl}/alpha/v1/application`,
+          {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            data: {
+              file_id: fileId
+            }
+          }
+        );
+
+        // Update the UI immediately
+        setUploadedDocs(prevDocs => 
+          prevDocs.map(doc => ({
+            ...doc,
+            files: doc.files.filter((file: any) => file.id !== fileId)
+          })).filter(doc => doc.files.length > 0)
+        );
+
+        // Update documents state
+        setDocuments(prev => ({
+          ...prev,
+          [docType]: {
+            ...prev[docType],
+            uploaded: false,
+            verified: false,
+            extractedData: null
+          }
+        }));
+
+        // Show success message
+        await Swal.fire({
+          title: 'Deleted!',
+          text: 'The document has been deleted.',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+
+        // Still fetch documents to ensure consistency with the server
+        await fetchDocuments();
+      } catch (error) {
+        console.error('Error deleting document:', error);
+        await Swal.fire({
+          title: 'Error!',
+          text: 'Failed to delete the document. Please try again.',
+          icon: 'error'
+        });
+      }
+    }
+  };
+
+  const fetchDocuments = async () => {
+        console.log("fetching documents");
+        try {
+            const onboardingID = applicationData.application?.onboarding_id;
+            if (!onboardingID) return;
+
+            const response = await leadAPI.get<DocumentResponse>(`/alpha/v1/onboarding/${onboardingID}/documents`);
+            console.log("Documents response:", response);
+
+            if (response?.result) {
+                const updatedDocs = { ...documents };
+                const uploadedDocsList: any[] = []; // New array to store uploaded docs
+
+                // Reset all documents to default state first
+                Object.keys(updatedDocs).forEach(key => {
+                    updatedDocs[key] = { uploaded: false, verified: false };
+                });
+
+                // First, map all documents to uploadedDocsList
+                response.result.forEach((doc: Document) => {
+                    if (doc.files?.length > 0) {
+                        uploadedDocsList.push(doc);
+                    }
+                });
+
+                // Then update the status based on document types
+                response.result.forEach((doc: Document) => {
+                    // Map API document types to our local state keys
+                    let docKey: string | null = null;
+                    
+                    // Match by document_id first
+                    const matchingType = documentTypes.find(type => type.documentId === doc.document_id);
+                    if (matchingType) {
+                        docKey = matchingType.id;
+                    } else {
+                        // Fallback to document_type if document_id doesn't match
+                        switch(doc.document_type) {
+                            case 'AADHAAR_CARD':
+                                docKey = 'aadhaar';
+                                break;
+                            case 'PAN_CARD':
+                                docKey = 'pan';
+                                break;
+                            case 'BANK_STATEMENT':
+                            case 'INCOME_PROOF':
+                                docKey = 'bank_statement';
+                                break;
+                            default:
+                                return; // Skip unknown document types
+                        }
+                    }
+
+                    if (docKey) {
+                        updatedDocs[docKey] = {
+                            uploaded: doc.files?.length > 0,
+                            verified: doc.verify_status === 1,
+                            extractedData: doc
+                        };
+                    }
+                });
+
+                setDocuments(updatedDocs);
+                setUploadedDocs(uploadedDocsList);
+            }
+        } catch (error) {
+            console.error('Error fetching documents:', error);
+        }
+    };
   const handleFileUpload = async (docType: string, file: File, documentId:string) => {
     setIsProcessing(docType);
 
     try {
       // Configuration values
-      const onboardingID = '172500917292060119';
-      const applicantId = '172500917292285752';
+      const onboardingID = applicationData.application?.onboarding_id;
+      const applicantId = applicationData.primary?.personal?.person_id;
       const checkListItemId = '';
-      const applicantCategory = 'PERSON';
+      const applicantCategory = applicationData.primary?.applicant_category;
       const password = '';
-      
+
       // Create form data
       const formData = new FormData();
       formData.append('document', file);
@@ -102,7 +270,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
       );
 
       // Show success message
-      Swal.fire({
+      await Swal.fire({
         title: 'Success!',
         text: response.data.message || 'Document uploaded successfully',
         icon: 'success',
@@ -114,8 +282,8 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
       // Update UI state
       setDocuments(prev => ({
         ...prev,
-        [docType]: { 
-          uploaded: true, 
+        [docType]: {
+          uploaded: true,
           verified: true,
           extractedData: response.data
         }
@@ -128,20 +296,23 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
           aadhaarNumber: response.data.aadhaarNumber || prev.aadhaarNumber,
           residenceAddress: response.data.residenceAddress || prev.residenceAddress
         }));
-        
+
         updateApplicationData({
           aadhaarNumber: response.data.aadhaarNumber,
           residenceAddress: response.data.residenceAddress
         });
       }
-      
+
+      // After successful upload, refresh the documents
+      await fetchDocuments();
+
     } catch (error) {
       console.error('Error uploading document:', error);
       // Handle error state in your UI
       setDocuments(prev => ({
         ...prev,
-        [docType]: { 
-          uploaded: false, 
+        [docType]: {
+          uploaded: false,
           verified: false,
           error: 'Failed to upload document. Please try again.'
         }
@@ -150,6 +321,8 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
       setIsProcessing(null);
     }
   };
+
+
 
   const allDocumentsVerified = documentTypes.every(doc => documents[doc.id]?.verified);
 
@@ -180,7 +353,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
               Verified Information
             </h4>
             <div className="grid md:grid-cols-2 gap-3 text-sm">
-              <div>
+              <div>`    1
                 <span className="text-gray-600">Aadhaar Number:</span>
                 <span className="ml-2 font-medium">{extractedData.aadhaarNumber}</span>
               </div>
@@ -257,15 +430,64 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
                   </div>
                 ) : (
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-5 w-5 text-black" />
-                      <span className="font-medium text-black">Document Verified</span>
-                    </div>
-                    {status.extractedData && (
-                      <div className="mt-2 text-sm text-gray-700">
-                        <p>✓ Information extracted and verified successfully</p>
+                    <div className="flex flex-col md:flex-row gap-6">
+                      {/* Verification Status Section */}
+                      <div className="md:w-2/3">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <CheckCircle className="h-5 w-5 text-black" />
+                          <span className="font-medium text-black">Document Verified</span>
+                        </div>
+                        {status.extractedData && (
+                          <div className="text-sm text-gray-700 mb-4 md:mb-0">
+                            <p>✓ Information extracted and verified successfully</p>
+                          </div>
+                        )}
                       </div>
-                    )}
+
+                      {/* Document Preview Section */}
+                      <div className="md:w-3/3">
+                        {(() => {
+                          // Find document by matching document_id
+                          const docToShow = uploadedDocs.find(doc => 
+                            doc.document_id === docType.documentId
+                          );
+                          // If document is found, render it
+                          if (docToShow) {
+                            return (
+                                <div className="flex items-center space-x-2">
+                                    <div key={docToShow.document_id} className="relative group">
+                                        <img
+                                            src={docToShow.files[0].url}
+                                            alt={docToShow.document_name}
+                                            className="w-full h-20 object-contain border rounded bg-white p-2"
+                                        />
+                                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <a
+                                                href={docToShow.files[0].url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-white bg-black bg-opacity-70 px-1 py-1 rounded"
+                                            >
+                                                View Full Size
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button
+                                            type="button"
+                                            className="text-red-500 hover:text-red-700 text-sm font-medium"
+                                            onClick={() => handleDeleteDocument(docType.id, docToShow.files[0].file_id)}
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
