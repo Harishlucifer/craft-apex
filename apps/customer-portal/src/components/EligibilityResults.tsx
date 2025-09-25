@@ -132,10 +132,12 @@ export interface FormDataRef {
 }
 
 const EligibilityResults = forwardRef((props:StepComponentProps,ref) => {
+
+    console.log(props)
     // Mock lender data based on application
     const formRef = useRef<FormDataRef>(null);
 
-    const {data,onBack,handleBack } = props;
+    const {data} = props;
 
     const [offerData, setOfferData] = useState<RecommendedOffersResponse | null>(
         null
@@ -387,21 +389,14 @@ const EligibilityResults = forwardRef((props:StepComponentProps,ref) => {
 
     const creditScore = 742; // Mock credit score
     const handleBackClick = () => {
-        if (handleBack) {
-            handleBack()
-        } else if (onBack) {
-            onBack();
+        if (props.handleBack) {
+            props.handleBack();
+        } else if (props.onBack) {
+            props.onBack();
         }
     };
     return (
         <div className="max-w-4xl mx-auto">
-            <button
-                onClick={onBack}
-                className="flex items-center text-black hover:text-gray-700 mb-6 transition-colors"
-            >
-                <ChevronLeft className="h-5 w-5 mr-1" />
-                Back
-            </button>
             {isLoading && (
                 <div className="flex justify-center items-center h-32">
                 <div className="flex space-x-2">
@@ -422,7 +417,7 @@ const EligibilityResults = forwardRef((props:StepComponentProps,ref) => {
                                 </div>
                                 <p className="text-gray-200 text-sm mt-1">Excellent Credit Profile</p>
                             </div>
-                            <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                            <div className="bg-white rounded-[5px] text-black bg-opacity-20 p-3 rounded-lg">
                                 <TrendingUp className="h-8 w-8" />
                             </div>
                         </div>
