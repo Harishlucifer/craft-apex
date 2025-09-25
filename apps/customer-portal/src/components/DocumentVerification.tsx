@@ -1,42 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Upload, CheckCircle, Camera, FileText, Trash2 } from 'lucide-react';
 import axios from 'axios';
-import Swal from 'sweetalert2';
-import {useAuthStore} from "@repo/shared-state/stores";
+import {Bounce, toast, ToastContainer} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useAuthStore } from "@repo/shared-state/stores";
 import { LeadAPI } from '../api/LeadAPI';
 
 interface DocumentVerificationProps {
-  applicationData: any;
-  updateApplicationData: (data: Partial<any>) => void;
-  onNext: () => void;
-  onBack: () => void;
+    applicationData: any;
+    updateApplicationData: (data: Partial<any>) => void;
+    onNext: () => void;
+    onBack: () => void;
 }
 
 interface DocumentStatus {
-  uploaded: boolean;
-  verified: boolean;
-  extractedData?: any;
+    uploaded: boolean;
+    verified: boolean;
+    extractedData?: any;
 }
 
-interface Document {
-    document_type: string;
-    id: string;
-    type: string;
-    files: any;
-    status: 'pending' | 'uploaded' | 'verified' | 'rejected';
-    url?: string;
-    uploaded_at?: string;
-    verified_at?: string;
-    verify_status: number;
+interface ChecklistItem {
     document_name: string;
     document_id: string;
+    checklist_item_id: string;
+    service_provider_id: string;
+    document_type: string;
+    description: string;
+    sequence: number;
+    allowed_count: number;
+    files: Array<{
+        file_id: string;
+        url: string;
+        password: string | null;
+    }> | null;
+    extracted_value: any;
+    verify_status: number;
+}
+
+interface ApplicantChecklist {
+    applicant_name: string;
+    applicant_id: string;
+    applicant_category: string;
+    applicant_type: string;
+    checklists: Array<{
+        title: string;
+        required: ChecklistItem[] | null;
+        anyone: any[] | null;
+        optional: any[] | null;
+        sequence: number;
+    }>;
 }
 
 interface DocumentResponse {
-    data: any;
+    checklist: ApplicantChecklist[];
     status: number;
-    result: Document[];
-    message?: string;
 }
 
 const documentTypes = [
@@ -66,31 +83,29 @@ const documentTypes = [
     }
 ];
 
-
 export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
-  applicationData,
-  updateApplicationData,
-  onNext,
-  onBack
-}) => {
-  const [documents, setDocuments] = useState<Record<string, DocumentStatus>>({
-    aadhaar: { uploaded: false, verified: false },
-    pan: { uploaded: false, verified: false },
-    income: { uploaded: false, verified: false }
-  });
-  const [uploadedDocs, setUploadedDocs] = useState<any[]>([]);
-  const [isProcessing, setIsProcessing] = useState<string | null>(null);
-  const [extractedData, setExtractedData] = useState({
-    aadhaarNumber: '',
-    residenceAddress: '',
-    verifiedPAN: '',
-    verifiedDOB: ''
-  });
+                                                                              applicationData,
+                                                                              updateApplicationData,
+                                                                              onNext,
+                                                                              onBack
+                                                                          }) => {
+    const [documents, setDocuments] = useState<Record<string, DocumentStatus>>({
+        aadhaar: { uploaded: false, verified: false },
+        pan: { uploaded: false, verified: false },
+        income: { uploaded: false, verified: false }
+    });
+    const [uploadedDocs, setUploadedDocs] = useState<any[]>([]);
+    const [isProcessing, setIsProcessing] = useState<string | null>(null);
+    const [extractedData, setExtractedData] = useState({
+        aadhaarNumber: '',
+        residenceAddress: '',
+        verifiedPAN: '',
+        verifiedDOB: ''
+    });
 
     const apiUrl = import.meta.env.VITE_API_ENDPOINT;
     const accessToken = useAuthStore.getState().user?.access_token;
     const leadAPI = new LeadAPI();
-    console.log("applicationData", applicationData);
 
     useEffect(() => {
         if (applicationData?.application?.onboarding_id) {
@@ -99,128 +114,84 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
     }, [applicationData]);
 
     const handleDeleteDocument = async (docType: string, fileId: string) => {
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: 'You are about to delete this document. This action cannot be undone.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel'
-    });
-
-    if (result.isConfirmed) {
-      try {
-        const onboardingID = applicationData.application?.onboarding_id;
-        if (!onboardingID) return;
-
-        await axios.delete(
-          `${apiUrl}/alpha/v1/application`,
-          {
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-              'Content-Type': 'application/json'
-            },
-            data: {
-              file_id: fileId
-            }
-          }
-        );
-
-        // Update the UI immediately
-        setUploadedDocs(prevDocs => 
-          prevDocs.map(doc => ({
-            ...doc,
-            files: doc.files.filter((file: any) => file.id !== fileId)
-          })).filter(doc => doc.files.length > 0)
-        );
-
-        // Update documents state
-        setDocuments(prev => ({
-          ...prev,
-          [docType]: {
-            ...prev[docType],
-            uploaded: false,
-            verified: false,
-            extractedData: null
-          }
-        }));
-
-        // Show success message
-        await Swal.fire({
-          title: 'Deleted!',
-          text: 'The document has been deleted.',
-          icon: 'success',
-          timer: 2000,
-          showConfirmButton: false
-        });
-
-        // Still fetch documents to ensure consistency with the server
-        await fetchDocuments();
-      } catch (error) {
-        console.error('Error deleting document:', error);
-        await Swal.fire({
-          title: 'Error!',
-          text: 'Failed to delete the document. Please try again.',
-          icon: 'error'
-        });
-      }
-    }
-  };
-
-  const fetchDocuments = async () => {
-        console.log("fetching documents");
         try {
             const onboardingID = applicationData.application?.onboarding_id;
             if (!onboardingID) return;
 
-            const response = await leadAPI.get<DocumentResponse>(`/alpha/v1/onboarding/${onboardingID}/documents`);
-            console.log("Documents response:", response);
+            await axios.delete(
+                `${apiUrl}/alpha/v1/application`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    data: { file_id: fileId }
+                }
+            );
 
-            if (response?.result) {
+            setUploadedDocs(prevDocs =>
+                prevDocs.map(doc => ({
+                    ...doc,
+                    files: doc.files.filter((file: any) => file.id !== fileId)
+                })).filter(doc => doc.files.length > 0)
+            );
+
+            setDocuments(prev => ({
+                ...prev,
+                [docType]: { uploaded: false, verified: false, extractedData: null }
+            }));
+
+            toast.success("Document deleted successfully!");
+            await fetchDocuments();
+        } catch (error) {
+            console.error('Error deleting document:', error);
+            toast.error("Failed to delete the document. Please try again.");
+        }
+    };
+
+    const fetchDocuments = async () => {
+        try {
+            const onboardingID = applicationData.application?.onboarding_id;
+            if (!onboardingID) return;
+
+            const response = await leadAPI.get<DocumentResponse>(
+                `/alpha/v1/onboarding/${onboardingID}/checklist`
+            );
+
+            if (response?.checklist?.[0]?.checklists) {
                 const updatedDocs = { ...documents };
-                const uploadedDocsList: any[] = []; // New array to store uploaded docs
+                const uploadedDocsList: any[] = [];
 
-                // Reset all documents to default state first
                 Object.keys(updatedDocs).forEach(key => {
                     updatedDocs[key] = { uploaded: false, verified: false };
                 });
 
-                // First, map all documents to uploadedDocsList
-                response.result.forEach((doc: Document) => {
-                    if (doc.files?.length > 0) {
-                        uploadedDocsList.push(doc);
+                response.checklist[0].checklists.forEach(checklist => {
+                    if (checklist.required) {
+                        checklist.required.forEach(doc => {
+                            if (doc.files && doc.files.length > 0) {
+                                uploadedDocsList.push({ ...doc });
+                            }
+                        });
                     }
                 });
 
-                // Then update the status based on document types
-                response.result.forEach((doc: Document) => {
-                    // Map API document types to our local state keys
+                uploadedDocsList.forEach(doc => {
                     let docKey: string | null = null;
-                    
-                    // Match by document_id first
                     const matchingType = documentTypes.find(type => type.documentId === doc.document_id);
                     if (matchingType) {
                         docKey = matchingType.id;
                     } else {
-                        // Fallback to document_type if document_id doesn't match
-                        switch(doc.document_type) {
-                            case 'AADHAAR_CARD':
-                                docKey = 'aadhaar';
-                                break;
-                            case 'PAN_CARD':
-                                docKey = 'pan';
-                                break;
+                        switch (doc.document_type) {
+                            case 'AADHAAR_CARD': docKey = 'aadhaar'; break;
+                            case 'PAN_CARD': docKey = 'pan'; break;
                             case 'BANK_STATEMENT':
                             case 'INCOME_PROOF':
-                                docKey = 'bank_statement';
-                                break;
-                            default:
-                                return; // Skip unknown document types
+                            case 'CANCELLED_CHEQUE': docKey = 'bank_statement'; break;
+                            case 'GST_CERTIFICATE': docKey = 'gst_certificate'; break;
+                            default: return;
                         }
                     }
-
                     if (docKey) {
                         updatedDocs[docKey] = {
                             uploaded: doc.files?.length > 0,
@@ -235,99 +206,90 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
             }
         } catch (error) {
             console.error('Error fetching documents:', error);
+            toast.error("Failed to fetch documents.");
         }
     };
-  const handleFileUpload = async (docType: string, file: File, documentId:string) => {
-    setIsProcessing(docType);
 
-    try {
-      // Configuration values
-      const onboardingID = applicationData.application?.onboarding_id;
-      const applicantId = applicationData.primary?.personal?.person_id;
-      const checkListItemId = '';
-      const applicantCategory = applicationData.primary?.applicant_category;
-      const password = '';
+    const handleFileUpload = async (docType: string, file: File, documentId: string) => {
+        setIsProcessing(docType);
 
-      // Create form data
-      const formData = new FormData();
-      formData.append('document', file);
-      formData.append('applicant_id', applicantId);
-      formData.append('document_id', documentId);
-      formData.append('checklist_item_id', checkListItemId);
-      formData.append('applicant_category', applicantCategory);
-      formData.append('password', password);
+        try {
+            const onboardingID = applicationData.application?.onboarding_id;
+            const applicantId = applicationData.primary?.personal?.person_id;
+            const checkListItemId = '';
+            const applicantCategory = applicationData.primary?.applicant_category;
+            const password = '';
 
-      // API call with axios
-      const response = await axios.post(
-          `${apiUrl}/alpha/v1/onboarding/${onboardingID}/document`,
-        formData,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'multipart/form-data',
-          },
+            const formData = new FormData();
+            formData.append('document', file);
+            formData.append('applicant_id', applicantId);
+            formData.append('document_id', documentId);
+            formData.append('checklist_item_id', checkListItemId);
+            formData.append('applicant_category', applicantCategory);
+            formData.append('password', password);
+
+            const response = await axios.post(
+                `${apiUrl}/alpha/v1/onboarding/${onboardingID}/document`,
+                formData,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
+
+            toast.success(response.data.message || "Document uploaded successfully");
+
+
+            setDocuments(prev => ({
+                ...prev,
+                [docType]: { uploaded: true, verified: true, extractedData: response.data }
+            }));
+
+            if (response.data.aadhaarNumber || response.data.residenceAddress) {
+                setExtractedData(prev => ({
+                    ...prev,
+                    aadhaarNumber: response.data.aadhaarNumber || prev.aadhaarNumber,
+                    residenceAddress: response.data.residenceAddress || prev.residenceAddress
+                }));
+                updateApplicationData({
+                    aadhaarNumber: response.data.aadhaarNumber,
+                    residenceAddress: response.data.residenceAddress
+                });
+            }
+
+            await fetchDocuments();
+        } catch (error) {
+            console.error('Error uploading document:', error);
+            toast.error("Failed to upload document. Please try again.");
+            setDocuments(prev => ({
+                ...prev,
+                [docType]: { uploaded: false, verified: false, error: 'Upload failed' }
+            }));
+        } finally {
+            setIsProcessing(null);
         }
-      );
-
-      // Show success message
-      await Swal.fire({
-        title: 'Success!',
-        text: response.data.message || 'Document uploaded successfully',
-        icon: 'success',
-        timer: 2500,
-        timerProgressBar: true,
-        showConfirmButton: false,
-      });
-
-      // Update UI state
-      setDocuments(prev => ({
-        ...prev,
-        [docType]: {
-          uploaded: true,
-          verified: true,
-          extractedData: response.data
-        }
-      }));
-
-      // Update application data if needed
-      if (response.data.aadhaarNumber || response.data.residenceAddress) {
-        setExtractedData(prev => ({
-          ...prev,
-          aadhaarNumber: response.data.aadhaarNumber || prev.aadhaarNumber,
-          residenceAddress: response.data.residenceAddress || prev.residenceAddress
-        }));
-
-        updateApplicationData({
-          aadhaarNumber: response.data.aadhaarNumber,
-          residenceAddress: response.data.residenceAddress
-        });
-      }
-
-      // After successful upload, refresh the documents
-      await fetchDocuments();
-
-    } catch (error) {
-      console.error('Error uploading document:', error);
-      // Handle error state in your UI
-      setDocuments(prev => ({
-        ...prev,
-        [docType]: {
-          uploaded: false,
-          verified: false,
-          error: 'Failed to upload document. Please try again.'
-        }
-      }));
-    } finally {
-      setIsProcessing(null);
-    }
-  };
-
-
+    };
 
   const allDocumentsVerified = documentTypes.every(doc => documents[doc.id]?.verified);
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <ToastContainer
+        position="top-right"
+        autoClose={2500}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={true}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Bounce}
+        style={{ marginTop: '50px' }}
+      />
       <button
         onClick={onBack}
         className="flex items-center text-black hover:text-gray-700 mb-6 transition-colors"
@@ -373,7 +335,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
           {documentTypes.map((docType) => {
             const status = documents[docType.id];
             const processing = isProcessing === docType.id;
-            
+
             return (
               <div key={docType.id} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-start justify-between mb-3">
@@ -389,7 +351,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
                       <p className="text-sm text-gray-600">{docType.description}</p>
                     </div>
                   </div>
-                  
+
                   {status?.verified && (
                     <CheckCircle className="h-6 w-6 text-black" />
                   )}
@@ -448,7 +410,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
                       <div className="md:w-3/3">
                         {(() => {
                           // Find document by matching document_id
-                          const docToShow = uploadedDocs.find(doc => 
+                          const docToShow = uploadedDocs.find(doc =>
                             doc.document_id === docType.documentId
                           );
                           // If document is found, render it
