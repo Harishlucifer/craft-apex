@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Upload, CheckCircle, Camera, FileText, Trash2 } from 'lucide-react';
-import axios from 'axios';
+import { ChevronLeft, Upload, CheckCircle, Camera, FileText, Trash2, FileText as PdfIcon } from 'lucide-react';
 import {Bounce, toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useAuthStore } from "@repo/shared-state/stores";
-import { LeadAPI } from '../api/LeadAPI';
+import { ChecklistAPI } from '../api/ChecklistAPI';
 
 interface DocumentVerificationProps {
     applicationData: any;
@@ -17,43 +15,6 @@ interface DocumentStatus {
     uploaded: boolean;
     verified: boolean;
     extractedData?: any;
-}
-
-interface ChecklistItem {
-    document_name: string;
-    document_id: string;
-    checklist_item_id: string;
-    service_provider_id: string;
-    document_type: string;
-    description: string;
-    sequence: number;
-    allowed_count: number;
-    files: Array<{
-        file_id: string;
-        url: string;
-        password: string | null;
-    }> | null;
-    extracted_value: any;
-    verify_status: number;
-}
-
-interface ApplicantChecklist {
-    applicant_name: string;
-    applicant_id: string;
-    applicant_category: string;
-    applicant_type: string;
-    checklists: Array<{
-        title: string;
-        required: ChecklistItem[] | null;
-        anyone: any[] | null;
-        optional: any[] | null;
-        sequence: number;
-    }>;
-}
-
-interface DocumentResponse {
-    checklist: ApplicantChecklist[];
-    status: number;
 }
 
 const documentTypes = [
@@ -103,9 +64,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
         verifiedDOB: ''
     });
 
-    const apiUrl = import.meta.env.VITE_API_ENDPOINT;
-    const accessToken = useAuthStore.getState().user?.access_token;
-    const leadAPI = new LeadAPI();
+    const checklistAPI = new ChecklistAPI();
 
     useEffect(() => {
         if (applicationData?.application?.onboarding_id) {
@@ -115,19 +74,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
 
     const handleDeleteDocument = async (docType: string, fileId: string) => {
         try {
-            const onboardingID = applicationData.application?.onboarding_id;
-            if (!onboardingID) return;
-
-            await axios.delete(
-                `${apiUrl}/alpha/v1/application`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`,
-                        'Content-Type': 'application/json'
-                    },
-                    data: { file_id: fileId }
-                }
-            );
+            await checklistAPI.deleteDocument(fileId);
 
             setUploadedDocs(prevDocs =>
                 prevDocs.map(doc => ({
@@ -154,9 +101,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
             const onboardingID = applicationData.application?.onboarding_id;
             if (!onboardingID) return;
 
-            const response = await leadAPI.get<DocumentResponse>(
-                `/alpha/v1/onboarding/${onboardingID}/checklist`
-            );
+            const response = await checklistAPI.fetchDocuments(onboardingID);
 
             if (response?.checklist?.[0]?.checklists) {
                 const updatedDocs = { ...documents };
@@ -216,46 +161,41 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
         try {
             const onboardingID = applicationData.application?.onboarding_id;
             const applicantId = applicationData.primary?.personal?.person_id;
-            const checkListItemId = '';
             const applicantCategory = applicationData.primary?.applicant_category;
             const password = '';
 
-            const formData = new FormData();
-            formData.append('document', file);
-            formData.append('applicant_id', applicantId);
-            formData.append('document_id', documentId);
-            formData.append('checklist_item_id', checkListItemId);
-            formData.append('applicant_category', applicantCategory);
-            formData.append('password', password);
-
-            const response = await axios.post(
-                `${apiUrl}/alpha/v1/onboarding/${onboardingID}/document`,
-                formData,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`,
-                        'Content-Type': 'multipart/form-data',
-                    },
-                }
+            const response = await checklistAPI.uploadDocument(
+                onboardingID,
+                file,
+                applicantId,
+                documentId,
+                applicantCategory,
+                password
             );
 
-            toast.success(response.data.message || "Document uploaded successfully");
+            toast.success("Document uploaded successfully");
 
-
+            // First update the documents state
             setDocuments(prev => ({
                 ...prev,
-                [docType]: { uploaded: true, verified: true, extractedData: response.data }
+                [docType]: { 
+                    uploaded: true, 
+                    verified: response.verify_status === 1, 
+                    extractedData: response 
+                }
             }));
 
-            if (response.data.aadhaarNumber || response.data.residenceAddress) {
+            // Check for extracted data in the response
+            const extractedData = response.extracted_value || {};
+            if (extractedData.aadhaarNumber || extractedData.residenceAddress) {
                 setExtractedData(prev => ({
                     ...prev,
-                    aadhaarNumber: response.data.aadhaarNumber || prev.aadhaarNumber,
-                    residenceAddress: response.data.residenceAddress || prev.residenceAddress
+                    aadhaarNumber: extractedData.aadhaarNumber || prev.aadhaarNumber,
+                    residenceAddress: extractedData.residenceAddress || prev.residenceAddress
                 }));
                 updateApplicationData({
-                    aadhaarNumber: response.data.aadhaarNumber,
-                    residenceAddress: response.data.residenceAddress
+                    aadhaarNumber: extractedData.aadhaarNumber,
+                    residenceAddress: extractedData.residenceAddress
                 });
             }
 
@@ -278,7 +218,7 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
     <div className="max-w-4xl mx-auto px-4 py-8">
       <ToastContainer
         position="top-right"
-        autoClose={2500}
+        autoClose={2000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick={true}
@@ -418,11 +358,41 @@ export const DocumentVerification: React.FC<DocumentVerificationProps> = ({
                             return (
                                 <div className="flex items-center space-x-2">
                                     <div key={docToShow.document_id} className="relative group">
-                                        <img
-                                            src={docToShow.files[0].url}
-                                            alt={docToShow.document_name}
-                                            className="w-full h-20 object-contain border rounded bg-white p-2"
-                                        />
+                                        <div className="w-32 h-24 flex items-center justify-center bg-white border rounded overflow-hidden relative">
+                                            {docToShow.files[0].url.toLowerCase().endsWith('.pdf') ? (
+                                                <div className="w-full h-full flex items-center justify-center flex-col p-2">
+                                                    <PdfIcon className="h-8 w-8 text-gray-400 mb-1" />
+                                                    <span className="text-xs text-gray-500 text-center truncate w-full">
+                                                        {docToShow.document_name || 'Document.pdf'}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <img
+                                                    src={docToShow.files[0].url}
+                                                    alt={docToShow.document_name}
+                                                    className="max-w-full max-h-full object-contain"
+                                                    onError={(e) => {
+                                                        // Fallback to PDF icon if image fails to load
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.style.display = 'none';
+                                                        const container = target.parentElement;
+                                                        if (container) {
+                                                            const fallback = document.createElement('div');
+                                                            fallback.className = 'w-full h-full flex items-center justify-center flex-col p-2';
+                                                            fallback.innerHTML = `
+                                                                <svg class="h-8 w-8 text-gray-400 mb-1" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                </svg>
+                                                                <span class="text-xs text-gray-500 text-center truncate w-full">
+                                                                    ${docToShow.document_name || 'Preview'}
+                                                                </span>
+                                                            `;
+                                                            container.appendChild(fallback);
+                                                        }
+                                                    }}
+                                                />
+                                            )}
+                                        </div>
                                         <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                             <a
                                                 href={docToShow.files[0].url}
