@@ -1,5 +1,5 @@
 import {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {ChevronLeft, CheckCircle, Star, TrendingUp, Clock, Shield, ArrowLeft} from 'lucide-react';
+import {CheckCircle, Star, TrendingUp, Clock, Shield, ArrowLeft} from 'lucide-react';
 import {StepComponentProps} from "@/components/WorkflowStepComponentLoader.tsx";
 import {LeadAPI} from "@/api/LeadAPI.ts";
 import {useQuery} from "@tanstack/react-query";
