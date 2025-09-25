@@ -1,13 +1,11 @@
 import { forwardRef } from "react";
 import { MobileEmailOTP } from './MobileEmailOTP';
-import { PersonalDetails } from './PersonalDetails';
-import { IncomeDetails } from './IncomeDetails';
 import { EligibilityResults } from './EligibilityResults';
 import { DocumentVerification } from './DocumentVerification';
 import { ApplicationStatus } from './ApplicationStatus';
 import { ApplicationData } from './workflow/DynamicStagesAndSteps';
 import RecommendedOffers from "@/components/RecommendedOffers.tsx";
-import FormBuilderRenderPage from "./FormBuilderRenderPage";
+import FormBuilderRenderPage from "@/components/FormBuilderRenderPage.tsx";
 
 export interface Step {
     id: string;
@@ -48,39 +46,12 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
     };
 
     switch (props.step.ui_component) {
-         case "FORM_BUILDER":
-            return <FormBuilderRenderPage {...stepProps}  />
+        case "FORM_BUILDER":
+            return <FormBuilderRenderPage {...stepProps} />
         case "MOBILE_EMAIL_OTP_VERIFICATION":
             return (
-                <MobileEmailOTP
-                    step={props.step}
-                    handleSubmitSuccess={props.handleSubmitSuccess}
-                    handleBack={props.handleBack}
-                    data={props.data}
-                    isReturningCustomer={props.isReturningCustomer}
-                    onNext={props.onNext}
-                    onBack={props.onBack}
-                    onVerified={props.onVerified}
-                    onApplyNew={props.onApplyNew}
-                    onContinueApplication={props.onContinueApplication}
-                />
-            );
-        case "PERSONAL_DETAILS":
-            return (
-                <PersonalDetails 
-                    applicationData={props.data || {} as ApplicationData}
-                    updateApplicationData={() => {}}
-                    onNext={props.onNext || (() => {})}
-                    onBack={props.onBack || (() => {})}
-                />
-            );
-        case "INCOME_DETAILS":
-            return (
-                <IncomeDetails 
-                    applicationData={props.data || {} as ApplicationData}
-                    updateApplicationData={() => {}}
-                    onNext={props.onNext || (() => {})}
-                    onBack={props.onBack || (() => {})}
+                <MobileEmailOTP 
+                    {...stepProps}
                 />
             );
         case "ELIGIBILITY_RESULTS":
@@ -93,7 +64,7 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
             );
         case "DOCUMENT_VERIFICATION":
             return (
-                <DocumentVerification
+                <DocumentVerification 
                     applicationData={props.data || {} as ApplicationData}
                     updateApplicationData={() => {}}
                     onNext={props.onNext || (() => {})}
@@ -102,8 +73,7 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
             );
         case "LENDER_RECOMMENDATION_OFFER_SELECTION":
             return (
-                <RecommendedOffers
-                    {...stepProps} />
+                <RecommendedOffers {...stepProps} />
             );
         case "APPLICATION_STATUS":
             return (

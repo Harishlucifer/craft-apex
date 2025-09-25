@@ -2,13 +2,29 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import WorkflowStepComponentLoader, { Step } from "../WorkflowStepComponentLoader";
-import { WorkflowAPI } from "../../api/WorkflowAPI";
-import { useWorkflowStore } from "../../stores/workflow";
-import { useLeadStore } from "../../stores/Lead";
+import WorkflowStepComponentLoader from "../WorkflowStepComponentLoader";
+import { WorkflowAPI } from "@repo/shared-state/api";
+import { useWorkflowStore, useLeadStore } from "@repo/shared-state/stores";
 import { JourneyTypeModal } from "./JourneyTypeModal";
 import { WorkflowStagesNavigation } from "./WorkflowStagesNavigation";
 import { StepsHorizontalStepper } from "./StepsHorizontalStepper";
+
+// Add Journey type definition
+interface Journey {
+  id: number;
+  code: string;
+  name: string;
+  workflow_type: string;
+  partner_type: string;
+  loan_type?: {
+    code: string;
+    name: string;
+  };
+  loan_type_id?: string;
+}
+
+// Add JourneyTypesResponse type definition
+type JourneyTypesResponse = Record<string, Journey[]>;
 
 export interface ApplicationData {
   fullName: string;
@@ -111,18 +127,19 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
     retry: 1,
   });
 
-  console.log("currentStepData", currentStepData);
-    console.log("currentStageData", currentStageData);
      // 3. Fetch journey types if nothing provided
-    const journeyTypesQuery = useQuery({
+    const journeyTypesQuery = useQuery<JourneyTypesResponse>({
         queryKey: ["journeyTypes", workflowType],
-        queryFn: () => api.fetchJourneyTypes(workflowType ?? ""),
+        queryFn: async (): Promise<JourneyTypesResponse> => {
+            const result = await api.fetchJourneyTypes(workflowType ?? "");
+            return result as JourneyTypesResponse;
+        },
         enabled: !id && !(journeyType || loanType) && !!workflowType,
         retry: 1,
     });
 
     // Helper function to handle journey selection
-    const handleJourneySelection = (journey: any) => {
+    const handleJourneySelection = (journey: Journey) => {
         const params = new URLSearchParams();
         params.set("journey_type", journey.code);
     
@@ -132,7 +149,7 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
         }
     
         if (journey.loan_type_id) {
-            params.set("loan_type", journey.loan_type.code);
+            params.set("loan_type", journey.loan_type!.code);
         }
 
         navigate(`?${params.toString()}`);
@@ -141,7 +158,7 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
     useEffect(() => {
         if (journeyTypesQuery.data && !id) {
             // Check if there's only one journey type across all categories
-            const journeyData = journeyTypesQuery.data.data || journeyTypesQuery.data;
+            const journeyData = journeyTypesQuery.data;
             const allJourneys = Object.values(journeyData).flat();
             console.log("all journey", journeyTypesQuery.data);
             console.log("allJourneys length", allJourneys.length);
@@ -149,7 +166,7 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
             if (allJourneys.length === 1) {
                 // Automatically select the single journey type
                 console.log("Auto-selecting single journey:", allJourneys[0]);
-                handleJourneySelection(allJourneys[0]);
+                handleJourneySelection(allJourneys[0] as Journey);
             } else {
                 // Show modal for multiple options
                 console.log("Multiple journeys found, showing modal");
@@ -192,6 +209,7 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
   const createUpdateMutation = useMutation({
     mutationFn: (payload: any) => api.createUpdate(payload),
     onSuccess: (data) => {
+      console.log("createUpdate data", data);
       toast.success("Data saved successfully", { position: "top-right" });
       if (data?.result) {
         setLeadData(data.result, "V2");
@@ -345,8 +363,8 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
                 open={showJourneyModal}
                 workflowType={workflowType}
                 onClose={() => setShowJourneyModal(false)}
-                data={journeyTypesQuery.data?.data}
-                onSelect={(journey: any) => {
+                data={journeyTypesQuery.data}
+                onSelect={(journey: Journey) => {
                     setShowJourneyModal(false);
                     handleJourneySelection(journey);
                 }}
