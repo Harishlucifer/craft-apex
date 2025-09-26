@@ -152,16 +152,4 @@ export class LeadAPI extends WorkflowAPI {
             this.leadStore.setLoading(false);
         }
     }
-    /** Fetch Recommended Lender's Details **/
-    async fetchEligibleOffers(id: string, version: string = "V1"): Promise<OfferResponse> {
-        try {
-            const endpoint = `/alpha/${version.toLowerCase()}/application/${id}/recommendation`;
-            return await this.get<OfferResponse>(endpoint);
-        } catch (error) {
-            throw error instanceof Error ? error : 'Failed to fetch offers';
-        } finally {
-            this.leadStore.setLoading(false);
-        }
-    }
-
 }
