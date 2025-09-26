@@ -42,6 +42,7 @@ export interface OtpResponse {
   status: number;
   message?: string;
   error?: string;
+  result?:string;
   data?: {
     reference_id?: string;
     expires_at?: string;
@@ -54,6 +55,7 @@ export interface OtpSendResponse {
   status: number;
   message?: string;
   error?: string;
+  result?:string;
   data?: {
     reference_id?: string;
     expires_at?: string;
@@ -65,6 +67,7 @@ export interface OtpVerifyResponse {
   status: number;
   message?: string;
   error?: string;
+  result?:string;
   data?: {
     verified: boolean;
   };

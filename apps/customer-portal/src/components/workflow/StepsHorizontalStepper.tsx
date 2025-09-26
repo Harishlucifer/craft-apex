@@ -1,5 +1,5 @@
 import React from 'react';
-import { Step } from '../../stores/workflow';
+import { Step } from '@repo/shared-state/stores';
 
 interface StepsHorizontalStepperProps {
   steps: Step[];

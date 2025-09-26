@@ -55,21 +55,17 @@ export class ChecklistAPI extends WorkflowAPI {
      */
     async fetchDocuments(onboardingID: string): Promise<DocumentResponse> {
         try {
-            const response = await fetch(`${this.apiUrl}/alpha/v1/onboarding/${onboardingID}/checklist`, {
-                method: 'GET',
+            const response = await this.get<DocumentResponse>(`/alpha/v1/onboarding/${onboardingID}/checklist`, {
                 headers: {
                     'X-Platform': 'CUSTOMER_PORTAL',
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.user?.access_token}`,
                 },
             });
 
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(error || 'Failed to fetch documents');
+            if (response.status !== 1) {
+                throw new Error(response.error || response.message || 'Failed to fetch documents');
             }
 
-            return await response.json();
+            return response.data || { checklist: [], status: 0 };
         } catch (error) {
             console.error('Error fetching documents:', error);
             throw error;
@@ -103,21 +99,18 @@ export class ChecklistAPI extends WorkflowAPI {
             formData.append('password', password);
         }
 
-        const response = await fetch(`${this.apiUrl}/alpha/v1/onboarding/${onboardingID}/document`, {
-            method: 'POST',
+        const response = await this.post(`/alpha/v1/onboarding/${onboardingID}/document`, formData, {
             headers: {
                 'X-Platform': 'CUSTOMER_PORTAL',
-                'Authorization': `Bearer ${this.user?.access_token}`,
+                // Don't set Content-Type for FormData, let the browser set it
             },
-            body: formData,
         });
 
-        if (!response.ok) {
-            const error = await response.text();
-            throw new Error(error || 'Failed to upload document');
+        if (response.status !== 1) {
+            throw new Error(response.error || response.message || 'Failed to upload document');
         }
 
-        return await response.json();
+        return response.data;
     }
 
     /**
@@ -126,19 +119,14 @@ export class ChecklistAPI extends WorkflowAPI {
      * @returns Promise that resolves when the document is deleted
      */
     async deleteDocument(fileId: string): Promise<void> {
-        const response = await fetch(`${this.apiUrl}/alpha/v1/application`, {
-            method: 'DELETE',
+        const response = await this.post(`/alpha/v1/application`, { file_id: fileId }, {
             headers: {
                 'X-Platform': 'CUSTOMER_PORTAL',
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.user?.access_token}`,
             },
-            body: JSON.stringify({ file_id: fileId })
         });
 
-        if (!response.ok) {
-            const error = await response.text();
-            throw new Error(error || 'Failed to delete document');
+        if (response.status !== 1) {
+            throw new Error(response.error || response.message || 'Failed to delete document');
         }
     }
 
