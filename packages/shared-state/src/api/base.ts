@@ -1,4 +1,3 @@
-import { PlatformType } from '@repo/types/setup';
 import { getApiEndpoint } from '../config';
 import { useAuthStore } from '../stores/auth';
 

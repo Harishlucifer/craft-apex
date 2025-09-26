@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stage } from '../../stores/workflow';
+import { Stage } from '@repo/shared-state/stores';
 
 interface WorkflowStagesNavigationProps {
   stages: Stage[];

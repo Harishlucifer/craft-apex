@@ -1,16 +1,11 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
-import { AxiosProvider, DynamicForm, Provider } from "craft-ux";
 import { StepComponentProps } from "./WorkflowStepComponentLoader";
-import { useAxios } from "@/helper/axiosInstance";
 import { useWorkflowStore } from "@repo/shared-state/stores";
 import "flatpickr/dist/flatpickr.min.css";
 import { Card, CardContent } from '@repo/ui/components/ui/card';
 import { Button } from "@repo/ui/components/ui/button";
 import { ArrowLeft } from 'lucide-react';
-
-export interface FormDataRef {
-    submitFormExternally: () => void;
-}
+import FormRenderer, { FormDataRef } from "./FormRenderer";
 
 const FormBuilderRenderPage = forwardRef((props: StepComponentProps, ref) => {
     const formRef = useRef<FormDataRef>(null);
@@ -45,22 +40,7 @@ const FormBuilderRenderPage = forwardRef((props: StepComponentProps, ref) => {
         }
     }));
 
-    useEffect(() => {
-        const id = "bootstrap-css";
-
-        if (!document.getElementById(id)) {
-            const bootstrapLink = document.createElement("link");
-            bootstrapLink.id = id;
-            bootstrapLink.rel = "stylesheet";
-            bootstrapLink.href =
-                "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css";
-            bootstrapLink.integrity =
-                "sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH";
-            bootstrapLink.crossOrigin = "anonymous";
-
-            document.head.appendChild(bootstrapLink);
-        }
-    }, []);
+   
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
@@ -81,18 +61,13 @@ const FormBuilderRenderPage = forwardRef((props: StepComponentProps, ref) => {
 
                         {/* Form Content */}
                         <div className="mb-8">
-                            <Provider>
-                                <AxiosProvider axiosInstance={useAxios()}>
-                                    <DynamicForm
-                                        componentName={currentStepData?.ui_component || "DynamicForm"}
-                                        formJson={currentStepData?.configuration?.form_builder || {}}
-                                        key={"1"}
-                                        ref={formRef}
-                                        onSubmitSuccess={handleSubmitSuccess}
-                                        existingObject={props?.data}
-                                    />
-                                </AxiosProvider>
-                            </Provider>
+                            <FormRenderer
+                                componentName={currentStepData?.ui_component || "DynamicForm"}
+                                formJson={currentStepData?.configuration?.form_builder || {}}
+                                ref={formRef}
+                                onSubmitSuccess={handleSubmitSuccess}
+                                existingObject={props?.data}
+                            />
                         </div>
 
                         {/* Navigation Buttons */}
