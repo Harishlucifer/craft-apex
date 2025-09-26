@@ -16,7 +16,7 @@ interface DocumentStatus {
 }
 
 const DocumentVerification = forwardRef<DocumentVerificationRef, StepComponentProps>((props, ref) => {
-    const { data: applicationData = {}, onBack, handleSubmitSuccess } = props;
+    const { data: applicationData = {}, handleSubmitSuccess, handleBack } = props;
     const formRef = useRef<HTMLDivElement>(null);
     const [documents, setDocuments] = useState<Record<string, DocumentStatus>>({});
     const [uploadedDocs, setUploadedDocs] = useState<any[]>([]);
@@ -247,7 +247,7 @@ const DocumentVerification = forwardRef<DocumentVerificationRef, StepComponentPr
                 style={{ marginTop: '50px' }}
             />
             <button
-                onClick={onBack}
+                onClick={() => handleBack && handleBack()}
                 className="flex items-center text-black hover:text-gray-700 mb-6 transition-colors"
             >
                 <ChevronLeft className="h-5 w-5 mr-1" />
