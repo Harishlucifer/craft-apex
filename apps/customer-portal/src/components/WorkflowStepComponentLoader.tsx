@@ -1,10 +1,9 @@
 import { forwardRef } from "react";
 import { MobileEmailOTP } from './MobileEmailOTP';
-import { DocumentVerification } from './DocumentVerification';
-import { ApplicationData } from './workflow/DynamicStagesAndSteps';
 import FormBuilderRenderPage from "@/components/FormBuilderRenderPage.tsx";
 import LenderSelection from "@/components/LenderSelection.tsx";
 import EligibilityResults from "@/components/EligibilityResults.tsx";
+import DocumentVerification from "@/components/DocumentVerification.tsx";
 
 export interface Step {
     id: string;
@@ -49,7 +48,9 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
             return <FormBuilderRenderPage {...stepProps} />
         case "MOBILE_EMAIL_OTP_VERIFICATION":
             return (
-                <MobileEmailOTP{...stepProps}/>
+                <MobileEmailOTP
+                    {...stepProps}
+                />
             );
         case "LENDER_RECOMMENDATION_OFFER_SELECTION":
             return (
@@ -57,12 +58,7 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
             );
         case "DOCUMENT_VERIFICATION":
             return (
-                <DocumentVerification 
-                    applicationData={props.data || {} as ApplicationData}
-                    updateApplicationData={() => {}}
-                    onNext={props.onNext || (() => {})}
-                    onBack={props.onBack || (() => {})}
-                />
+                <DocumentVerification {...stepProps}/>
             );
         case "APPLICATION_STATUS":
             return (
