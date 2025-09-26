@@ -258,7 +258,15 @@ const EligibilityResults = forwardRef((props: StepComponentProps) => {
         if (offerResult) {
             setOfferData(offerResult as RecommendedOffersResponse);
         } else if (isOfferError) {
-            console.error("Error fetching offers:", offerError);
+            setOfferData({
+                lender: [],
+                viable: { applicable: false, executed_rule: null },
+            });
+        }else {
+            setOfferData({
+                lender: [],
+                viable: { applicable: false, executed_rule: null },
+            })
         }
     }, [offerResult, isOfferError, offerError]);
 
