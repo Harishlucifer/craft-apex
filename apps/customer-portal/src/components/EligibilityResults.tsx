@@ -1,8 +1,6 @@
 import {
     forwardRef,
     useEffect,
-    useImperativeHandle,
-    useRef,
     useState,
 } from "react";
 import {
@@ -202,14 +200,10 @@ export interface CamResponse {
     status: number;
 }
 
-export interface FormDataRef {
-    submitFormExternally: () => void;
-}
 
-const EligibilityResults = forwardRef((props: StepComponentProps, ref) => {
-    const formRef = useRef<FormDataRef>(null);
-    const { data } = props;
 
+const EligibilityResults = forwardRef((props: StepComponentProps) => {
+    const { data,handleSubmitSuccess ,handleBack} = props;
     const [offerData, setOfferData] = useState<RecommendedOffersResponse>({
         lender: [],
         viable: { applicable: false, executed_rule: null },
@@ -218,16 +212,6 @@ const EligibilityResults = forwardRef((props: StepComponentProps, ref) => {
 
     const offerAPI = new LenderOfferAPI();
     const CreditAPI = new CreditBureauAPI();
-
-    const triggerSubmit = () => {
-        formRef.current?.submitFormExternally();
-    };
-
-    useImperativeHandle(ref, () => ({
-        submitStepExternally: () => {
-            triggerSubmit();
-        },
-    }));
 
     const { id } = useParams<{ id: string }>();
     const applicationId = id || data?.application?.application_id;
@@ -309,9 +293,6 @@ const EligibilityResults = forwardRef((props: StepComponentProps, ref) => {
         finalOffers.length > 0
             ? Math.min(...finalOffers.map((o) => o.interest_rate))
             : 0;
-    const handleBackClick = () => {
-        props.handleBack ? props.handleBack() : props.onBack?.();
-    };
 
     const creditScore = bureauData?.result[0]?.bureau_details?.bureau_data?.credit_score ?? 0;
     const getScoreStyle = (score: number) => {
@@ -322,6 +303,19 @@ const EligibilityResults = forwardRef((props: StepComponentProps, ref) => {
         return { color: "text-green-500"};
     };
     const { color} = getScoreStyle(creditScore);
+
+    const handleSubmit = async () => {
+        try {
+            if (typeof handleSubmitSuccess === 'function') {
+                await handleSubmitSuccess({
+                    isValidForm: true,
+                    data: props.data
+                });
+            }
+        } catch (error) {
+            console.error('Error submitting documents:', error);
+        }
+    };
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -353,7 +347,7 @@ const EligibilityResults = forwardRef((props: StepComponentProps, ref) => {
                                     Excellent Credit Profile
                                 </p>
                             </div>
-                            <div className="bg-white text-white bg-opacity-20 p-3 rounded-[5px]">
+                            <div className="bg-white text-black  p-3 rounded-[5px]">
                                 <TrendingUp className="h-8 w-8" />
                             </div>
                         </div>
@@ -516,16 +510,16 @@ const EligibilityResults = forwardRef((props: StepComponentProps, ref) => {
                     {/* Buttons */}
                     <div className="flex items-center gap-4 mt-6">
                         <button
-                            onClick={handleBackClick}
+                            onClick={() => handleBack && handleBack()}
                             className="flex items-center gap-2 justify-center text-white bg-black font-medium rounded-lg px-4 py-3 hover:bg-gray-800 transition-colors w-1/6 disabled:opacity-50"
-                            disabled={!props.handleBack && !props.onBack}
+                            // disabled={!props.handleBack && !props.onBack}
                         >
                             <ArrowLeft className="w-4 h-4" />
                             Back
                         </button>
 
                         <button
-                            onClick={triggerSubmit}
+                            onClick={handleSubmit}
                             className="bg-black text-white py-3 px-4 rounded-lg font-semibold hover:bg-gray-800 transition-all duration-300 w-5/6"
                         >
                             Continue to Document Verification
