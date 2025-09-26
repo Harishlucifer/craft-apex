@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useSearchParams, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { DynamicStagesAndSteps } from './workflow/DynamicStagesAndSteps';
-import { LeadAPI } from '../api/LeadAPI';
-import { useLeadStore } from '../stores/Lead';
+import { WorkflowAPI, LeadAPI } from '@repo/shared-state/api';
+import { useLeadStore } from '@repo/shared-state/stores';
 
 function LeadWorkflowPage() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const leadApi = new LeadAPI(); // API instance
+  const leadApi = LeadAPI.getInstance(); // API instance for lead operations
+  const workflowApi = WorkflowAPI.getInstance(); // API instance for workflow operations
 
 
 
@@ -27,8 +27,6 @@ function LeadWorkflowPage() {
     clearError,
     leadataV2
   } = useLeadStore();
-
-  const [lead, setLead] = useState<any>(null);
 
   // Fetch lead data if application_id exists
   const {
@@ -54,34 +52,22 @@ function LeadWorkflowPage() {
     },
     enabled: !!applicationId,
   });
-
+ console.log("leadData",leadataV2);
   // Handle case when applicationId is missing but journey_type & loan_type are in URL
   useEffect(() => {
     if (!applicationId && (journeyType || loanType)) {
-      setLead({
+      setLeadData({
         application: {
           type: journeyType,
           loan_type_code: loanType,
         },
-      });
+      },"V2");
     }
-  }, [applicationId, journeyType, loanType]);
+    if(leadData){
+      setLeadData(leadData,"V2");
+    }
+  }, [applicationId, journeyType, loanType,leadData]);
 
-  // Update lead state when API data arrives
-  useEffect(() => {
-    if (leadData) {
-      setLead(leadData);
-      // Store in Zustand store for global access
-      setLeadData(leadData, "V2");
-    }
-  }, [leadData, setLeadData,leadataV2]);
-
-  // Use store data if available
-  useEffect(() => {
-    if (!lead && leadataV2) {
-      setLead(leadataV2);
-    }
-  }, [lead, leadataV2]);
 
   // Show loading state
   if (isLeadLoading || storeLoading) {
@@ -117,9 +103,9 @@ function LeadWorkflowPage() {
 
   return (
     <DynamicStagesAndSteps
-      dataInfo={lead}
+      dataInfo={leadataV2}
       api={leadApi}
-      sourceId={lead?.application?.application_id || applicationId}
+      sourceId={leadataV2?.application?.application_id || applicationId}
       workflowType="LEAD_CREATION"
       navigateUrl="/"
     />

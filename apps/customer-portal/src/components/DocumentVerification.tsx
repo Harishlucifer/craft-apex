@@ -232,14 +232,14 @@ const DocumentVerification = forwardRef<DocumentVerificationRef, StepComponentPr
                 Back
             </button>
 
-            <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="text-center mb-8">
-                    <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Camera className="h-8 w-8 text-black" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-black mb-2">Document Verification</h2>
-                    <p className="text-gray-600">Upload your documents for quick verification</p>
-                </div>
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="text-center mb-8">
+          <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Camera className="h-8 w-8 text-black" />
+          </div>
+          <h2 className="text-2xl font-bold text-black mb-2">Document Verification</h2>
+          <p className="text-gray-600">Upload your documents for quick verification</p>
+        </div>
 
                 {extractedData.aadhaarNumber && (
                     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">

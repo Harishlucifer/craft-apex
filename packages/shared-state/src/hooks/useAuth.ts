@@ -198,7 +198,8 @@ export const useModuleAuth = (moduleId?: string) => {
   const { setupData, user, isAuthenticated } = useAuthStore();
 
   const hasModuleAccess = (moduleId: string) => {
-    if (!isAuthenticated || !setupData?.module) return false;
+    // Allow access if user has access token (including guest users) and setup data exists
+    if (!user?.access_token || !setupData?.module) return false;
 
     return setupData.module.some(
       (module) =>
