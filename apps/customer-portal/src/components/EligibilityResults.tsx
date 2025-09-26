@@ -13,6 +13,7 @@ interface LenderOffer {
   logo: string;
   maxAmount: number;
   interestRate: number;
+
   tenure: number;
   processingFee: string;
   emi: number;
