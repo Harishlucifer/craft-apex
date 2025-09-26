@@ -60,7 +60,7 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
             return (
                 <DocumentVerification {...stepProps}/>
             );
-        case "APPLICATION_STATUS":
+        case "LENDER_APPLY":
             return (
                <LenderSelection {...stepProps}/>
             );

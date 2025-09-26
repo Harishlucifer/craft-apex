@@ -183,21 +183,30 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
         }
     }, [offerResult, isOfferError, offerError]);
 
-    const handleApplyWithLender = (lenderId: string) => {
+    const handleApplyWithLender = async (lenderId: string) => {
         setLoadingOffer(lenderId);
-        setTimeout(() => {
+        try {
             const lender = offerData.lender.find(l => l.lender_id === lenderId);
+            if (!lender) return;
+            // Call your new lenderApply API with lender_code
+            const response = await offerAPI.lenderApply(applicationId, lender.lender_code);
+            console.log("Lender Apply Response:", response);
+
             if (lender?.recent_offer) {
                 const finalOffer = {
                     ...lender.recent_offer,
                     finalAmount: lender.recent_offer.offer_amount,
-                    finalEmi: lender.recent_offer.emi
+                    finalEmi: lender.recent_offer.emi,
                 };
                 setOffers(prev => ({ ...prev, [lenderId]: finalOffer }));
             }
+        } catch (error) {
+            console.error("Error applying with lender:", error);
+        } finally {
             setLoadingOffer(null);
-        }, 1000);
+        }
     };
+
 
     const handleSelectLender = (lenderId: string) => {
         setSelectedLender(lenderId);
