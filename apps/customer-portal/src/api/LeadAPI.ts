@@ -1,6 +1,5 @@
-import { BaseApiService } from "./base";
-import { useLeadStore, Lead, LeadState, LeadsApiResponse } from "../stores";
-import { WorkflowAPI, InvalidateFn } from "./WorkflowAPI";
+import {InvalidateFn, WorkflowAPI} from "./WorkflowAPI";
+import {Lead, LeadsApiResponse, LeadState, useLeadStore} from "../stores/Lead";
 
 // Define your types (adjust these as per your API response)
 export interface LeadsApiParams {
@@ -13,29 +12,25 @@ export interface LeadsApiParams {
 }
 
 export interface LeadApiResponse {
-    application_id?: string;
-    message?: string;
+    application_id: string;
+    message: string;
     result: any;
     status: number;
     source_id?: string;
 }
 
+export interface OfferResponse {
+    result: any;
+    status: number;
+}
+
+
 export class LeadAPI extends WorkflowAPI {
-    private static leadInstance: LeadAPI;
+    protected leadStore: LeadState;
 
-    private constructor(invalidate?: InvalidateFn) {
+    constructor(invalidate?: InvalidateFn) {
         super(invalidate);
-    }
-
-    protected get leadStore(): LeadState {
-        return useLeadStore.getState();
-    }
-
-    public static getInstance(invalidate?: InvalidateFn): LeadAPI {
-        if (!LeadAPI.leadInstance) {
-            LeadAPI.leadInstance = new LeadAPI(invalidate);
-        }
-        return LeadAPI.leadInstance;
+        this.leadStore = useLeadStore.getState();
     }
 
     /** Override createUpdate for Lead creation */
@@ -44,11 +39,25 @@ export class LeadAPI extends WorkflowAPI {
         this.leadStore.clearError();
 
         try {
-            const apiResponse = await this.post<LeadApiResponse>('/alpha/v2/application/create', data);
-            const response = apiResponse as unknown as LeadApiResponse;
-            console.log("createUpdate response ---- ", apiResponse);
+            const res = await fetch(`${this.apiUrl}/alpha/v2/application/create`, {
+                method: "POST",
+                headers: {
+                    "X-Platform": "CUSTOMER_PORTAL",
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${this.user?.access_token}`,
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(errText || "Failed to create/update lead");
+            }
+            
+            const response = await res.json() as LeadApiResponse;
+            
             // Update store with new lead data
-            if (apiResponse.status === 1) {
+            if (response.status === 200 || response.status === 201) {
                 const newLead: Lead = {
                     application_id: response.application_id,
                     ...response.result,
@@ -57,7 +66,7 @@ export class LeadAPI extends WorkflowAPI {
                 
                 this.leadStore.setLeadData(newLead, 'V2');
             }
-            console.log("createUpdate response", response);
+            
             // Return response with source_id set from application_id
             return {
                 ...response,
@@ -70,6 +79,28 @@ export class LeadAPI extends WorkflowAPI {
         } finally {
             this.leadStore.setLoading(false);
         }
+    }
+
+    /** Generic GET request helper */
+    async get<T>(endpoint: string): Promise<T> {
+        const res = await fetch(`${this.apiUrl}${endpoint}`, {
+            method: "GET",
+            headers: {
+                "X-Platform": "CUSTOMER_PORTAL",
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${this.user?.access_token}`,
+            },
+        });
+
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(errText || "GET request failed");
+        }
+
+        const text = await res.text();
+        if (!text) return {} as T;
+
+        return JSON.parse(text);
     }
 
     /** Fetch multiple leads */
@@ -86,9 +117,7 @@ export class LeadAPI extends WorkflowAPI {
             });
 
             const endpoint = `/alpha/v2/application/list?${queryParams.toString()}`;
-            const apiResponse = await this.get<LeadsApiResponse>(endpoint);
-
-            const response = apiResponse as unknown as LeadsApiResponse;
+            const response = await this.get<LeadsApiResponse>(endpoint);
             
             this.leadStore.setLeadListData(response);
             return response;
@@ -108,8 +137,7 @@ export class LeadAPI extends WorkflowAPI {
 
         try {
             const endpoint = `/alpha/${version.toLowerCase()}/application/${id}`;
-            const apiResponse = await this.get<LeadApiResponse>(endpoint);
-            const response = apiResponse as unknown as LeadApiResponse; 
+            const response = await this.get<LeadApiResponse>(endpoint);
             
             if (response.result) {
                 this.leadStore.setLeadData(response.result, version);

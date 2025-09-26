@@ -3,7 +3,6 @@ import { MobileEmailOTP } from './MobileEmailOTP';
 import { PersonalDetails } from './PersonalDetails';
 import { IncomeDetails } from './IncomeDetails';
 import { DocumentVerification } from './DocumentVerification';
-import { ApplicationStatus } from './ApplicationStatus';
 import { ApplicationData } from './workflow/DynamicStagesAndSteps';
 import FormBuilderRenderPage from "./FormBuilderRenderPage";
 import LenderSelection from "@/components/LenderSelection.tsx";
@@ -48,18 +47,37 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
     };
 
     switch (props.step.ui_component) {
-        case "FORM_BUILDER":
-            return <FormBuilderRenderPage {...stepProps} />
+         case "FORM_BUILDER":
+            return <FormBuilderRenderPage {...stepProps}  />
         case "MOBILE_EMAIL_OTP_VERIFICATION":
             return (
                 <MobileEmailOTP
-                    {...stepProps}
+                    step={props.step}
+                    handleSubmitSuccess={props.handleSubmitSuccess}
+                    handleBack={props.handleBack}
+                    data={props.data}
+                    isReturningCustomer={props.isReturningCustomer}
+                    onNext={props.onNext}
+                    onBack={props.onBack}
+                    onVerified={props.onVerified}
+                    onApplyNew={props.onApplyNew}
+                    onContinueApplication={props.onContinueApplication}
                 />
             );
-        case "ELIGIBILITY_RESULTS":
+        case "PERSONAL_DETAILS":
             return (
-                <EligibilityResults 
+                <PersonalDetails 
                     applicationData={props.data || {} as ApplicationData}
+                    updateApplicationData={() => {}}
+                    onNext={props.onNext || (() => {})}
+                    onBack={props.onBack || (() => {})}
+                />
+            );
+        case "INCOME_DETAILS":
+            return (
+                <IncomeDetails 
+                    applicationData={props.data || {} as ApplicationData}
+                    updateApplicationData={() => {}}
                     onNext={props.onNext || (() => {})}
                     onBack={props.onBack || (() => {})}
                 />

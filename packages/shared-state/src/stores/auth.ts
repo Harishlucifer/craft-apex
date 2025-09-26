@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { UserData, SetupData, PlatformType } from "@repo/types/setup";
-import { SetupApiService, AuthApiService } from "../api";
+import { setupApiService, authApiService } from "../api";
 
 interface LoginCredentials {
   mobile: string;
@@ -109,16 +109,16 @@ export const useAuthStore = create<AuthStore>()(
             setPlatform(platform);
             setTenantDomain(tenantDomain);
 
-            const response = await SetupApiService.getInstance().fetchSetup();
-            console.log('Setup data fetched successfully', response)
-            if (response) {
+            const response = await setupApiService.fetchSetup();
+
+            if (response.status === 1 && response.data) {
               setSetupData(response.data);
-              console.log('Setup data fetched successfully', response.data)
+
               // If user is already authenticated (not guest), set user data
               if (response.data.user.user_type !== "GUEST") {
                 set({ user: response.data.user, isAuthenticated: true });
               }else {
-                console.log('User is guest',response.data)
+                console.log('User is guest')
                 set({ user: response.data.user, isAuthenticated: false });
               }
             } else {
@@ -159,7 +159,7 @@ export const useAuthStore = create<AuthStore>()(
             setLoginLoading(true);
             setError(null);
 
-            const response = await AuthApiService.getInstance().loginWithMFA(
+            const response = await authApiService.loginWithMFA(
               credentials,
               platform,
               tenantDomain
@@ -203,7 +203,7 @@ export const useAuthStore = create<AuthStore>()(
             setLoginLoading(true);
             setError(null);
 
-            const response = await AuthApiService.getInstance().loginWithOtp(
+            const response = await authApiService.loginWithOtp(
               credentials,
               platform,
               tenantDomain
@@ -249,12 +249,12 @@ export const useAuthStore = create<AuthStore>()(
             setLoginLoading(true);
             setError(null);
 
-            const response = await AuthApiService.getInstance().loginWithPassword(
+            const response = await authApiService.loginWithPassword(
               credentials,
               platform,
               tenantDomain
             );
-            
+
             if (response.status === 1 && response.data) {
               // Store complete setup data including modules, system config, and tenant config
               setSetupData(response.data);
@@ -293,7 +293,7 @@ export const useAuthStore = create<AuthStore>()(
           try {
             setError(null);
 
-            const response = await AuthApiService.getInstance().refreshToken(
+            const response = await authApiService.refreshToken(
               user.refresh_token,
               platform,
               tenantDomain
