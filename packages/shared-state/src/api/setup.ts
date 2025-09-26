@@ -17,18 +17,15 @@ export class SetupApiService extends BaseApiService {
   
   async fetchSetup(): Promise<SetupResponse> {
     // Platform and tenant domain headers are automatically added by BaseApiService
-    // Uses postSetup method which excludes bearer token for guest users and null users
-    const apiResponse = await this.postSetup<SetupResponse>(
+    const response = await this.post<SetupResponse>(
       '/alpha/v1/setup',
       {}
     );
     
-    console.log('Setup data fetched successfully', apiResponse);
-    
-    if (!apiResponse.data) {
-      throw new Error('Failed to fetch setup data');
-    }
-    
-    return apiResponse as unknown as SetupResponse;
+    return response as unknown as SetupResponse;
   }
+  
+
 }
+
+export const setupApiService = SetupApiService.getInstance();

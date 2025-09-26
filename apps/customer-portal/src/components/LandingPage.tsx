@@ -1,12 +1,19 @@
 import React from 'react';
 import { CreditCard, RefreshCw, Zap, Shield, Clock, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useSetup } from '@repo/shared-state/hooks';
 
 
 export const LandingPage: React.FC<any> = () => {
 
   const navigate = useNavigate()
- 
+  const { setupData, isLoading, error } = useSetup();
+
+  // Log setup data to verify API call
+  console.log('Setup data loaded:', setupData);
+  console.log('Setup loading:', isLoading);
+  console.log('Setup error:', error);
+
   const onApplyNew=()=>{
     console.log("new")
     navigate('/lead/create',{state:{applicationType:"NEW"}})

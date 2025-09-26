@@ -201,3 +201,5 @@ export class AuthApiService {
     }
   }
 }
+
+export const authApiService = AuthApiService.getInstance();

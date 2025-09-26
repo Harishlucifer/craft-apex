@@ -18,7 +18,7 @@ interface JourneyTypeModalProps {
     open: boolean;
     workflowType?:string;
     onClose: () => void;
-    data: Record<string, Journey[]>;
+    data?: Record<string, Journey[]>;
     onSelect: (journey: Journey) => void;
 }
 
