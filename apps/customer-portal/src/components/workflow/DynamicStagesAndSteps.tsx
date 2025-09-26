@@ -225,6 +225,12 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
     }
   }, [dataInfo, setLeadData]);
 
+  // Sync local currentStep state with workflow store's currentStepIndex
+  // This ensures data consistency when navigation happens through workflow store methods
+  useEffect(() => {
+    setCurrentStep(currentStepIndex);
+  }, [currentStepIndex]);
+
   // Enhanced step navigation with API integration
   const nextStep = () => {
     setCurrentStep(prev => Math.min(prev + 1, (workflow?.stages?.[currentStageIndex]?.steps?.length ?? 0) - 1 || 0));
@@ -373,6 +379,30 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
         );
     }
 
+    const handleBackStep = () => {
+        try {
+            // Check if we're at the very beginning (first step of first stage)
+            if (currentStageIndex === 0 && currentStepIndex === 0) {
+                toast.info("You're already at the first step of the workflow");
+                return;
+            }
+
+            // Use the workflow store's goToPreviousStep method for proper navigation
+            // The useEffect hook will automatically sync the local state
+            goToPreviousStep();
+
+            // Provide user feedback
+            toast.success("Moved to previous step");
+
+            // Clear any existing errors when navigating back
+            clearError();
+
+        } catch (error) {
+            console.error("Error navigating to previous step:", error);
+            toast.error("Failed to navigate to previous step. Please try again.");
+        }
+    }
+
     // Show error state
     if (workflowQuery.isError || storeError) {
       const errorMessage = workflowQuery.error instanceof Error ? workflowQuery.error.message : 
@@ -395,6 +425,7 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
       <WorkflowStepComponentLoader
         ref={formRef}
         step={step}
+        handleBack={handleBackStep}
         handleSubmitSuccess={handleStepSubmit}
         data={dataInfo}
         isReturningCustomer={isReturningCustomer}
