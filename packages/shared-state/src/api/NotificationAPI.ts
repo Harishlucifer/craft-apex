@@ -1,5 +1,6 @@
-import { useAuthStore } from '@repo/shared-state/stores';
-import { PlatformType } from '@repo/types/setup';
+import { useAuthStore } from '../stores';
+import { getApiEndpoint } from '../config';
+import { BaseApiService } from './base';
 
 // Unified OTP request interface that supports send, verify, and resend operations
 export interface OtpRequest {
@@ -70,21 +71,18 @@ export interface OtpVerifyResponse {
 }
 
 
-export class NotificationAPI {
-  private static instance: NotificationAPI;
-  private apiUrl: string;
-  private user: any;
+export class NotificationAPI extends BaseApiService {
+  private static notificationInstance: NotificationAPI;
 
   private constructor() {
-    this.apiUrl = import.meta.env.VITE_API_ENDPOINT;
-    this.user = useAuthStore.getState().user;
+    super();
   }
 
   public static getInstance(): NotificationAPI {
-    if (!NotificationAPI.instance) {
-      NotificationAPI.instance = new NotificationAPI();
+    if (!NotificationAPI.notificationInstance) {
+      NotificationAPI.notificationInstance = new NotificationAPI();
     }
-    return NotificationAPI.instance;
+    return NotificationAPI.notificationInstance;
   }
 
   /**
@@ -128,26 +126,13 @@ export class NotificationAPI {
       }
       // For initial send, no additional parameters needed
 
-      const response = await fetch(`${this.apiUrl}/alpha/v1/notification/otp`, {
-        method: 'POST',
-        headers: {
-          'X-Platform': 'CUSTOMER_PORTAL',
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.user?.access_token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Failed to process OTP request');
+      const apiResponse = await this.post('/alpha/v1/notification/otp', payload);
+      console.log("NotificationAPI handleOtp apiResponse", apiResponse);      
+      if (!apiResponse) {
+        throw new Error('Failed to process OTP request');
       }
 
-      const jsonResponse = await response.json();
-      return {
-        ...jsonResponse,
-        status: response.status
-      } as OtpResponse;
+      return apiResponse as OtpResponse;
     } catch (error: any) {
       console.error('Error processing OTP request:', error);
       
@@ -189,6 +174,3 @@ export class NotificationAPI {
   }
 
 }
-
-// Export singleton instance
-export const notificationAPI = NotificationAPI.getInstance();
