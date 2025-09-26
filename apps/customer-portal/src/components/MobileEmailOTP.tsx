@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, Smartphone, RefreshCw, Mail, AlertCircle, ChevronDown, MapPin } from 'lucide-react';
-import { NotificationAPI, MasterAPI, PincodeData } from '@repo/shared-state/api';
+import { ChevronLeft, Smartphone, RefreshCw, Mail, AlertCircle } from 'lucide-react';
+import { NotificationAPI } from '@repo/shared-state/api';
 import { StepComponentProps } from './WorkflowStepComponentLoader';
 import FormRenderer, { FormDataRef } from './FormRenderer';
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/components/ui/card';
@@ -294,7 +294,7 @@ export const MobileEmailOTP: React.FC<StepComponentProps> = ({
                 </p>
               )}
             </CardHeader>
-            <CardContent className="p-6 md:p-8 lg:p-10">
+            <CardContent className="p-4 md:p-8 lg:p-10">
               {/* Error Display */}
               {formSubmissionError && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
