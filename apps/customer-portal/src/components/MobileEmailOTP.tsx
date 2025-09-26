@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, Smartphone, RefreshCw, Mail, AlertCircle } from 'lucide-react';
-import { notificationAPI } from '../api/NotificationAPI';
+import { NotificationAPI } from '@repo/shared-state/api';
 import { StepComponentProps } from './WorkflowStepComponentLoader';
 
 
@@ -74,7 +74,7 @@ export const MobileEmailOTP: React.FC<StepComponentProps> = ({
     try {
     
       // Send OTP using the notification API
-      const response = await notificationAPI.sendOtp({
+      const response = await NotificationAPI.getInstance().sendOtp({
         notificationType: verificationType,
         name:fullName,
         type: "APPLICATION_FLOW",
@@ -82,8 +82,9 @@ export const MobileEmailOTP: React.FC<StepComponentProps> = ({
         email: verificationType === 'email' ? email : undefined,
         template:verificationType === 'mobile' ? "OTP_APPLICATION_REGISTRATION":"EMAIL_OTP_VERIFICATION"
       });
-
-      if (response.status === 200 || response.status === 201) {
+      console.log('Send OTP Response:', response);
+      
+      if (response.status) {
         // Store reference ID if provided
         if (response.data?.reference_id) {
           setReferenceId(response.data.reference_id);
@@ -126,7 +127,7 @@ export const MobileEmailOTP: React.FC<StepComponentProps> = ({
       });
 
       // Verify OTP using the notification API
-      const response = await notificationAPI.verifyOtp({
+      const response = await NotificationAPI.getInstance().verifyOtp({
         notificationType: verificationType,
         type: "APPLICATION_FLOW",
         name: fullName,
@@ -138,7 +139,7 @@ export const MobileEmailOTP: React.FC<StepComponentProps> = ({
 
       console.log('Verify OTP Response:', response);
       
-      if (response.status === 200) {
+      if (response.status) {
         // Check if verification was successful based on the OtpVerifyResponse interface
       
           console.log('OTP verification successful, calling onVerified callback');
@@ -240,7 +241,7 @@ export const MobileEmailOTP: React.FC<StepComponentProps> = ({
     
     try {
       // Resend OTP using the notification API
-      const response = await notificationAPI.resendOtp({
+      const response = await NotificationAPI.getInstance().resendOtp({
         notificationType: verificationType,
         type: "APPLICATION_FLOW",
         name: fullName,
@@ -249,7 +250,7 @@ export const MobileEmailOTP: React.FC<StepComponentProps> = ({
         template: verificationType === 'mobile' ? "OTP_APPLICATION_REGISTRATION" : "EMAIL_OTP_VERIFICATION",
       });
 
-      if (response.status === 200 || response.status === 201) {
+      if (response.status) {
         // Update reference ID if provided
         if (response.data?.reference_id) {
           setReferenceId(response.data.reference_id);
@@ -292,12 +293,10 @@ export const MobileEmailOTP: React.FC<StepComponentProps> = ({
           </button>
           <h1 className="text-xl font-semibold text-gray-900">Verification Details</h1>
         </div>
-
+        
         {/* Verification Type Selection */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Choose verification method
-          </label>
+          {/* s */}
           <div className="flex space-x-4">
             <button
               type="button"
@@ -312,7 +311,7 @@ export const MobileEmailOTP: React.FC<StepComponentProps> = ({
               <Smartphone className="h-4 w-4" />
               <span>Mobile</span>
             </button>
-            <button
+            {/* <button
               type="button"
               onClick={() => setVerificationType('email')}
               className={`flex-1 p-3 border rounded-lg flex items-center justify-center space-x-2 transition-colors ${
@@ -324,7 +323,7 @@ export const MobileEmailOTP: React.FC<StepComponentProps> = ({
             >
               <Mail className="h-4 w-4" />
               <span>Email</span>
-            </button>
+            </button> */}
           </div>
         </div>
 

@@ -182,5 +182,3 @@ export class LeadsApiService extends BaseApiService {
     return response as unknown as LeadApiResponse;
   }
 }
-
-export const leadsApiService = LeadsApiService.getInstance();

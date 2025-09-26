@@ -7,6 +7,7 @@ export interface ApiResponse<T = any> {
   data?: T;
   message?: string;
   error?: string;
+  result?:T
 }
 
 export interface RequestConfig {
@@ -44,7 +45,34 @@ export class BaseApiService {
       'Content-Type': 'application/json',
     };
 
+    // Include bearer token if available
     if (authStore.user?.access_token) {
+      headers['Authorization'] = `Bearer ${authStore.user.access_token}`;
+    }
+
+    if (authStore.platform) {
+      headers['X-Platform'] = authStore.platform;
+    }
+
+    if (authStore.tenantDomain) {
+      headers['X-Tenant-Domain'] = authStore.tenantDomain;
+    }
+
+    return headers;
+  }
+
+  private getSetupAuthHeaders(): Record<string, string> {
+    const authStore = useAuthStore.getState();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // Only include bearer token when both conditions are met:
+    // 1. The user value is not null
+    // 2. The user type is not GUEST
+    if (authStore.user !== null && 
+        authStore.user?.user_type !== 'GUEST' && 
+        authStore.user?.access_token) {
       headers['Authorization'] = `Bearer ${authStore.user.access_token}`;
     }
 
@@ -147,7 +175,40 @@ export class BaseApiService {
     return this.makeRequest<T>(url, { ...config, method: 'DELETE' });
   }
 
-  // Singleton instance
+  async postSetup<T>(url: string, data?: any, config: Omit<RequestConfig, 'method'> = {}): Promise<ApiResponse<T>> {
+    const fullUrl = url.startsWith('http') ? url : `${this.getBaseURL()}${url}`;
+    const headers = { ...this.getSetupAuthHeaders(), ...config.headers };
+    
+    const requestConfig: RequestInit = {
+      method: 'POST',
+      headers,
+      signal: AbortSignal.timeout(config.timeout || this.defaultTimeout),
+    };
+
+    if (data) {
+      requestConfig.body = typeof data === 'string' ? data : JSON.stringify(data);
+    }
+
+    try {
+      const response = await fetch(fullUrl, requestConfig);
+      
+      if (response.status === 401) {
+        return this.handleUnauthorized(() => this.postSetup(url, data, config));
+      }
+
+      const responseData = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      return responseData;
+    } catch (error: any) {
+      console.error('Setup API request failed:', error);
+      throw error;
+    }
+  }
+
   private static instance: BaseApiService;
 
   static getInstance(): BaseApiService {
