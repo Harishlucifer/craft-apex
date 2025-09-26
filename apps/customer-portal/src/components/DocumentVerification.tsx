@@ -1,8 +1,8 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { ChecklistAPI } from '@repo/shared-state/api';
 import { ChevronLeft, Upload, CheckCircle, Camera, FileText, Trash2 } from 'lucide-react';
 import { Bounce, toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { ChecklistAPI } from '../api/ChecklistAPI';
 import { StepComponentProps } from './WorkflowStepComponentLoader';
 
 export interface DocumentVerificationRef {
@@ -28,8 +28,6 @@ const DocumentVerification = forwardRef<DocumentVerificationRef, StepComponentPr
         verifiedPAN: '',
         verifiedDOB: ''
     });
-
-    const checklistAPI = new ChecklistAPI();
 
     useEffect(() => {
         if (applicationData?.application?.onboarding_id) {
@@ -75,11 +73,26 @@ const DocumentVerification = forwardRef<DocumentVerificationRef, StepComponentPr
     const fetchDocuments = async () => {
         try {
             const onboardingID = applicationData.application?.onboarding_id;
-            if (!onboardingID) return;
+            if (!onboardingID) {
+                console.error('No onboarding ID found in application data');
+                return;
+            }
 
-            const response = await checklistAPI.fetchDocuments(onboardingID);
+            const response = await ChecklistAPI.getInstance().fetchDocuments(onboardingID);
 
-            if (response?.checklist?.length) {
+            if (!response) {
+                console.error('No response received from fetchDocuments');
+                return;
+            }
+
+            if (!response.checklist || !Array.isArray(response.checklist)) {
+                console.error('Invalid response format - checklist is missing or not an array:', response);
+                return;
+            }
+
+            console.log('Response checklist:', response.checklist);
+
+            if (response.checklist.length > 0) {
                 // Flatten all required documents from checklist
                 const allDocs: any[] = [];
                 response.checklist[0]?.checklists?.forEach(checklist => {
@@ -126,7 +139,7 @@ const DocumentVerification = forwardRef<DocumentVerificationRef, StepComponentPr
 
     const handleDeleteDocument = async (docId: string, fileId: string) => {
         try {
-            await checklistAPI.deleteDocument(fileId);
+            await ChecklistAPI.getInstance().deleteDocument(fileId);
 
             setUploadedDocs(prevDocs =>
                 prevDocs.map(doc => ({
@@ -156,29 +169,38 @@ const DocumentVerification = forwardRef<DocumentVerificationRef, StepComponentPr
             const applicantId = applicationData.primary?.personal?.person_id;
             const applicantCategory = applicationData.primary?.applicant_category;
             const password = '';
-
-            const response = await checklistAPI.uploadDocument(
+            
+            const response = await ChecklistAPI.getInstance().uploadDocument(
                 onboardingID,
                 file,
                 applicantId,
                 documentId,
                 applicantCategory,
-                password
+                password || '',
             );
+            
+            if (response?.status === 1) {
+                toast.success(response.message || "Document uploaded successfully");
+                
+                // Refresh the documents list to show the newly uploaded document
+                await fetchDocuments();
+                
+                // Update the document status
+                setDocuments(prev => ({
+                    ...prev,
+                    [docId]: {
+                        ...prev[docId],
+                        uploaded: true,
+                        verified: response.verify_status === 1,
+                        extractedData: response.extracted_value || {}
+                    }
+                }));
+            } else {
+                throw new Error(response?.message || 'Failed to upload document');
+            }
 
-            toast.success("Document uploaded successfully");
-
-            setDocuments(prev => ({
-                ...prev,
-                [docId]: {
-                    uploaded: true,
-                    verified: response.verify_status === 1,
-                    extractedData: response
-                }
-            }));
-
-            // Extract aadhaar data if present
-            const extractedVals = response.extracted_value || {};
+            // Extract aadhaar data if present from the response
+            const extractedVals = response?.extracted_value || {};
             if (extractedVals.aadhaarNumber || extractedVals.residenceAddress) {
                 setExtractedData(prev => ({
                     ...prev,
@@ -193,7 +215,7 @@ const DocumentVerification = forwardRef<DocumentVerificationRef, StepComponentPr
 
             await fetchDocuments();
         } catch (error) {
-            console.error('Error uploading document:', error);
+            console.error('Error uploading document');
             toast.error("Failed to upload document. Please try again.");
             setDocuments(prev => ({
                 ...prev,

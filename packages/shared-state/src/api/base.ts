@@ -98,7 +98,16 @@ export class BaseApiService {
     };
 
     if (config.body && config.method !== 'GET') {
-      requestConfig.body = typeof config.body === 'string' ? config.body : JSON.stringify(config.body);
+      // Don't stringify FormData, let the browser handle it with the correct Content-Type
+      if (config.body instanceof FormData) {
+        requestConfig.body = config.body;
+        // Remove Content-Type header to let the browser set it with the correct boundary
+        if (requestConfig.headers) {
+          delete (requestConfig.headers as any)['Content-Type'];
+        }
+      } else {
+        requestConfig.body = typeof config.body === 'string' ? config.body : JSON.stringify(config.body);
+      }
     }
 
     try {
@@ -171,7 +180,7 @@ export class BaseApiService {
     return this.makeRequest<T>(url, { ...config, method: 'PATCH', body: data });
   }
 
-  async delete<T>(url: string, config: Omit<RequestConfig, 'method' | 'body'> = {}): Promise<ApiResponse<T>> {
+  async delete<T>(url: string, config: Omit<RequestConfig, 'method'> = {}): Promise<ApiResponse<T>> {
     return this.makeRequest<T>(url, { ...config, method: 'DELETE' });
   }
 

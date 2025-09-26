@@ -7,6 +7,7 @@ export * from './base';
 export { WorkflowAPI } from './WorkflowAPI';
 export { LeadAPI } from './LeadAPI';
 export { NotificationAPI } from './NotificationAPI';
+export { ChecklistAPI } from './ChecklistAPI';
 
 // Re-export workflow types from stores
 export type {
@@ -23,3 +24,8 @@ export type {
   OtpSendRequest,
   OtpVerifyRequest
 } from './NotificationAPI';
+
+export type {
+    ChecklistItem,
+    UploadDocumentResponse
+} from './ChecklistAPI';

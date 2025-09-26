@@ -1,11 +1,11 @@
 import { forwardRef } from "react";
 import { MobileEmailOTP } from './MobileEmailOTP';
 import { EligibilityResults } from './EligibilityResults';
-import { DocumentVerification } from './DocumentVerification';
 import { ApplicationStatus } from './ApplicationStatus';
 import { ApplicationData } from './workflow/DynamicStagesAndSteps';
 import RecommendedOffers from "@/components/RecommendedOffers.tsx";
 import FormBuilderRenderPage from "@/components/FormBuilderRenderPage.tsx";
+import DocumentVerification from "@/components/DocumentVerification.tsx";
 
 export interface Step {
     id: string;
