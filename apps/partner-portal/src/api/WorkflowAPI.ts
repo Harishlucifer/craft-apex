@@ -1,6 +1,6 @@
 // WorkflowAPI.ts
 import { useAuthStore } from "@repo/shared-state/stores";
-import { useWorkflowStore, Workflow, WorkflowState } from "@/stores/workflow.ts";
+import { useWorkflowStore, Workflow, WorkflowState } from "@repo/shared-state/stores";
 
 /**
  * Optional invalidate callback shape:
