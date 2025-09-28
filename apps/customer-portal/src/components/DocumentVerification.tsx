@@ -21,7 +21,7 @@ const DocumentVerification = forwardRef<DocumentVerificationRef, StepComponentPr
     const [isProcessingDocId, setIsProcessingDocId] = useState<string | null>(null);
     const queryClient = useQueryClient();
 
-    const onboardingID = applicationData.application?.onboarding_id;
+    const onboardingID = applicationData?.application?.onboarding_id;
 
     /** 1. Fetch documents using React Query */
     const { data: documentResponse, isLoading, isError, error} = useQuery({
