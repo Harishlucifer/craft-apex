@@ -17,12 +17,22 @@ export const ApplicationStatus: React.FC<ApplicationStatusProps> = ({
     setSanctionGenerated(true);
   };
 
-  const handleDownloadSanction = () => {
-    // Simulate PDF download
-    const element = document.createElement('a');
-    element.href = '#';
-    element.download = `Sanction_Letter_${applicationData.applicationId}.pdf`;
-    element.click();
+  const handleDownloadSanction = async () => {
+    try {
+      // Resolve PDF from bundled assets (Vite will handle the correct URL)
+      const pdfUrl = new URL('../assets/pdf/sanction_letter.pdf', import.meta.url).href;
+      
+      // Create a temporary anchor element
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = `Sanction_Letter_${applicationData.applicationId}.pdf`;;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert('Failed to download the document. Please try again.');
+    }
   };
 
   const disbursementSteps = [
