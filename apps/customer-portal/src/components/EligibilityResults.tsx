@@ -14,8 +14,8 @@ import {
 import { StepComponentProps } from "@/components/WorkflowStepComponentLoader.tsx";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import {LenderOfferAPI} from "../../../../packages/shared-state/src/api/LenderAPI.ts";
-import {CreditBureauAPI} from "../../../../packages/shared-state/src/api/CreditBureauAPI.ts";
+import { LenderOfferAPI, CreditBureauAPI } from '@repo/shared-state/api';
+import { useEnvironmentStore } from '@repo/shared-state/config';
 
 
 // Interfaces
@@ -202,7 +202,7 @@ export interface CamResponse {
 
 
 
-const EligibilityResults = forwardRef((props: StepComponentProps, ref) => {
+const EligibilityResults = forwardRef((props: StepComponentProps) => {
     const { data,handleSubmitSuccess ,handleBack} = props;
     const [offerData, setOfferData] = useState<RecommendedOffersResponse>({
         lender: [],
@@ -219,37 +219,28 @@ const EligibilityResults = forwardRef((props: StepComponentProps, ref) => {
     const onBoardingId = data.application.onboarding_id;
     console.log(onBoardingId)
 
+    const isEnvReady = useEnvironmentStore((s) => s.isInitialized);
+
+
     // fetch recommended lenders details
-    const {
-        data: offerResult,
-        isLoading,
-        isError: isOfferError,
-        error: offerError,
-    } = useQuery({
-        queryKey: ["eligibleOffers", applicationId],
+    const { data: offerResult, isLoading, isError: isOfferError, error: offerError } = useQuery({
+        queryKey: ['eligibleOffers', applicationId],
         queryFn: async () => {
-            if (!applicationId) throw new Error("Onboarding ID is required");
-            const response = await offerAPI?.fetchEligibleOffers(applicationId, "V1");
-            console.log("API Response:", response);
-            return response.result; // Must match RecommendedOffersResponse
+            if (!applicationId) throw new Error('Onboarding ID is required');
+            const response = await offerAPI.fetchEligibleOffers(applicationId, 'V1');
+            return response.result;
         },
-        enabled: !!applicationId,
+        enabled: isEnvReady && !!applicationId,
     });
     // fetch credit bureau details
-    const {
-        data: bureauResult,
-        isLoading:isBureauLoading,
-        isError: isBureauError,
-        error: bureauError,
-    } = useQuery({
-        queryKey: ["creditBureau", onBoardingId],
+    const { data: bureauResult, isLoading: isBureauLoading, isError: isBureauError, error: bureauError } = useQuery({
+        queryKey: ['creditBureau', onBoardingId],
         queryFn: async () => {
-            if (!onBoardingId) throw new Error("Onboarding ID is required");
+            if (!onBoardingId) throw new Error('Onboarding ID is required');
             const response = await CreditAPI.fetchCreditResponse(onBoardingId);
-            console.log("API onBoardingId:", response);
-            return response; // Must match RecommendedOffersResponse
+            return response;
         },
-        enabled: !!onBoardingId,
+        enabled: isEnvReady && !!onBoardingId,
     });
 
     console.log(bureauResult,isBureauLoading,isBureauError,bureauError)

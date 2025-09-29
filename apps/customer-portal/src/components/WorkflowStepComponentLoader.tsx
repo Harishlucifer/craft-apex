@@ -4,6 +4,8 @@ import FormBuilderRenderPage from "@/components/FormBuilderRenderPage.tsx";
 import LenderSelection from "@/components/LenderSelection.tsx";
 import EligibilityResults from "@/components/EligibilityResults.tsx";
 import DocumentVerification from "@/components/DocumentVerification.tsx";
+import {ApplicationStatus} from "@/components/ApplicationStatus.tsx";
+import {ApplicationData} from "@/components/workflow/DynamicStagesAndSteps.tsx";
 
 export interface Step {
     id: string;
@@ -63,6 +65,13 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
         case "LENDER_APPLY":
             return (
                <LenderSelection {...stepProps}/>
+            );
+        case "APPLICATION_STATUS":
+            return (
+                <ApplicationStatus
+                    applicationData={props.data || {} as ApplicationData}
+                    onBack={props.onBack || (() => {})}
+                />
             );
         default:
             return (
