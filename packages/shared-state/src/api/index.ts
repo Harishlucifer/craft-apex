@@ -8,6 +8,8 @@ export { WorkflowAPI } from './WorkflowAPI';
 export { LeadAPI } from './LeadAPI';
 export { NotificationAPI } from './NotificationAPI';
 export { ChecklistAPI } from './ChecklistAPI';
+export { CreditBureauAPI } from './CreditBureauAPI';
+export { LenderOfferAPI } from './LenderAPI';
 
 // Re-export workflow types from stores
 export type {
@@ -29,3 +31,12 @@ export type {
     ChecklistItem,
     UploadDocumentResponse
 } from './ChecklistAPI';
+
+export type {
+    CreditResponse
+} from './CreditBureauAPI';
+
+export type {
+    OfferResponse,
+    ApplyResponse
+} from './LenderAPI';

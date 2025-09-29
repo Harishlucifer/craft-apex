@@ -1,5 +1,4 @@
 import { getApiEndpoint } from '../config';
-import { useAuthStore } from '../stores/auth';
 
 export interface ApiResponse<T = any> {
   status: number;
@@ -15,6 +14,24 @@ export interface RequestConfig {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   body?: any;
 }
+
+// Type for auth store state
+interface AuthState {
+  user?: {
+    access_token?: string;
+    user_type?: string;
+  } | null;
+  platform?: string | null;
+  tenantDomain?: string | null;
+  refreshToken?: () => Promise<void>;
+}
+
+// Global auth store getter - will be set by the auth store
+let getAuthState: (() => AuthState) | null = null;
+
+export const setAuthStateGetter = (getter: () => AuthState) => {
+  getAuthState = getter;
+};
 
 export class BaseApiService {
   private baseURL: string;
@@ -39,48 +56,52 @@ export class BaseApiService {
   }
 
   private getAuthHeaders(): Record<string, string> {
-    const authStore = useAuthStore.getState();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
 
+    // Get auth state using dependency injection to avoid circular dependency
+    const authState = getAuthState?.() || {};
+
     // Include bearer token if available
-    if (authStore.user?.access_token) {
-      headers['Authorization'] = `Bearer ${authStore.user.access_token}`;
+    if (authState.user?.access_token) {
+      headers['Authorization'] = `Bearer ${authState.user.access_token}`;
     }
 
-    if (authStore.platform) {
-      headers['X-Platform'] = authStore.platform;
+    if (authState.platform) {
+      headers['X-Platform'] = authState.platform;
     }
 
-    if (authStore.tenantDomain) {
-      headers['X-Tenant-Domain'] = authStore.tenantDomain;
+    if (authState.tenantDomain) {
+      headers['X-Tenant-Domain'] = authState.tenantDomain;
     }
 
     return headers;
   }
 
   private getSetupAuthHeaders(): Record<string, string> {
-    const authStore = useAuthStore.getState();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
 
+    // Get auth state using dependency injection to avoid circular dependency
+    const authState = getAuthState?.() || {};
+
     // Only include bearer token when both conditions are met:
     // 1. The user value is not null
     // 2. The user type is not GUEST
-    if (authStore.user !== null && 
-        authStore.user?.user_type !== 'GUEST' && 
-        authStore.user?.access_token) {
-      headers['Authorization'] = `Bearer ${authStore.user.access_token}`;
+    if (authState.user !== null && 
+        authState.user?.user_type !== 'GUEST' && 
+        authState.user?.access_token) {
+      headers['Authorization'] = `Bearer ${authState.user.access_token}`;
     }
 
-    if (authStore.platform) {
-      headers['X-Platform'] = authStore.platform;
+    if (authState.platform) {
+      headers['X-Platform'] = authState.platform;
     }
 
-    if (authStore.tenantDomain) {
-      headers['X-Tenant-Domain'] = authStore.tenantDomain;
+    if (authState.tenantDomain) {
+      headers['X-Tenant-Domain'] = authState.tenantDomain;
     }
 
     return headers;
@@ -139,7 +160,11 @@ export class BaseApiService {
     this.isRefreshing = true;
 
     try {
-      await useAuthStore.getState().refreshToken();
+      // Get auth state using dependency injection to avoid circular dependency
+      const authState = getAuthState?.() || {};
+      if (authState.refreshToken) {
+        await authState.refreshToken();
+      }
       this.processQueue(null);
       return originalRequest();
     } catch (error) {

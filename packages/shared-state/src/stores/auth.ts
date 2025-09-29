@@ -109,7 +109,7 @@ export const useAuthStore = create<AuthStore>()(
             setPlatform(platform);
             setTenantDomain(tenantDomain);
 
-            const response = await SetupApiService.getInstance().fetchSetup();
+            const response = await SetupApiService.getInstance().fetchSetup(platform, tenantDomain);
             console.log('Setup data fetched successfully', response)
             if (response) {
               setSetupData(response.data);

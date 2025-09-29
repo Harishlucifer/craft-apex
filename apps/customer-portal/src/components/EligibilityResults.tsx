@@ -202,7 +202,7 @@ export interface CamResponse {
 
 
 
-const EligibilityResults = forwardRef((props: StepComponentProps) => {
+const EligibilityResults = forwardRef((props: StepComponentProps, ref) => {
     const { data,handleSubmitSuccess ,handleBack} = props;
     const [offerData, setOfferData] = useState<RecommendedOffersResponse>({
         lender: [],
@@ -210,8 +210,8 @@ const EligibilityResults = forwardRef((props: StepComponentProps) => {
     });
     const [bureauData, setBureauData] = useState<CamResponse | null>(null);
 
-    const offerAPI = new LenderOfferAPI();
-    const CreditAPI = new CreditBureauAPI();
+    const offerAPI = LenderOfferAPI.getInstance();
+    const CreditAPI = CreditBureauAPI.getInstance();
 
     const { id } = useParams<{ id: string }>();
     const applicationId = id || data?.application?.application_id;

@@ -1,78 +1,70 @@
-import { InvalidateFn, WorkflowAPI } from "partner-portal/src/api/WorkflowAPI";
-import { LeadState, useLeadStore } from "partner-portal/src/stores/Lead";
+import { BaseApiService } from './base';
+import { LeadState, useLeadStore } from '../stores/Lead';
 
 export interface OfferResponse {
     result: any;
     status: number;
 }
+
 export interface ApplyResponse {
     result: any;
     status: number;
 }
 
-export class LenderOfferAPI extends WorkflowAPI {
-    protected leadStore: LeadState;
+export class LenderOfferAPI extends BaseApiService {
+    private static lenderOfferInstance: LenderOfferAPI;
 
-    constructor(invalidate?: InvalidateFn) {
-        super(invalidate);
-        this.leadStore = useLeadStore.getState();
+    private constructor() {
+        super();
     }
 
-    async get<T>(endpoint: string): Promise<T> {
-        const res = await fetch(`${this.apiUrl}${endpoint}`, {
-            method: "GET",
-            headers: {
-                "X-Platform": "CUSTOMER_PORTAL",
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${this.user?.access_token}`,
-            },
-        });
-        if (!res.ok) {
-            const errText = await res.text();
-            throw new Error(errText || "GET request failed");
-        }
-        const text = await res.text();
-        if (!text) return {} as T;
-        return JSON.parse(text);
+    protected get leadStore(): LeadState {
+        return useLeadStore.getState();
     }
 
-    async post<T>(endpoint: string, body: any): Promise<T> {
-        const res = await fetch(`${this.apiUrl}${endpoint}`, {
-            method: "POST",
-            headers: {
-                "X-Platform": "CUSTOMER_PORTAL",
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${this.user?.access_token}`,
-            },
-            body: JSON.stringify(body),
-        });
-        if (!res.ok) {
-            const errText = await res.text();
-            throw new Error(errText || "POST request failed");
+    public static getInstance(): LenderOfferAPI {
+        if (!LenderOfferAPI.lenderOfferInstance) {
+            LenderOfferAPI.lenderOfferInstance = new LenderOfferAPI();
         }
-        const text = await res.text();
-        if (!text) return {} as T;
-        return JSON.parse(text);
+        return LenderOfferAPI.lenderOfferInstance;
     }
 
     async fetchEligibleOffers(id: string, version: string = "V1"): Promise<OfferResponse> {
+        this.leadStore.setLoading(true);
+        this.leadStore.clearError();
+
         try {
             const endpoint = `/alpha/${version.toLowerCase()}/application/${id}/recommendation`;
-            return await this.get<OfferResponse>(endpoint);
+            const response = await this.get<OfferResponse>(endpoint);
+            const responseData = response?.data || response;
+            
+            return responseData as OfferResponse;
         } catch (error) {
-            throw error instanceof Error ? error : "Failed to fetch offers";
+            const errorMessage = error instanceof Error ? error.message : "Failed to fetch offers";
+            this.leadStore.setError(errorMessage);
+            console.error('LenderOfferAPI.fetchEligibleOffers error:', errorMessage);
+            throw error;
         } finally {
             this.leadStore.setLoading(false);
         }
     }
 
     async lenderApply(id: string, lenderCode: string, version: string = "V1"): Promise<ApplyResponse> {
+        this.leadStore.setLoading(true);
+        this.leadStore.clearError();
+
         try {
             const endpoint = `/alpha/${version.toLowerCase()}/application/${id}/batch-lender-apply`;
             const body = { lender_code: [lenderCode] };
-            return await this.post<ApplyResponse>(endpoint, body);
+            const response = await this.post<ApplyResponse>(endpoint, body);
+            const responseData = response?.data || response;
+            
+            return responseData as ApplyResponse;
         } catch (error) {
-            throw error instanceof Error ? error : "Lender apply failed";
+            const errorMessage = error instanceof Error ? error.message : "Lender apply failed";
+            this.leadStore.setError(errorMessage);
+            console.error('LenderOfferAPI.lenderApply error:', errorMessage);
+            throw error;
         } finally {
             this.leadStore.setLoading(false);
         }

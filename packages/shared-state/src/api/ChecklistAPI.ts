@@ -62,35 +62,28 @@ export interface UploadDocumentResponse {
 }
 
 export class ChecklistAPI extends BaseApiService {
-  constructor() {
+  private static checklistInstance: ChecklistAPI;
+
+  private constructor() {
     super();
   }
 
-  // Use a single instance pattern through the baseApiService
-  private static _instance: ChecklistAPI | null = null;
-
   public static getInstance(): ChecklistAPI {
-    if (!ChecklistAPI._instance) {
-      ChecklistAPI._instance = new ChecklistAPI();
+    if (!ChecklistAPI.checklistInstance) {
+      ChecklistAPI.checklistInstance = new ChecklistAPI();
     }
-    return ChecklistAPI._instance;
+    return ChecklistAPI.checklistInstance;
   }
 
   /**
    * Fetches all documents for a given onboarding ID
    * @param onboardingID The onboarding ID to fetch documents for
    * @returns Promise with the document response
-   *
    */
-
   async fetchDocuments(onboardingID: string): Promise<DocumentResponse> {
     try {
       const url = `/alpha/v1/onboarding/${onboardingID}/checklist`;
-      const headers = {
-        'X-Platform': 'CUSTOMER_PORTAL',
-      };
-
-      const response = await this.get<DocumentResponse>(url, { headers });
+      const response = await this.get<DocumentResponse>(url);
       const responseData = response?.data || response;
       
       if (!responseData) {
@@ -99,6 +92,8 @@ export class ChecklistAPI extends BaseApiService {
 
       return responseData as DocumentResponse;
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch documents';
+      console.error('ChecklistAPI.fetchDocuments error:', errorMessage);
       throw error;
     }
   }
@@ -121,41 +116,31 @@ export class ChecklistAPI extends BaseApiService {
     applicantCategory: string,
     password: string = ''
   ): Promise<UploadDocumentResponse> {
-    const formData = new FormData();
-    formData.append('document', file);
-    formData.append('applicant_id', applicantId);
-    formData.append('document_id', documentId);
-    formData.append('applicant_category', applicantCategory);
-
-    // FormData prepared for file upload
-
-    if (password) {
-      formData.append('password', password);
-    }
-
     try {
+      const formData = new FormData();
+      formData.append('document', file);
+      formData.append('applicant_id', applicantId);
+      formData.append('document_id', documentId);
+      formData.append('applicant_category', applicantCategory);
+
+      if (password) {
+        formData.append('password', password);
+      }
+
       const response = await this.post<UploadDocumentResponse>(
         `/alpha/v1/onboarding/${onboardingID}/document`, 
-        formData, 
+        formData,
         {
           headers: {
-            'X-Platform': 'CUSTOMER_PORTAL',
             'Accept': 'application/json',
           },
         }
       );
       
-      return response;
-    } catch (error: any) {
-      if (error?.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        throw new Error(error.response?.data?.message || 'Upload failed');
-      } else if (error?.request) {
-        // The request was made but no response was received
-        throw new Error('No response received from server');
-      }
-      // Something happened in setting up the request that triggered an Error
+      return response?.data || response;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload document';
+      console.error('ChecklistAPI.uploadDocument error:', errorMessage);
       throw error;
     }
   }
@@ -166,12 +151,14 @@ export class ChecklistAPI extends BaseApiService {
    * @returns Promise that resolves when the document is deleted
    */
   async deleteDocument(fileId: string): Promise<void> {
-    await this.delete(`/alpha/v1/application`, {
-      headers: {
-        'X-Platform': 'CUSTOMER_PORTAL',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ file_id: fileId })
-    });
+    try {
+      await this.delete(`/alpha/v1/application`, {
+        body: JSON.stringify({ file_id: fileId })
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete document';
+      console.error('ChecklistAPI.deleteDocument error:', errorMessage);
+      throw error;
+    }
   }
 }
