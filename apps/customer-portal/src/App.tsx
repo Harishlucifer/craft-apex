@@ -1,4 +1,3 @@
-import React from 'react';
 import LeadWorkflowPage from './components/LeadWorkflowPage';
 import { Route,BrowserRouter as Router, Routes } from 'react-router-dom';
 import { LandingPage } from './components/LandingPage';

@@ -273,6 +273,7 @@ const EligibilityResults = forwardRef((props: StepComponentProps) => {
 
     const finalOffers =
         offerData.lender
+            ?.filter(lender => lender.lender_applicable === true)
             ?.map((lender) =>
                 lender.computed_offer?.find((o) => o.formula_type === "FINAL_OFFER")
             )
@@ -328,7 +329,7 @@ const EligibilityResults = forwardRef((props: StepComponentProps) => {
                 </div>
             )}
 
-            {!isLoading && offerData.lender.length > 0 && (
+            {!isLoading && offerData.lender.filter(lender => lender.lender_applicable === true).length > 0 && (
                 <div className="mb-8">
                     {/* Credit Score Card */}
                     <div className="bg-black text-white rounded-xl p-6 mb-6">
@@ -360,7 +361,7 @@ const EligibilityResults = forwardRef((props: StepComponentProps) => {
                             </div>
                             <h2 className="text-2xl font-bold text-black mb-2">Great News!</h2>
                             <p className="text-gray-600">
-                                You're eligible for loans from {offerData.lender.length} lenders
+                                You're eligible for loans from {offerData.lender.filter(lender => lender.lender_applicable === true).length} lenders
                             </p>
                         </div>
 
@@ -396,7 +397,7 @@ const EligibilityResults = forwardRef((props: StepComponentProps) => {
                             </div>
                         </div>
 
-                        {offerData.lender.map((lender) => {
+                        {offerData.lender.filter(lender => lender.lender_applicable === true).map((lender) => {
                             const finalOffer = lender.computed_offer?.find(
                                 (offer) => offer.formula_type === "FINAL_OFFER"
                             );

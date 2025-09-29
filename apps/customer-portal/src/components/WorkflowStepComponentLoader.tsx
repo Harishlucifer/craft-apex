@@ -66,7 +66,7 @@ const WorkflowStepComponentLoader = forwardRef<any, StepComponentProps>((props, 
             return (
                <LenderSelection {...stepProps}/>
             );
-        case "APPLICATION_STATUS":
+        case "SANCTION_DETAILS":
             return (
                 <ApplicationStatus
                     applicationData={props.data || {} as ApplicationData}

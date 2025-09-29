@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -98,11 +98,9 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
   api,
   className,
   dataInfo,
-  workflowType = "LEAD_CREATION",
-  navigateUrl
+  workflowType = "LEAD_CREATION"
 }) => {
   const { id : sourceId } = useParams();
-  const [currentStep, setCurrentStep] = useState(0);
   const [isReturningCustomer, setIsReturningCustomer] = useState(false);
 
   const navigate = useNavigate();
@@ -115,6 +113,7 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
   const loanType = searchParams.get("loan_type");
 
   const [showJourneyModal, setShowJourneyModal] = useState(false);
+  const [hasJourneyTypesAuthError, setHasJourneyTypesAuthError] = useState(false);
 
   // Workflow store state
   const {
@@ -124,6 +123,7 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
     workflow,
     goToStage,
     goToPreviousStep,
+    goToNextStep,
   } = useWorkflowStore();
 
   // Lead store state
@@ -172,9 +172,31 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
             const result = await api.fetchJourneyTypes(workflowType ?? "");
             return result as JourneyTypesResponse;
         },
-        enabled: !id && !(journeyType || loanType) && !!workflowType,
-        retry: 1,
+        enabled: !id && !(journeyType || loanType) && !!workflowType && !hasJourneyTypesAuthError,
+        retry: (failureCount, error: any) => {
+            // Don't retry if the error is 401 (Unauthorized)
+            if (error?.response?.status === 401 || error?.status === 401) {
+                setHasJourneyTypesAuthError(true);
+                return false;
+            }
+            // For other errors, retry once
+            return failureCount < 1;
+        },
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+        refetchOnMount: false,
     });
+
+    // Handle journey types query errors
+    useEffect(() => {
+        if (journeyTypesQuery.error) {
+            const error = journeyTypesQuery.error as any;
+            if (error?.response?.status === 401 || error?.status === 401) {
+                setHasJourneyTypesAuthError(true);
+                console.log('Journey types API returned 401 - disabling further requests');
+            }
+        }
+    }, [journeyTypesQuery.error]);
 
     // Helper function to handle journey selection
     const handleJourneySelection = (journey: Journey) => {
@@ -263,20 +285,9 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
     }
   }, [dataInfo, setLeadData]);
 
-  // Sync local currentStep state with workflow store's currentStepIndex
-  // This ensures data consistency when navigation happens through workflow store methods
-  useEffect(() => {
-    setCurrentStep(currentStepIndex);
-  }, [currentStepIndex]);
 
-  // Enhanced step navigation with API integration
-  const nextStep = () => {
-    setCurrentStep(prev => Math.min(prev + 1, (workflow?.stages?.[currentStageIndex]?.steps?.length ?? 0) - 1 || 0));
-  };
 
-  const prevStep = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 0));
-  };
+
 
   // Handle step submission with API integration - following partner portal pattern
   const handleStepSubmit = async (data: any) => {
@@ -338,17 +349,7 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
     }
   };
 
-  // Trigger external form submission
-  const triggerSubmit = () => {
-    if (formRef.current) {
-      formRef.current.submitStepExternally();
-    } else if (currentStepData && sourceId) {
-      executeWorkflowMutation.mutateAsync({
-        step_id: currentStepData.id,
-        id: sourceId
-      });
-    }
-  };
+
 
   // Render workflow navigation system
   const renderWorkflowNavigation = () => {
@@ -405,8 +406,8 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
 
     // Special handling for ApplicationStatus step
     const handleBack = step.ui_component === 'APPLICATION_STATUS' 
-      ? () => setCurrentStep(0) 
-      : prevStep;
+      ? () => goToStage(0) 
+      : goToPreviousStep;
 
     // Determine if we're loading
     const isLoading = workflowQuery.isLoading || storeLoading;
@@ -490,16 +491,16 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
         handleSubmitSuccess={handleStepSubmit}
         data={dataInfo}
         isReturningCustomer={isReturningCustomer}
-        onNext={nextStep}
+        onNext={goToNextStep}
         onBack={handleBack}
-        onVerified={nextStep}
+        onVerified={goToNextStep}
         onApplyNew={() => {
           setIsReturningCustomer(false);
-          nextStep();
+          goToNextStep();
         }}
         onContinueApplication={() => {
           setIsReturningCustomer(true);
-          nextStep();
+          goToNextStep();
         }}
       />
     );

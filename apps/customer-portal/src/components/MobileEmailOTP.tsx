@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, Smartphone, RefreshCw, Mail, AlertCircle } from 'lucide-react';
 import { NotificationAPI } from '@repo/shared-state/api';
 import { StepComponentProps } from './WorkflowStepComponentLoader';
@@ -10,7 +10,6 @@ import { Button } from '@repo/ui/components/ui/button';
 export const MobileEmailOTP: React.FC<StepComponentProps> = ({
   step,
   data : applicationData = {},
-  onBack = () => {},
   handleSubmitSuccess
 }) => {
   const [currentStep, setCurrentStep] = useState<'details' | 'otp'>('details');

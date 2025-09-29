@@ -2,13 +2,12 @@ import { useEffect } from 'react';
 import { useSearchParams, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { DynamicStagesAndSteps } from './workflow/DynamicStagesAndSteps';
-import { WorkflowAPI, LeadAPI } from '@repo/shared-state/api';
+import { LeadAPI } from '@repo/shared-state/api';
 import { useLeadStore } from '@repo/shared-state/stores';
 
 function LeadWorkflowPage() {
   const [searchParams] = useSearchParams();
   const leadApi = LeadAPI.getInstance(); // API instance for lead operations
-  const workflowApi = WorkflowAPI.getInstance(); // API instance for workflow operations
 
 
 

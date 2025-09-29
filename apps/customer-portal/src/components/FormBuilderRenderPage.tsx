@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import { StepComponentProps } from "./WorkflowStepComponentLoader";
 import { useWorkflowStore } from "@repo/shared-state/stores";
 import "flatpickr/dist/flatpickr.min.css";

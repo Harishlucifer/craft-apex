@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, Smartphone, RefreshCw } from 'lucide-react';
 
 interface OTPVerificationProps {
@@ -21,7 +21,6 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
   const [mobileNumber, setMobileNumber] = useState(applicationData.mobileNumber);
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timer, setTimer] = useState(30);
-  const [canResend, setCanResend] = useState(false);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -30,8 +29,6 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
         setTimer(prev => prev - 1);
       }, 1000);
       return () => clearInterval(interval);
-    } else if (timer === 0) {
-      setCanResend(true);
     }
   }, [step, timer]);
 
@@ -40,7 +37,6 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
       updateApplicationData({ fullName, mobileNumber });
       setStep('otp');
       setTimer(30);
-      setCanResend(false);
     }
   };
 
@@ -73,7 +69,6 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
 
   const handleResendOTP = () => {
     setTimer(30);
-    setCanResend(false);
     setOtp(['', '', '', '', '', '']);
   };
 

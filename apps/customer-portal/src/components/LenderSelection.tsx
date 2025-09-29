@@ -137,6 +137,7 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
     const [selectedLender, setSelectedLender] = useState<string | null>(null);
     const [offers, setOffers] = useState<Record<string, any>>({});
     const [loadingOffer, setLoadingOffer] = useState<string | null>(null);
+    const [appliedLenders, setAppliedLenders] = useState<Record<string, string>>({});
     const [bookingAmount, setBookingAmount] = useState('');
     const [bookingNumber, setBookingNumber] = useState('');
     const [downPayment, setDownPayment] = useState(50000);
@@ -147,17 +148,15 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
 
     const triggerSubmit = () => {
         console.log('Form ref', formRef.current);
-        if (formRef.current != null) {
-            formRef.current?.submitFormExternally();
-        } else {
-            console.log("formRef is null");
-        }
+       props?.handleSubmitSuccess({data:props?.data,isValidForm:true})
     };
+
     useImperativeHandle(ref, () => ({
         submitStepExternally: () => {
             triggerSubmit();
         }
     }));
+
     const { id } = useParams<{ id: string }>();
     const applicationId = id || data?.application?.application_id;
 
@@ -166,6 +165,7 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
         isLoading,
         isError: isOfferError,
         error: offerError,
+        refetch: refetchOffers,
     } = useQuery({
         queryKey: ["application", applicationId],
         queryFn: async () => {
@@ -180,6 +180,20 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
     useEffect(() => {
         if (offerResult) {
             setOfferData(offerResult as RecommendedOffersResponse);
+            
+            // Check for already applied lenders from API response (only applicable lenders)
+            const alreadyAppliedLenders: Record<string, string> = {};
+            (offerResult as RecommendedOffersResponse).lender
+                .filter(lender => lender.lender_applicable === true)
+                .forEach(lender => {
+                    if (lender.lender_apply_id && lender.lender_apply_status) {
+                        alreadyAppliedLenders[lender.lender_code] = lender.lender_apply_id;
+                    }
+                });
+            
+            if (Object.keys(alreadyAppliedLenders).length > 0) {
+                setAppliedLenders(alreadyAppliedLenders);
+            }
         } else if (isOfferError) {
             console.error("Error fetching offers:", offerError);
             setOfferData({
@@ -194,6 +208,8 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
         }
     }, [offerResult, isOfferError, offerError]);
 
+    // Check if any lender is already applied
+    const hasAnyAppliedLender = Object.keys(appliedLenders).length > 0;
     const handleApplyWithLender = async (lenderId: string) => {
         setLoadingOffer(lenderId);
         try {
@@ -203,6 +219,15 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
             const response = await offerAPI.lenderApply(applicationId, lender.lender_code);
             console.log("Lender Apply Response:", response);
 
+            // Handle the API response structure
+            if (response?.result?.applied_lender) {
+                // Update applied lenders state with the response data
+                setAppliedLenders(prev => ({
+                    ...prev,
+                    ...response.result.applied_lender
+                }));
+            }
+
             if (lender?.recent_offer) {
                 const finalOffer = {
                     ...lender.recent_offer,
@@ -211,6 +236,9 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
                 };
                 setOffers(prev => ({ ...prev, [lenderId]: finalOffer }));
             }
+
+            // Refetch the recommendation API to get updated lender data with applied status
+            await refetchOffers();
         } catch (error) {
             console.error("Error applying with lender:", error);
         } finally {
@@ -304,17 +332,46 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
             )}
             {!isLoading && (
                 <div className="space-y-6">
-                    {offerData.lender?.map(lender => {
+                    {hasAnyAppliedLender && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                            <div className="flex items-center space-x-2">
+                                <CheckCircle className="h-5 w-5 text-blue-600" />
+                                <div>
+                                    <h4 className="text-blue-800 font-semibold">Application Already Submitted</h4>
+                                    <p className="text-blue-700 text-sm">
+                                        You have already applied to a lender. New applications are disabled until the current application is processed.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    {offerData.lender?.filter(lender => lender.lender_applicable === true).map(lender => {
                         console.log(lender)
                         const finalOffer = lender?.computed_offer?.find(o => o.formula_type === "FINAL_OFFER");
                         const recentOffer = lender.recent_offer;
                         const isLoading = loadingOffer === lender.lender_id;
                         const hasOffer = offers[lender.lender_id];
                         const isSelected = selectedLender === lender.lender_id;
+                        const isApplied = appliedLenders[lender.lender_code];
                         const adjustedLoanAmount = vehiclePrice - downPayment;
                         const adjustedEmi = Math.round((adjustedLoanAmount / vehiclePrice) * (hasOffer?.finalEmi || recentOffer?.emi || 0));
                         return (
-                            <div key={lender.lender_id} className={`bg-white rounded-xl shadow-lg p-6 transition-all ${isSelected ? 'ring-2 ring-black' : ''}`}>
+                            <div key={lender.lender_id} className={`bg-white rounded-xl shadow-lg p-6 transition-all ${isSelected ? 'ring-2 ring-black' : ''} ${isApplied ? 'ring-2 ring-green-500 bg-green-50' : ''}`}>
+                                {/* Applied Status Banner */}
+                                {isApplied && (
+                                    <div className="bg-green-100 border border-green-200 rounded-lg p-3 mb-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-2">
+                                                <CheckCircle className="h-5 w-5 text-green-600"/>
+                                                <span className="text-sm font-medium text-green-800">Application Applied</span>
+                                            </div>
+                                            <span className="text-xs text-green-600 bg-green-200 px-2 py-1 rounded-full">
+                                                ID: {isApplied}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+                                
                                 {/* Lender Info */}
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-center space-x-3">
@@ -329,10 +386,22 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
                                         </div>
                                     </div>
 
-                                    {!hasOffer && !isLoading && (
+                                    {!hasOffer && !isLoading && !isApplied && !hasAnyAppliedLender && (
                                         <button onClick={() => handleApplyWithLender(lender.lender_id)} className="bg-black text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-800 transition-colors">
                                             Apply
                                         </button>
+                                    )}
+                                    
+                                    {!hasOffer && !isLoading && !isApplied && hasAnyAppliedLender && (
+                                        <button disabled className="bg-gray-300 text-gray-500 px-6 py-2 rounded-lg font-semibold cursor-not-allowed">
+                                            Apply
+                                        </button>
+                                    )}
+                                    
+                                    {isApplied && (
+                                        <div className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold">
+                                            Applied
+                                        </div>
                                     )}
                                 </div>
 
@@ -379,10 +448,20 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
                                             <div className="text-sm text-gray-600">
                                                 <p>Processing Fee: {recentOffer?.processingFee || '-'} | Tenure: {recentOffer?.tenure || '-'} months</p>
                                             </div>
-                                            <button onClick={() => handleSelectLender(lender.lender_id)}
-                                                    className={`px-6 py-2 rounded-lg font-semibold transition-colors ${isSelected ? 'bg-black text-white' : 'bg-gray-100 text-black hover:bg-gray-200'}`}>
-                                                {isSelected ? 'Selected' : 'Select This Offer'}
-                                            </button>
+                                            {isApplied ? (
+                                                <div className="px-6 py-2 rounded-lg font-semibold bg-green-100 text-green-800 border border-green-300">
+                                                    Applied
+                                                </div>
+                                            ) : hasAnyAppliedLender ? (
+                                                <button disabled className="px-6 py-2 rounded-lg font-semibold bg-gray-200 text-gray-400 cursor-not-allowed">
+                                                    {isSelected ? 'Selected' : 'Select This Offer'}
+                                                </button>
+                                            ) : (
+                                                <button onClick={() => handleSelectLender(lender.lender_id)}
+                                                        className={`px-6 py-2 rounded-lg font-semibold transition-colors ${isSelected ? 'bg-black text-white' : 'bg-gray-100 text-black hover:bg-gray-200'}`}>
+                                                    {isSelected ? 'Selected' : 'Select This Offer'}
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 )}
