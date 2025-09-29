@@ -3,7 +3,8 @@ import { Star, CheckCircle, ArrowLeft} from 'lucide-react';
 import { StepComponentProps } from "@/components/WorkflowStepComponentLoader.tsx";
 import { useQuery } from '@tanstack/react-query';
 import {Button} from "@repo/ui/components/ui/button";
-import {LenderOfferAPI} from "../../../../packages/shared-state/src/api/LenderAPI.ts";
+import { LenderOfferAPI } from '@repo/shared-state/api';
+import { useEnvironmentStore } from '@repo/shared-state/config';
 import {useParams} from "react-router-dom";
 
 
@@ -141,7 +142,8 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
     const [downPayment, setDownPayment] = useState(50000);
     const [vehiclePrice] = useState(150000);
 
-    const offerAPI = new LenderOfferAPI();
+    const offerAPI = LenderOfferAPI.getInstance();
+    const isEnvReady = useEnvironmentStore((s) => s.isInitialized);
 
     const triggerSubmit = () => {
         console.log('Form ref', formRef.current);
@@ -172,7 +174,7 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
             console.log("API Response:", response);
             return response.result; // Must match RecommendedOffersResponse
         },
-        enabled: !!applicationId,
+        enabled: isEnvReady && !!applicationId,
     });
 
     useEffect(() => {
