@@ -39,8 +39,9 @@ interface AuthStore {
     email: string;
     password: string;
   }) => Promise<void>;
+  loginWithLink: (token: string, platform?: PlatformType) => Promise<void>;
   logout: () => void;
-  fetchSetup: (platform: PlatformType, tenantDomain: string) => Promise<void>;
+  fetchSetup: (platform: PlatformType, tenantDomain: string, token?: string) => Promise<void>;
   clearError: () => void;
   setPlatform: (platform: PlatformType) => void;
   setTenantDomain: (domain: string) => void;
@@ -315,6 +316,47 @@ export const useAuthStore = create<AuthStore>()(
             setError(errorMessage);
             // On refresh failure, logout user
             set({
+              isAuthenticated: false,
+              user: null,
+              setupData: null,
+              error: errorMessage,
+            });
+            throw error;
+          }
+        },
+
+        loginWithLink: async (token: string, platform: PlatformType = "EMPLOYEE_PORTAL") => {
+          set({ isLoginLoading: true, error: null });
+
+          try {
+            const response = await AuthApiService.getInstance().loginWithLink(token, platform);
+
+            if (response.status === 1 && response.data) {
+              const { user, setup_data, access_token, refresh_token } = response.data;
+
+              // Store tokens in localStorage
+              if (access_token) {
+                localStorage.setItem("access_token", access_token);
+              }
+              if (refresh_token) {
+                localStorage.setItem("refresh_token", refresh_token);
+              }
+
+              set({
+                isAuthenticated: true,
+                user: user || null,
+                setupData: setup_data || null,
+                isLoginLoading: false,
+                error: null,
+              });
+            } else {
+              throw new Error(response.error || "Login with link failed");
+            }
+          } catch (error: any) {
+            const errorMessage = error.message || "Login with link failed";
+            console.error("Login with link error:", error);
+            set({
+              isLoginLoading: false,
               isAuthenticated: false,
               user: null,
               setupData: null,
