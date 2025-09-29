@@ -18,6 +18,7 @@ export interface LeadApiResponse {
     result: any;
     status: number;
     source_id?: string;
+    redirect_url?: string;
 }
 
 export class LeadAPI extends WorkflowAPI {
@@ -61,7 +62,8 @@ export class LeadAPI extends WorkflowAPI {
             // Return response with source_id set from application_id
             return {
                 ...response,
-                source_id: response.application_id
+                source_id: response.application_id,
+                redirect_url: response.result?.customer_link,
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to create lead';

@@ -3,8 +3,8 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import WorkflowStepComponentLoader from "../WorkflowStepComponentLoader";
-import { WorkflowAPI } from "@repo/shared-state/api";
-import { useWorkflowStore, useLeadStore } from "@repo/shared-state/stores";
+import { WorkflowAPI, utilityAPI } from "@repo/shared-state/api";
+import { useWorkflowStore, useLeadStore, useAuthStore } from "@repo/shared-state/stores";
 import { JourneyTypeModal } from "./JourneyTypeModal";
 import { WorkflowStagesNavigation } from "./WorkflowStagesNavigation";
 import { StepsHorizontalStepper } from "./StepsHorizontalStepper";
@@ -58,6 +58,41 @@ export interface StepComponentRef {
   submitStepExternally: () => Promise<any>;
 }
 
+// Helper function to handle autoLogin token processing
+const handleAutoLoginToken = async (
+  originalUrl: string,
+  user: any,
+  loginWithLink: (token: string, platform?: any) => Promise<void>,
+  platform: any
+) => {
+  // Check if conditions are met for autoLogin processing
+  if (!originalUrl || (user?.id && user?.user_type !== 'GUEST')) {
+    if (!originalUrl) {
+      console.log('No autoLogin token found in original URL');
+    } else {
+      console.log('Login with link skipped: User is already authenticated (ID exists and user type is not GUEST)');
+    }
+    return;
+  }
+
+  try {
+    // Extract autoLogin token from query parameters
+    const url = new URL(originalUrl);
+    const autoLoginToken = url.searchParams.get('autoLogin');
+    
+    if (autoLoginToken) {
+      console.log('AutoLogin token found:', autoLoginToken);
+      
+      // Call login-with-link API using the auth store
+      await loginWithLink(autoLoginToken, platform);
+      console.log('User authenticated successfully with autoLogin token');
+    } else {
+      console.log('No autoLogin token found in original URL');
+    }
+  } catch (error) {
+    console.error('Error processing autoLogin token:', error);
+  }
+};
 
 export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
   api,
@@ -86,10 +121,8 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
     currentStageIndex,
     currentStepIndex,
     currentStepData,
-    currentStageData,
     workflow,
     goToStage,
-    goToNextStep,
     goToPreviousStep,
   } = useWorkflowStore();
 
@@ -98,10 +131,15 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
     loading: storeLoading,
     error: storeError,
     setLeadData,
-    setLoading,
-    setError,
     clearError
   } = useLeadStore();
+
+  // Auth store state
+  const {
+    user,
+    loginWithLink,
+    platform
+  } = useAuthStore();
 
   // Fetch workflow based on sourceId or journey/loan type
   const workflowQuery = useQuery({
@@ -248,12 +286,35 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
           // Call createUpdate from API class
           const createUpdateResponse = await createUpdateMutation.mutateAsync(data.data);
           
+          // Extract short URL identifier from redirect_url (part after 'sh/')
+          const shortUrlIdentifier = createUpdateResponse.redirect_url?.split('/sh/')[1];
+          if (shortUrlIdentifier) {
+            // Process shorter URL using utility API
+            const shorterUrlResponse = await utilityAPI.processShortUrl(shortUrlIdentifier);
+            console.log('Shorter URL Response:', shorterUrlResponse);
+            console.log('Original URL:', shorterUrlResponse.original_url);
+            
+            if(shorterUrlResponse.original_url && !id && user?.user_type === 'GUEST') {
+              // Use the helper function to handle autoLogin token processing
+              await handleAutoLoginToken(
+                shorterUrlResponse.original_url,
+                user,
+                loginWithLink,
+                platform
+              );
+            }
+          } else {
+            console.log('No short URL identifier found in redirect_url:', createUpdateResponse.redirect_url);
+          }
+          
           // Get source_id from createUpdate response if sourceId is not present
           const workflowId = sourceId || id || createUpdateResponse?.source_id;
           
           if (!workflowId) {
             throw new Error("No valid ID found for workflow execution");
           }
+
+        
           
           // Update URL with ID if not present and we got source_id from create operation
           if (!id && createUpdateResponse?.source_id) {

@@ -10,6 +10,7 @@ export { NotificationAPI } from './NotificationAPI';
 export { ChecklistAPI } from './ChecklistAPI';
 export { CreditBureauAPI } from './CreditBureauAPI';
 export { LenderOfferAPI } from './LenderAPI';
+export { UtilityAPI, utilityAPI } from './utility';
 
 // Re-export workflow types from stores
 export type {
