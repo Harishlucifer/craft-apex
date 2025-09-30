@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Download, CheckCircle, Clock, AlertCircle, Phone, Mail, Home } from 'lucide-react';
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { LenderOfferAPI } from '@repo/shared-state/api';
 import { useEnvironmentStore } from '@repo/shared-state/config';
 
@@ -91,8 +91,7 @@ interface ApplicationStatusProps {
 }
 
 export const ApplicationStatus: React.FC<ApplicationStatusProps> = ({
-  applicationData,
-  onBack
+  applicationData
 }) => {
   const [sanctionGenerated, setSanctionGenerated] = useState(false);
   const [selectedLender, setSelectedLender] = useState<Lender | null>(null);
@@ -100,6 +99,7 @@ export const ApplicationStatus: React.FC<ApplicationStatusProps> = ({
   const offerAPI = LenderOfferAPI.getInstance();
   const isEnvReady = useEnvironmentStore((s) => s.isInitialized);
   const { id } = useParams();
+  const navigate = useNavigate();
   
   // Extract applicationId using the same pattern as other components
   const applicationId = id || applicationData?.application?.application_id || applicationData?.applicationId;
@@ -385,7 +385,7 @@ export const ApplicationStatus: React.FC<ApplicationStatusProps> = ({
 
       <div className="text-center">
         <button
-          onClick={onBack}
+          onClick={() => navigate('/')}
           className="bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors"
         >
           Start New Application
