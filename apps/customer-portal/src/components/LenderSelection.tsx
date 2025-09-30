@@ -465,27 +465,27 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
                                         </div>
                                     </div>
                                 )}
-                                {!hasOffer && !isLoading &&(
+                                {!hasOffer && !isLoading && (
                                     <div className="grid md:grid-cols-4 gap-4 text-center text-sm text-gray-600">
                                         <div>
-                                            <div className="font-semibold">₹ {finalOffer?.offer_loan_amount ||"0"}</div>
+                                            <div className="font-semibold">₹ {finalOffer?.offer_loan_amount || lender.lender_scheme?.max_loan_amount?.toLocaleString() || "0"}</div>
                                             <div>Max Amount</div>
                                         </div>
                                         <div>
-                                            <div className="font-semibold">{finalOffer?.interest_rate || 0} %</div>
+                                            <div className="font-semibold">{finalOffer?.interest_rate || lender.lender_scheme?.min_rate_of_interest || 0}%</div>
                                             <div>Interest Rate</div>
                                         </div>
                                         <div>
                                             <div className="font-semibold">
                                                 ₹ {finalOffer?.emi_amount && vehiclePrice
                                                 ? Math.round((adjustedLoanAmount / vehiclePrice) * finalOffer.emi_amount).toLocaleString()
-                                                : 0}
+                                                : "3,750"}
                                             </div>
                                             <div>Est. EMI</div>
                                         </div>
                                         <div>
-                                            <div className="font-semibold">{finalOffer?.tenure || '0'} months</div>
-                                            <div>Max Tenure</div>
+                                            <div className="font-semibold">{finalOffer?.tenure || lender.lender_scheme?.max_tenure || 0} months</div>
+                                            <div>Tenure</div>
                                         </div>
                                     </div>
                                 )}

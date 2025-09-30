@@ -338,7 +338,7 @@ const EligibilityResults = forwardRef((props: StepComponentProps) => {
                                 <h3 className="text-lg text-gray-200 font-semibold mb-2">Your Credit Score</h3>
                                 <div className="flex flex-col items-start space-y-1">
                                     <div className="flex items-baseline space-x-2 mb-2">
-                                        <span className={`text-3xl font-bold ${color} transition-all duration-500 animate-pulse`}
+                                        <span className={`text-3xl font-bold ${color} `}
                                         >{creditScore || "0"}</span>
                                         <span className="text-white text-2xl font-bold">/ 900</span>
                                     </div>
@@ -368,7 +368,7 @@ const EligibilityResults = forwardRef((props: StepComponentProps) => {
                         <div className="grid md:grid-cols-3 gap-4 text-center">
                             <div className="bg-blue-50 p-4 rounded-lg">
                                 <div className="text-2xl font-bold text-black">
-                                    ₹{maxLoanAmount.toLocaleString()}
+                                   ₹{maxLoanAmount.toLocaleString()}
                                 </div>
                                 <div className="text-sm text-gray-600">Max Loan Amount</div>
                             </div>
@@ -443,7 +443,8 @@ const EligibilityResults = forwardRef((props: StepComponentProps) => {
                                     <div className="grid md:grid-cols-4 gap-4 mb-5 text-center ">
                                         <div>
                                             <div className="text-xl font-bold text-black">
-                                                ₹{finalOffer?.offer_loan_amount?.toLocaleString() || 0}
+                                                {/* ₹{finalOffer?.offer_loan_amount?.toLocaleString() || 0} */}
+                                                {lender.lender_scheme?.[0]?.scheme_detail?.max_loan_amount?.toLocaleString() || 0}
                                             </div>
                                             <div className="text-sm text-gray-600">
                                                 Max Loan Amount
@@ -451,21 +452,21 @@ const EligibilityResults = forwardRef((props: StepComponentProps) => {
                                         </div>
                                         <div>
                                             <div className="text-xl font-bold text-black">
-                                                {finalOffer?.interest_rate || 0}%
+                                                {lender.lender_scheme?.[0]?.scheme_detail?.min_rate_of_interest || 0}%
                                             </div>
-                                            <div className="text-sm text-gray-600">Interest Rate</div>
+                                            <div className="text-sm text-gray-600">Min Interest Rate</div>
                                         </div>
                                         <div>
                                             <div className="text-xl font-bold text-black">
-                                                ₹{finalOffer?.emi_amount?.toLocaleString() || 0}
+                                                ₹{finalOffer?.emi_amount?.toLocaleString() || 3500}
                                             </div>
                                             <div className="text-sm text-gray-600">Monthly EMI</div>
                                         </div>
                                         <div>
                                             <div className="text-xl font-bold text-black">
-                                                {finalOffer?.tenure || 0} months
+                                                {lender.lender_scheme?.[0]?.scheme_detail?.max_tenure || 0} months
                                             </div>
-                                            <div className="text-sm text-gray-600">Tenure</div>
+                                            <div className="text-sm text-gray-600">Max Tenure</div>
                                         </div>
                                     </div>
 

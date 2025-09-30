@@ -1,6 +1,89 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Download, CheckCircle, Clock, AlertCircle, Phone, Mail, Home } from 'lucide-react';
+import { useQuery } from "@tanstack/react-query";
+import { useParams } from 'react-router-dom';
+import { LenderOfferAPI } from '@repo/shared-state/api';
+import { useEnvironmentStore } from '@repo/shared-state/config';
 
+// Interfaces for lender data
+interface ComputedOffer {
+  computed_offer_id: string;
+  formula_type: string;
+  formula_value: number;
+  min_tenure: number;
+  max_tenure: number;
+  tenure: number;
+  emi_amount: number;
+  interest_rate: number;
+  min_loan_amount: number;
+  max_loan_amount: number;
+  offer_loan_amount: number;
+  down_payment: number;
+  computed_by: string;
+  offer_type: string;
+}
+
+interface SchemeDetail {
+  lender_scheme_id: string;
+  code: string;
+  name: string;
+  loan_type_id: string;
+  loan_type_name: string;
+  sub_loan_type_id: string;
+  sub_loan_type_name: string;
+  lender_id: string;
+  lender_name: string;
+  emi_date: number;
+  cutoff_date: number;
+  min_loan_amount: number;
+  max_loan_amount: number;
+  min_tenure: number;
+  max_tenure: number;
+  min_rate_of_interest: number;
+  max_rate_of_interest: number;
+  interest_type: string;
+  terms_and_condition: string;
+  sequence: number;
+  configuration: any;
+  status: number;
+  created_at: string;
+}
+
+interface LenderScheme {
+  lender_scheme_id: string;
+  lender_id: string;
+  code: string;
+  name: string;
+  computed_offer: ComputedOffer[];
+  scheme_detail: SchemeDetail;
+  sequence: number;
+  scheme_applicable: boolean;
+  documents_required: boolean;
+  journey_type: string;
+}
+
+interface Lender {
+  lender_id: string;
+  lender_name: string;
+  lender_code: string;
+  lender_logo: string;
+  loan_type_id: string;
+  lender_apply_id: string | null;
+  sequence: number;
+  lender_scheme: LenderScheme[];
+  lender_applicable: boolean;
+  lender_apply_status: string;
+  rejected_reason: string | null;
+  computed_offer: ComputedOffer[];
+}
+
+interface RecommendedOffersResponse {
+  lender: Lender[];
+  viable: {
+    applicable: boolean;
+    executed_rule: any | null;
+  };
+}
 
 interface ApplicationStatusProps {
   applicationData:any;
@@ -12,6 +95,40 @@ export const ApplicationStatus: React.FC<ApplicationStatusProps> = ({
   onBack
 }) => {
   const [sanctionGenerated, setSanctionGenerated] = useState(false);
+  const [selectedLender, setSelectedLender] = useState<Lender | null>(null);
+
+  const offerAPI = LenderOfferAPI.getInstance();
+  const isEnvReady = useEnvironmentStore((s) => s.isInitialized);
+  const { id } = useParams();
+  
+  // Extract applicationId using the same pattern as other components
+  const applicationId = id || applicationData?.application?.application_id || applicationData?.applicationId;
+
+  // Fetch recommended lenders and filter for selected ones
+  const { data: offerResult, isLoading: isOfferLoading, error } = useQuery({
+    queryKey: ['eligibleOffers', applicationId],
+    queryFn: async () => {
+      const response = await offerAPI.fetchEligibleOffers(applicationId, 'V1');
+      return response.result;
+    },
+    enabled: isEnvReady && !!applicationId,
+  });
+
+  useEffect(() => {
+    if (offerResult) {
+      const offersData = offerResult as RecommendedOffersResponse;
+      // Filter for lenders with "Selected" status
+      const selectedLenders = offersData.lender?.filter(
+        lender => lender.lender_apply_status === "Selected"
+      );
+      
+      if (selectedLenders && selectedLenders.length > 0) {
+        setSelectedLender(selectedLenders[0] || null); // Take the first selected lender
+      } else {
+        setSelectedLender(null);
+      }
+    }
+  }, [offerResult]);
 
   const handleGenerateSanction = () => {
     setSanctionGenerated(true);
@@ -68,7 +185,7 @@ export const ApplicationStatus: React.FC<ApplicationStatusProps> = ({
           </div>
           <h1 className="text-3xl font-bold text-black mb-2">Congratulations!</h1>
           <p className="text-lg text-gray-600 mb-4">
-            Your loan application has been approved by {applicationData.selectedLender?.name}
+            Your loan application has been approved by {selectedLender?.lender_name || applicationData.selectedLender?.name || 'the selected lender'}
           </p>
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 inline-block">
             <p className="text-sm text-black">
@@ -81,49 +198,77 @@ export const ApplicationStatus: React.FC<ApplicationStatusProps> = ({
       {/* Loan Details Card */}
       <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
         <h3 className="text-xl font-bold text-black mb-4">Loan Details</h3>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Lender:</span>
-              <span className="font-semibold">{applicationData.selectedLender?.name}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Approved Amount:</span>
-              <span className="font-semibold text-black">₹{applicationData.selectedLender?.finalAmount?.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Interest Rate:</span>
-              <span className="font-semibold">{applicationData.selectedLender?.interestRate}% p.a.</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Tenure:</span>
-              <span className="font-semibold">{applicationData.selectedLender?.tenure} months</span>
+        {isOfferLoading ? (
+          <div className="flex justify-center items-center h-32">
+            <div className="flex space-x-2">
+              <span className="w-4 h-4 bg-black rounded-full animate-bounce"></span>
+              <span className="w-4 h-4 bg-gray-500 rounded-full animate-bounce delay-150"></span>
+              <span className="w-4 h-4 bg-black rounded-full animate-bounce delay-300"></span>
             </div>
           </div>
-          
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Monthly EMI:</span>
-              <span className="font-semibold text-black">₹{applicationData.selectedLender?.finalEmi?.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Processing Fee:</span>
-              <span className="font-semibold">{applicationData.selectedLender?.processingFee}</span>
-            </div>
-            {applicationData.bookingNumber && (
+        ) : selectedLender ? (
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Booking Number:</span>
-                <span className="font-semibold">{applicationData.bookingNumber}</span>
+                <span className="text-gray-600">Lender:</span>
+                <span className="font-semibold">{selectedLender.lender_name}</span>
               </div>
-            )}
-            {applicationData.bookingAmount && (
               <div className="flex justify-between">
-                <span className="text-gray-600">Booking Amount:</span>
-                <span className="font-semibold">₹{applicationData.bookingAmount}</span>
+                <span className="text-gray-600">Max Loan Amount:</span>
+                <span className="font-semibold text-black">
+                  ₹{selectedLender.lender_scheme?.[0]?.scheme_detail?.max_loan_amount?.toLocaleString() || 'N/A'}
+                </span>
               </div>
-            )}
+              <div className="flex justify-between">
+                <span className="text-gray-600">Min Interest Rate:</span>
+                <span className="font-semibold">
+                  {selectedLender.lender_scheme?.[0]?.scheme_detail?.min_rate_of_interest || 'N/A'}% p.a.
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Max Tenure:</span>
+                <span className="font-semibold">
+                  {selectedLender.lender_scheme?.[0]?.scheme_detail?.max_tenure || 'N/A'} months
+                </span>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Monthly EMI:</span>
+                <span className="font-semibold text-black">
+                  ₹{selectedLender.computed_offer?.find(o => o.formula_type === "FINAL_OFFER")?.emi_amount?.toLocaleString() || '3585'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Interest Type:</span>
+                <span className="font-semibold">
+                  {selectedLender.lender_scheme?.[0]?.scheme_detail?.interest_type || 'N/A'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Status:</span>
+                <span className="font-semibold text-green-600">{selectedLender.lender_apply_status}</span>
+              </div>
+              {applicationData.bookingNumber && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Booking Number:</span>
+                  <span className="font-semibold">{applicationData.bookingNumber}</span>
+                </div>
+              )}
+              {applicationData.bookingAmount && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Booking Amount:</span>
+                  <span className="font-semibold">₹{applicationData.bookingAmount}</span>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-600">No selected lender found. Please check your application status.</p>
+          </div>
+        )}
       </div>
 
       {/* Sanction Letter Section */}
