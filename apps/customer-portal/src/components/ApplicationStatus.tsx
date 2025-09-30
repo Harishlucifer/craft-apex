@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Download, CheckCircle, Clock, AlertCircle, Phone, Mail, Home } from 'lucide-react';
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { LenderOfferAPI } from '@repo/shared-state/api';
 import { useEnvironmentStore } from '@repo/shared-state/config';
 
@@ -91,9 +91,9 @@ interface ApplicationStatusProps {
 }
 
 export const ApplicationStatus: React.FC<ApplicationStatusProps> = ({
-  applicationData,
-  onBack
+  applicationData
 }) => {
+  const navigate = useNavigate();
   const [sanctionGenerated, setSanctionGenerated] = useState(false);
   const [selectedLender, setSelectedLender] = useState<Lender | null>(null);
 
@@ -385,12 +385,12 @@ export const ApplicationStatus: React.FC<ApplicationStatusProps> = ({
 
       <div className="text-center">
         <button
-          onClick={onBack}
+          onClick={() => navigate("/lead/create")}
           className="bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors"
         >
           Start New Application
         </button>
       </div>
     </div>
-  );
+  )
 };

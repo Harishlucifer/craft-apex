@@ -59,10 +59,11 @@ export const useLeadStore = create<LeadState>((set, get) => ({
 
   setLeadListData: (response: LeadsApiResponse) => {
     set({
-      leads: response.data,
-      total: response.total,
-      page: response.page,
-      size: response.size
+      // Safely coerce response.data to an array to avoid null/undefined map errors
+      leads: Array.isArray((response as any)?.data) ? (response as any).data : [],
+      total: typeof response?.total === 'number' ? response.total : 0,
+      page: typeof response?.page === 'number' ? response.page : 1,
+      size: typeof response?.size === 'number' ? response.size : 10
     });
   },
 
@@ -80,7 +81,8 @@ export const useLeadStore = create<LeadState>((set, get) => ({
 
   updateLeadInList: (updatedLead: Lead) => {
     set((state) => ({
-      leads: state.leads.map(lead => 
+      // Defensively handle cases where leads may be null/undefined
+      leads: (Array.isArray(state.leads) ? state.leads : []).map(lead => 
         lead.application_id === updatedLead.application_id ? updatedLead : lead
       )
     }));

@@ -280,7 +280,7 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
         if (data?.isValidForm && data?.data != null) {
           // Call createUpdate from API class
           const createUpdateResponse = await createUpdateMutation.mutateAsync(data.data);
-          
+          console.log('createUpdateResponse', createUpdateResponse);
           // Extract short URL identifier from redirect_url (part after 'sh/')
           const shortUrlIdentifier = createUpdateResponse.redirect_url?.split('/sh/')[1];
           if (shortUrlIdentifier) {
@@ -454,6 +454,9 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
       const errorMessage = workflowQuery.error instanceof Error ? workflowQuery.error.message : 
                           storeError || "An error occurred";
       
+                          console.log('workflowQuery.error', workflowQuery.error);
+                          console.log('storeError', storeError);
+                          console.log('errorMessage', errorMessage);
       return (
         <div className="text-center py-8">
           <p className="text-red-600 mb-4">{errorMessage}</p>

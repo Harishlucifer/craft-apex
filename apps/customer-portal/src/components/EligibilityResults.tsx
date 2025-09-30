@@ -202,7 +202,7 @@ export interface CamResponse {
 
 
 
-const EligibilityResults = forwardRef((props: StepComponentProps) => {
+const EligibilityResults = forwardRef<any, StepComponentProps>((props) => {
     const { data,handleSubmitSuccess ,handleBack} = props;
     const [offerData, setOfferData] = useState<RecommendedOffersResponse>({
         lender: [],
@@ -443,30 +443,30 @@ const EligibilityResults = forwardRef((props: StepComponentProps) => {
                                     <div className="grid md:grid-cols-4 gap-4 mb-5 text-center ">
                                         <div>
                                             <div className="text-xl font-bold text-black">
-                                                {/* ₹{finalOffer?.offer_loan_amount?.toLocaleString() || 0} */}
-                                                {lender.lender_scheme?.[0]?.scheme_detail?.max_loan_amount?.toLocaleString() || 0}
+                                                ₹{finalOffer?.offer_loan_amount?.toLocaleString() || 0}
+                                                {/* {lender.lender_scheme?.[0]?.scheme_detail?.max_loan_amount?.toLocaleString() || 0} */}
                                             </div>
                                             <div className="text-sm text-gray-600">
-                                                Max Loan Amount
+                                                Offer Loan Amount
                                             </div>
                                         </div>
                                         <div>
                                             <div className="text-xl font-bold text-black">
-                                                {lender.lender_scheme?.[0]?.scheme_detail?.min_rate_of_interest || 0}%
+                                                {finalOffer?.interest_rate?.toLocaleString() || 0}%
                                             </div>
-                                            <div className="text-sm text-gray-600">Min Interest Rate</div>
+                                            <div className="text-sm text-gray-600">Interest Rate</div>
                                         </div>
                                         <div>
                                             <div className="text-xl font-bold text-black">
-                                                ₹{finalOffer?.emi_amount?.toLocaleString() || 3500}
+                                                ₹{finalOffer?.emi_amount?.toLocaleString() || 0}
                                             </div>
                                             <div className="text-sm text-gray-600">Monthly EMI</div>
                                         </div>
                                         <div>
                                             <div className="text-xl font-bold text-black">
-                                                {lender.lender_scheme?.[0]?.scheme_detail?.max_tenure || 0} months
+                                                {finalOffer?.tenure?.toLocaleString() || 0} months
                                             </div>
-                                            <div className="text-sm text-gray-600">Max Tenure</div>
+                                            <div className="text-sm text-gray-600">Tenure</div>
                                         </div>
                                     </div>
 

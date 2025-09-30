@@ -10,6 +10,7 @@ export interface LeadsApiParams {
     status?: string;
     search?: string;
     territory_id?: string;
+    mobile_no?: string;
 }
 
 export interface LeadApiResponse {
@@ -76,7 +77,6 @@ export class LeadAPI extends WorkflowAPI {
 
     /** Fetch multiple leads */
     async fetchLeads(params: LeadsApiParams = {}): Promise<LeadsApiResponse> {
-        this.leadStore.setLoading(true);
         this.leadStore.clearError();
 
         try {
@@ -87,7 +87,7 @@ export class LeadAPI extends WorkflowAPI {
                 }
             });
 
-            const endpoint = `/alpha/v2/application/list?${queryParams.toString()}`;
+            const endpoint = `/alpha/v1/application?${queryParams.toString()}`;
             const apiResponse = await this.get<LeadsApiResponse>(endpoint);
 
             const response = apiResponse as unknown as LeadsApiResponse;
@@ -98,9 +98,7 @@ export class LeadAPI extends WorkflowAPI {
             const errorMessage = error instanceof Error ? error.message : 'Failed to fetch leads';
             this.leadStore.setError(errorMessage);
             throw error;
-        } finally {
-            this.leadStore.setLoading(false);
-        }
+        } 
     }
 
     /** Fetch single lead */
