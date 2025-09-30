@@ -1,4 +1,5 @@
 import { getApiEndpoint } from '../config';
+import { useAuthStore } from '../stores/auth';
 
 export interface ApiResponse<T = any> {
   status: number;
@@ -15,22 +16,15 @@ export interface RequestConfig {
   body?: any;
 }
 
-// Type for auth store state
-interface AuthState {
-  user?: {
-    access_token?: string;
-    user_type?: string;
-  } | null;
-  platform?: string | null;
-  tenantDomain?: string | null;
-  refreshToken?: () => Promise<void>;
-}
-
-// Global auth store getter - will be set by the auth store
-let getAuthState: (() => AuthState) | null = null;
-
-export const setAuthStateGetter = (getter: () => AuthState) => {
-  getAuthState = getter;
+// Helper function to get auth state directly from the store
+const getAuthState = () => {
+  const state = useAuthStore.getState();
+  return {
+    user: state.user,
+    platform: state.platform,
+    tenantDomain: state.tenantDomain,
+    refreshToken: state.refreshToken,
+  };
 };
 
 export class BaseApiService {
@@ -60,9 +54,9 @@ export class BaseApiService {
       'Content-Type': 'application/json',
     };
 
-    // Get auth state using dependency injection to avoid circular dependency
-    const authState = getAuthState?.() || {};
-
+    // Get auth state directly from the store
+    const authState = getAuthState();
+    
     // Include bearer token if available
     if (authState.user?.access_token) {
       headers['Authorization'] = `Bearer ${authState.user.access_token}`;
@@ -84,8 +78,8 @@ export class BaseApiService {
       'Content-Type': 'application/json',
     };
 
-    // Get auth state using dependency injection to avoid circular dependency
-    const authState = getAuthState?.() || {};
+    // Get auth state directly from the store
+    const authState = getAuthState();
 
     // Only include bearer token when both conditions are met:
     // 1. The user value is not null
