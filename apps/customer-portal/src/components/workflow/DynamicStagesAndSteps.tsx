@@ -113,7 +113,6 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
   const loanType = searchParams.get("loan_type");
 
   const [showJourneyModal, setShowJourneyModal] = useState(false);
-  const [hasJourneyTypesAuthError, setHasJourneyTypesAuthError] = useState(false);
 
   // Workflow store state
   const {
@@ -162,7 +161,7 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
       throw new Error("No workflow parameters provided");
     },
     enabled: !!(sourceId || journeyType || loanType),
-    retry: 1,
+    retry: 2, // Limit retries to 2 attempts for consistency
   });
 
      // 3. Fetch journey types if nothing provided
@@ -172,31 +171,16 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
             const result = await api.fetchJourneyTypes(workflowType ?? "");
             return result as JourneyTypesResponse;
         },
-        enabled: !id && !(journeyType || loanType) && !!workflowType && !hasJourneyTypesAuthError,
-        retry: (failureCount, error: any) => {
-            // Don't retry if the error is 401 (Unauthorized)
-            if (error?.response?.status === 401 || error?.status === 401) {
-                setHasJourneyTypesAuthError(true);
-                return false;
-            }
-            // For other errors, retry once
-            return failureCount < 1;
+        enabled: !id && !(journeyType || loanType) && !!workflowType,
+        retry: (failureCount) => {
+            // Limit retries to maximum 2 attempts (failureCount starts at 0)
+            return failureCount < 2;
         },
         refetchOnWindowFocus: false,
         refetchOnReconnect: false,
         refetchOnMount: false,
     });
 
-    // Handle journey types query errors
-    useEffect(() => {
-        if (journeyTypesQuery.error) {
-            const error = journeyTypesQuery.error as any;
-            if (error?.response?.status === 401 || error?.status === 401) {
-                setHasJourneyTypesAuthError(true);
-                console.log('Journey types API returned 401 - disabling further requests');
-            }
-        }
-    }, [journeyTypesQuery.error]);
 
     // Helper function to handle journey selection
     const handleJourneySelection = (journey: Journey) => {
