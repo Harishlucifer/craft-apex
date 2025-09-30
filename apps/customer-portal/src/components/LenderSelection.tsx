@@ -148,7 +148,7 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
 
     const triggerSubmit = () => {
         console.log('Form ref', formRef.current);
-       props?.handleSubmitSuccess({data:props?.data,isValidForm:true})
+        props?.handleSubmitSuccess({data:props?.data,isValidForm:true})
     };
 
     useImperativeHandle(ref, () => ({
@@ -165,7 +165,7 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
         isLoading,
         isError: isOfferError,
         error: offerError,
-        // refetch: refetchOffers,
+        refetch: refetchOffers,
     } = useQuery({
         queryKey: ["application", applicationId],
         queryFn: async () => {
@@ -180,7 +180,7 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
     useEffect(() => {
         if (offerResult) {
             setOfferData(offerResult as RecommendedOffersResponse);
-            
+
             // Check for already applied lenders from API response (only applicable lenders)
             const alreadyAppliedLenders: Record<string, string> = {};
             (offerResult as RecommendedOffersResponse).lender
@@ -190,7 +190,7 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
                         alreadyAppliedLenders[lender.lender_code] = lender.lender_apply_id;
                     }
                 });
-            
+
             if (Object.keys(alreadyAppliedLenders).length > 0) {
                 setAppliedLenders(alreadyAppliedLenders);
             }
@@ -215,52 +215,30 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
         try {
             const lender = offerData.lender.find(l => l.lender_id === lenderId);
             if (!lender) return;
-            
-            // Call the lenderApply API
+            // Call your new lenderApply API with lender_code
             const response = await offerAPI.lenderApply(applicationId, lender.lender_code);
             console.log("Lender Apply Response:", response);
 
-            // Update the UI state directly without refetching
+            // Handle the API response structure
             if (response?.result?.applied_lender) {
+                // Update applied lenders state with the response data
                 setAppliedLenders(prev => ({
                     ...prev,
                     ...response.result.applied_lender
                 }));
-
-                // Update the offer data directly
-                setOfferData(prev => ({
-                    ...prev,
-                    lender: prev.lender.map(l => 
-                        l.lender_id === lenderId 
-                            ? { ...l, lender_applied: true, lender_apply_status: 'applied' }
-                            : l
-                    )
-                }));
-
-                // Update parent component if needed
-                if (props.data?.updateApplicationData) {
-                    props.data.updateApplicationData({
-                        ...props.data,
-                        selectedLender: {
-                            ...lender,
-                            lender_applied: true,
-                            lender_apply_status: 'applied'
-                        }
-                    });
-                }
             }
 
             if (lender?.recent_offer) {
-                const { offer_amount, emi } = lender.recent_offer;
-                setOffers(prev => ({
-                    ...prev,
-                    [lenderId]: {
-                        ...lender.recent_offer!,
-                        finalAmount: offer_amount,
-                        finalEmi: emi,
-                    }
-                }));
+                const finalOffer = {
+                    ...lender.recent_offer,
+                    finalAmount: lender.recent_offer.offer_amount,
+                    finalEmi: lender.recent_offer.emi,
+                };
+                setOffers(prev => ({ ...prev, [lenderId]: finalOffer }));
             }
+
+            // Refetch the recommendation API to get updated lender data with applied status
+            await refetchOffers();
         } catch (error) {
             console.error("Error applying with lender:", error);
         } finally {
@@ -344,8 +322,8 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
 
             {/* Lender Offers Section */}
             {isLoading && (
-                <div className="flex justify-center items-center h-32">
-                    <div className="flex space-x-2">
+                <div className="flex justify-center items-center h-32 bg-transparent">
+                    <div className="flex space-x-2 bg-transparent p-4 rounded-lg">
                         <span className="w-4 h-4 bg-black rounded-full animate-bounce delay-0"></span>
                         <span className="w-4 h-4 bg-gray-500 rounded-full animate-bounce delay-150"></span>
                         <span className="w-4 h-4 bg-black rounded-full animate-bounce delay-300"></span>
@@ -393,7 +371,7 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
                                         </div>
                                     </div>
                                 )}
-                                
+
                                 {/* Lender Info */}
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-center space-x-3">
@@ -413,13 +391,13 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
                                             Apply
                                         </button>
                                     )}
-                                    
+
                                     {!hasOffer && !isLoading && !isApplied && hasAnyAppliedLender && (
                                         <button disabled className="bg-gray-300 text-gray-500 px-6 py-2 rounded-lg font-semibold cursor-not-allowed">
                                             Apply
                                         </button>
                                     )}
-                                    
+
                                     {isApplied && (
                                         <div className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold">
                                             Applied
