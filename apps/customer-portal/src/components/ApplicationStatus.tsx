@@ -105,7 +105,7 @@ export const ApplicationStatus: React.FC<ApplicationStatusProps> = ({
   const applicationId = id || applicationData?.application?.application_id || applicationData?.applicationId;
 
   // Fetch recommended lenders and filter for selected ones
-  const { data: offerResult, isLoading: isOfferLoading, error } = useQuery({
+  const { data: offerResult, isLoading: isOfferLoading } = useQuery({
     queryKey: ['eligibleOffers', applicationId],
     queryFn: async () => {
       const response = await offerAPI.fetchEligibleOffers(applicationId, 'V1');
@@ -187,11 +187,11 @@ export const ApplicationStatus: React.FC<ApplicationStatusProps> = ({
           <p className="text-lg text-gray-600 mb-4">
             Your loan application has been approved by {selectedLender?.lender_name || applicationData.selectedLender?.name || 'the selected lender'}
           </p>
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 inline-block">
+          {/* <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 inline-block">
             <p className="text-sm text-black">
               Application ID: <span className="font-bold">{applicationData.applicationId}</span>
             </p>
-          </div>
+          </div> */}
         </div>
       </div>
 
