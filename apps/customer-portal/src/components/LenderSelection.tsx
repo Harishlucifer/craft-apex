@@ -165,7 +165,7 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
         isLoading,
         isError: isOfferError,
         error: offerError,
-        refetch: refetchOffers,
+        // refetch: refetchOffers,
     } = useQuery({
         queryKey: ["application", applicationId],
         queryFn: async () => {
@@ -215,30 +215,52 @@ const LenderSelection = forwardRef((props:StepComponentProps,ref) => {
         try {
             const lender = offerData.lender.find(l => l.lender_id === lenderId);
             if (!lender) return;
-            // Call your new lenderApply API with lender_code
+            
+            // Call the lenderApply API
             const response = await offerAPI.lenderApply(applicationId, lender.lender_code);
             console.log("Lender Apply Response:", response);
 
-            // Handle the API response structure
+            // Update the UI state directly without refetching
             if (response?.result?.applied_lender) {
-                // Update applied lenders state with the response data
                 setAppliedLenders(prev => ({
                     ...prev,
                     ...response.result.applied_lender
                 }));
+
+                // Update the offer data directly
+                setOfferData(prev => ({
+                    ...prev,
+                    lender: prev.lender.map(l => 
+                        l.lender_id === lenderId 
+                            ? { ...l, lender_applied: true, lender_apply_status: 'applied' }
+                            : l
+                    )
+                }));
+
+                // Update parent component if needed
+                if (props.data?.updateApplicationData) {
+                    props.data.updateApplicationData({
+                        ...props.data,
+                        selectedLender: {
+                            ...lender,
+                            lender_applied: true,
+                            lender_apply_status: 'applied'
+                        }
+                    });
+                }
             }
 
             if (lender?.recent_offer) {
-                const finalOffer = {
-                    ...lender.recent_offer,
-                    finalAmount: lender.recent_offer.offer_amount,
-                    finalEmi: lender.recent_offer.emi,
-                };
-                setOffers(prev => ({ ...prev, [lenderId]: finalOffer }));
+                const { offer_amount, emi } = lender.recent_offer;
+                setOffers(prev => ({
+                    ...prev,
+                    [lenderId]: {
+                        ...lender.recent_offer!,
+                        finalAmount: offer_amount,
+                        finalEmi: emi,
+                    }
+                }));
             }
-
-            // Refetch the recommendation API to get updated lender data with applied status
-            await refetchOffers();
         } catch (error) {
             console.error("Error applying with lender:", error);
         } finally {
