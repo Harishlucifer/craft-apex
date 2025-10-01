@@ -15,6 +15,7 @@ import {Toaster} from "@repo/ui/ui";
 import "./App.css";
 import {ModuleProvider} from "@repo/shared-state/contexts";
 import {PartnerDetailPage} from "@/pages/PartnerDetailPage.tsx";
+import {GstListPage} from "./pages/GstSettingsPage.tsx"
 
 function App() {
     return (
@@ -85,6 +86,17 @@ function App() {
                         <ModuleProvider>
                             <ProtectedRoute requireModuleAccess={true}>
                                 <ModulePage/>
+                            </ProtectedRoute>
+                        </ModuleProvider>
+                    }
+                />
+
+                <Route
+                    path="/settings/gst"
+                    element={
+                        <ModuleProvider>
+                            <ProtectedRoute requireModuleAccess={true}>
+                                <GstListPage/>
                             </ProtectedRoute>
                         </ModuleProvider>
                     }
