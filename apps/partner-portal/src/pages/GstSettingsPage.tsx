@@ -1,7 +1,7 @@
 import {ModuleLayout} from "@repo/ui/module";
 import {Button} from "@repo/ui/components/ui/button";
 import {Filter, Loader2, MoreHorizontal, Plus, Search} from "lucide-react";
-import {useNavigate, useParams, useSearchParams} from "react-router-dom";
+import {useParams, useSearchParams} from "react-router-dom";
 import {Input} from "@repo/ui/components/ui/input";
 import {Card} from "@repo/ui/components/ui/card";
 import React, {useEffect, useState} from "react";
@@ -27,11 +27,8 @@ export function GstListPage() {
         total: 0
     });
 
-
     const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "");
     const [gstModalOpen, setGstModalOpen] = useState(false);
-
-    const navigate = useNavigate();
 
     const updateURLParams = (params: Record<string, string>) => {
         const newSearchParams = new URLSearchParams(searchParams);
@@ -92,10 +89,6 @@ export function GstListPage() {
         setPagination(prev => ({ ...prev, page: newPage }));
         updateURLParams({ page: newPage.toString() });
     };
-
-    useEffect(()=>{
-        handleFetchGstData()
-    },[])
 
     return (
         <ModuleLayout>
@@ -212,7 +205,7 @@ export function GstListPage() {
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem onClick={() => navigate(`/lead/create/`)}>
+                                                        <DropdownMenuItem onClick={() => setGstModalOpen(!gstModalOpen)}>
                                                             View
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem>
@@ -266,92 +259,90 @@ export function GstListPage() {
             </div>
 
             {/* GST Toggle Modal */}
-
             <Dialog open={gstModalOpen} onOpenChange={setGstModalOpen}>
-                <DialogContent
-                    className="sm:max-w-[600px] w-[90vw] max-w-[95vw] max-h-[90vh] overflow-y-auto rounded-lg bg-white p-6 shadow-lg"
-                >
+                <DialogContent>
                     {/* Header */}
                     <DialogHeader>
                         <DialogTitle>Add/Edit GST Details</DialogTitle>
                     </DialogHeader>
 
                     {/* Form Fields */}
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none">GST Number</label>
-                                <Input placeholder="Enter GSTIN" className="w-full" />
+                                <Input placeholder="Enter GSTIN" className="w-full"/>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium leading-none">Address</label>
+                                <Input placeholder="Enter full address" className="w-full"/>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none">Pincode</label>
-                                <Input type="number" placeholder="Enter pincode" className="w-full" />
+                                <Input type="number" placeholder="Enter pincode" className="w-full"/>
                             </div>
+
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium leading-none">Address</label>
-                            <Input placeholder="Enter full address" className="w-full" />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none">Area</label>
-                                <Input placeholder="Enter area" className="w-full" />
+                                <Input placeholder="Enter area" className="w-full"/>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium leading-none">City</label>
-                                <Input placeholder="Enter city" className="w-full" />
+                                <label className="text-sm font-medium leading-none">District</label>
+                                <Input className="w-full"/>
                             </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none">State</label>
-                                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                                    <option value="">Select State</option>
-                                    <option value="Karnataka">Karnataka</option>
-                                    <option value="Maharashtra">Maharashtra</option>
-                                    <option value="Tamil Nadu">Tamil Nadu</option>
-                                </select>
+                                <Input className="w-full"/>
                             </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium leading-none">Is Head Office</label>
+                                <div className="flex items-center space-x-4">
+                                    <label className="flex items-center space-x-2">
+                                        <input type="radio" name="office" value="1" className="h-4 w-4 text-primary"
+                                               defaultChecked/>
+                                        <span>Yes</span>
+                                    </label>
+                                    <label className="flex items-center space-x-2">
+                                        <input type="radio" name="office" value="0" className="h-4 w-4 text-primary"/>
+                                        <span>No</span>
+                                    </label>
+                                </div>
+                            </div>
+
                             <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none">Status</label>
                                 <div className="flex items-center space-x-4">
                                     <label className="flex items-center space-x-2">
-                                        <input type="radio" name="status" value="1" className="h-4 w-4 text-primary" defaultChecked />
+                                        <input type="radio" name="status" value="1" className="h-4 w-4 text-primary"
+                                               defaultChecked/>
                                         <span>Active</span>
                                     </label>
                                     <label className="flex items-center space-x-2">
-                                        <input type="radio" name="status" value="0" className="h-4 w-4 text-primary" />
+                                        <input type="radio" name="status" value="0" className="h-4 w-4 text-primary"/>
                                         <span>Inactive</span>
                                     </label>
                                 </div>
                             </div>
+
                         </div>
 
-                        <div className="flex items-center space-x-2 pt-2">
-                            <input
-                                type="checkbox"
-                                id="isMainBranch"
-                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                            />
-                            <label htmlFor="isMainBranch" className="text-sm font-medium leading-none">
-                                Is this the main branch?
-                            </label>
-                        </div>
+
                     </div>
 
                     {/* Footer */}
                     <div className="flex justify-end gap-3 mt-4 border-t pt-4">
                         <Button variant="outline" onClick={() => setGstModalOpen(false)}>
-                            Cancel
+                        Cancel
                         </Button>
                         <Button>Save Changes</Button>
                     </div>
                 </DialogContent>
             </Dialog>
-
         </ModuleLayout>
     );
 }
