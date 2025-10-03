@@ -6,18 +6,17 @@ import { Button } from "@repo/ui/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { DynamicStagesAndSteps } from "@/pages/workflow/DynamicStagesAndSteps.tsx";
 import { useQuery } from "@tanstack/react-query";
-import { LeadAPI } from "@/api/LeadAPI.ts";
-import { useLeadStore, Lead } from "@/stores/Lead.ts";
+import { LeadAPI } from "@repo/shared-state/api";
+import { useLeadStore, Lead } from "@repo/shared-state/stores";
 
 export function LeadDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const leadApi = new LeadAPI(); // API instance
+  const leadApi = LeadAPI.getInstance(); // Shared-state API instance
 
   // Access Lead store state
   const {
-    leadataV1,
     leadataV2,
     loading: storeLoading,
     error: storeError,

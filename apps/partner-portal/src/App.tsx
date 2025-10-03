@@ -4,17 +4,17 @@ import {
     Route,
     Navigate,
 } from "react-router-dom";
-import {LoginPage} from "./pages/LoginPage";
-import {DashboardPage} from "./pages/DashboardPage";
-import {ModulePage} from "./pages/ModulePage";
-import {TaskListPage} from "./pages/TaskListPage";
-import {LeadListPage} from "./pages/LeadListPage";
-import {LeadDetailPage} from "./pages/LeadDetailPage";
-import {ProtectedRoute} from "@repo/shared-state/components";
-import {Toaster} from "@repo/ui/ui";
+import { ProtectedRoute } from "@repo/shared-state/components";
+import { Toaster } from "@repo/ui/ui";
 import "./App.css";
-import {ModuleProvider} from "@repo/shared-state/contexts";
-import {PartnerDetailPage} from "@/pages/PartnerDetailPage.tsx";
+import { ModuleProvider } from "@repo/shared-state/contexts";
+import { LoginPage } from "./pages/LoginPage";
+import { DashboardPage } from "./pages/DashboardPage";
+import { ModulePage } from "./pages/ModulePage";
+import { TaskListPage } from "./pages/TaskListPage";
+import { LeadListPage } from "./pages/LeadListPage";
+import { LeadDetailPage } from "./pages/LeadDetailPage";
+import { PartnerDetailPage } from "./pages/PartnerDetailPage";
 
 function App() {
     return (

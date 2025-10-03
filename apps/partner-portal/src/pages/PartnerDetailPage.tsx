@@ -5,58 +5,26 @@ import { Card } from "@repo/ui/components/ui/card";
 import { Button } from "@repo/ui/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { DynamicStagesAndSteps } from "@/pages/workflow/DynamicStagesAndSteps.tsx";
-import { useQuery } from "@tanstack/react-query";
-import { PartnerAPI } from "@/api/PartnerAPI.ts";
-import { usePartnerStore, Partner } from "@/stores/Partner.ts";
+import { WorkflowAPI } from "@repo/shared-state/api";
 
 export function PartnerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const partnerApi = new PartnerAPI(); // API instance
+  const partnerApi = WorkflowAPI.getInstance(); // Use shared-state Workflow API
 
-  // Access Partner store state
-  const {
-    partnerdataV1,
-    partnerdataV2,
-    loading: storeLoading,
-    error: storeError,
-    setPartnerData,
-    setLoading,
-    setError,
-    clearError
-  } = usePartnerStore();
-
-  const [partner, setPartner] = useState<Partner | null>(null);
+  // Local partner state
+  const [partner, setPartner] = useState<any | null>(null);
 
   // ✅ Read loan_type and journey_type from query params
   const partnerType = searchParams.get("partner_type");
   const journeyType = searchParams.get("journey_type");
 
-  // ✅ Fetch partner from API only if `id` exists
-  const {
-    data: apiPartner,
-    isLoading: isPartnerLoading,
-    isError: isPartnerError,
-    error: partnerError,
-  } = useQuery({
-    queryKey: ["partner", id],
-    queryFn: async () => {
-      if (!id) throw new Error("Partner ID is required");
-      setLoading(true);
-      clearError();
-      try {
-        const response = await partnerApi.fetchPartner(id, "V2");
-        return response.result;
-      } catch (error) {
-        setError(error instanceof Error ? error.message : "Failed to fetch partner");
-        throw error;
-      } finally {
-        setLoading(false);
-      }
-    },
-    enabled: !!id,
-  });
+  // Placeholder query state since partner fetch API is not available in shared-state
+  const apiPartner = null as any;
+  const isPartnerLoading = false;
+  const isPartnerError = false;
+  const partnerError = null as any;
 
   // ✅ Handle case when id is missing but loan_type & journey_type are in URL
   useEffect(() => {
@@ -74,26 +42,19 @@ export function PartnerDetailPage() {
   useEffect(() => {
     if (apiPartner) {
       setPartner(apiPartner);
-      // Store in Zustand store for global access
-      setPartnerData(apiPartner, "V2");
     }
-  }, [apiPartner, setPartnerData]);
+  }, [apiPartner]);
 
-  // ✅ Use store data if available
-  useEffect(() => {
-    if (!partner && partnerdataV2) {
-      setPartner(partnerdataV2);
-    }
-  }, [partner, partnerdataV2]);
+  // No shared-state partner store yet; manage locally only
 
   const handleBack = () => {
     navigate(-1);
   };
 
   // Combine loading states
-  const isLoading = isPartnerLoading || storeLoading;
-  const hasError = isPartnerError || !!storeError;
-  const errorMessage = partnerError instanceof Error ? partnerError.message : storeError;
+  const isLoading = isPartnerLoading;
+  const hasError = isPartnerError;
+  const errorMessage = partnerError instanceof Error ? partnerError.message : null;
 
   if (isLoading) {
     return (
@@ -166,7 +127,7 @@ export function PartnerDetailPage() {
         <DynamicStagesAndSteps
             dataInfo={partner}
             api={partnerApi}
-            sourceId={partner?.application?.application_id || apiPartner?.application?.application_id}
+            sourceId={id || partner?.application?.application_id}
             workflowType={"PARTNER_ONBOARDING"}
             navigateUrl={"/partner/list"}
         />

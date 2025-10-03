@@ -2,7 +2,7 @@ import {forwardRef, useEffect, useImperativeHandle, useRef} from "react";
 import { AxiosProvider, DynamicForm, Provider } from "craft-ux";
 import {StepComponentProps} from "@/pages/WorkflowStepComponentLoader.tsx";
 import {useAxios} from "@/pages/helper/axiosInstance.tsx";
-import {useWorkflowStore} from "@/stores/workflow.ts";
+import { useWorkflowStore } from "@repo/shared-state/stores";
 import "flatpickr/dist/flatpickr.min.css";
 
 export interface FormDataRef {

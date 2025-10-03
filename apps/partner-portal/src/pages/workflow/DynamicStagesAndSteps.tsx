@@ -3,14 +3,15 @@ import {Button} from "@repo/ui/components/ui/button";
 import {Card} from "@repo/ui/components/ui/card";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@repo/ui/components/ui/tabs";
 import {ChevronLeft, ChevronRight, Check} from "lucide-react";
-import {cn} from "@/lib/utils.ts";
+import { cn } from "@repo/ui/lib/utils";
 import {useNavigate, useParams, useSearchParams} from "react-router-dom";
 import {useQuery, useMutation} from "@tanstack/react-query";
 import {toast} from "sonner";
 
-import {Stage, Step, useWorkflowStore} from "@/stores/workflow.ts";
+import { useWorkflowStore } from "@repo/shared-state/stores";
+import type { Stage, Step } from "@repo/shared-state/api";
 import WorkflowStepComponentLoader from "@/pages/WorkflowStepComponentLoader.tsx";
-import {WorkflowAPI} from "@/api/WorkflowAPI.ts";
+import { WorkflowAPI } from "@repo/shared-state/api";
 import {JourneyTypeModal} from "@/pages/workflow/JourneyTypeModal";
 
 interface DynamicStagesAndStepsProps {
@@ -108,7 +109,7 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
     useEffect(() => {
         if (journeyTypesQuery.data && !id) {
             // Check if there's only one journey type across all categories
-            const journeyData = journeyTypesQuery.data.data || journeyTypesQuery.data;
+            const journeyData = (journeyTypesQuery.data as any)?.data || (journeyTypesQuery.data as any);
             const allJourneys = Object.values(journeyData).flat();
             console.log("all journey", journeyTypesQuery.data);
             console.log("allJourneys length", allJourneys.length);
@@ -303,7 +304,7 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
                 open={showJourneyModal}
                 workflowType={workflowType}
                 onClose={() => setShowJourneyModal(false)}
-                data={journeyTypesQuery.data?.data}
+                data={(journeyTypesQuery.data as any)?.data}
                 onSelect={(journey: any) => {
                     setShowJourneyModal(false);
                     handleJourneySelection(journey);
@@ -364,7 +365,6 @@ export const DynamicStagesAndSteps: React.FC<DynamicStagesAndStepsProps> = ({
   <div className="flex items-center justify-start gap-6 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
     {currentStageData?.steps?.map((step: Step, stepIndex: number) => {
       const stepStatus = getStepStatus(step, currentStage, stepIndex);
-      const isActive = stepIndex === currentStep;
       const isAccessible =
         stepStatus === "completed" ||
         stepStatus === "active" ||

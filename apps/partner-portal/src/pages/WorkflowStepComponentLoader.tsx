@@ -1,4 +1,4 @@
-import {Step} from "@/stores/workflow.js";
+import type { Step } from "@repo/shared-state/api";
 import FormBuilderRenderPage from "@/pages/FormBuilderRenderPage.tsx";
 import {forwardRef} from "react";
 

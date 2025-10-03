@@ -21,7 +21,7 @@ import {
 } from "@repo/ui/components/ui/dropdown-menu";
 import { Search, Plus, Filter, Loader2, MoreHorizontal } from "lucide-react";
 import { useCurrentModule } from "@repo/shared-state/contexts";
-import { leadsApiService, LeadApplication, LeadsApiResponse } from "@repo/shared-state/api";
+import { LeadsApiService, LeadApplication, LeadsApiResponse } from "@repo/shared-state/api";
 
 const statusColors: Record<string, string> = {
   'New': 'bg-blue-100 text-blue-800',
@@ -90,7 +90,7 @@ export function LeadListPage() {
         territory_id: defaultFilters.territory_id
       };
       
-      const response: LeadsApiResponse = await leadsApiService.fetchLeads(params);
+      const response: LeadsApiResponse = await LeadsApiService.getInstance().fetchLeads(params);
       
       setLeads(response.data);
       setApplicationStatuses(response.application_status);
