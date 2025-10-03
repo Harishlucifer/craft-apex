@@ -200,6 +200,38 @@ export class AuthApiService {
       throw error;
     }
   }
-}
 
-export const authApiService = AuthApiService.getInstance();
+  async loginWithLink(
+    token: string,
+    platform: PlatformType = "EMPLOYEE_PORTAL"
+  ): Promise<LoginResponse> {
+    const headers = {
+      "X-Platform": platform,
+      "Content-Type": "application/json",
+    };
+
+    try {
+      const response = await fetch(`${getApiEndpoint()}/alpha/v2/auth/login-with-link`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ token }),
+      });
+
+      const data = await response.json();
+      console.log("Login with link response :: ", data);
+
+      // Check for successful HTTP status code (200)
+      if (response.status !== 200) {
+        throw new Error(
+          data.error ||
+            `Login with link API failed: HTTP ${response.status} ${response.statusText}`
+        );
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Login with link API Error:", error);
+      throw error;
+    }
+  }
+}

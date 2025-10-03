@@ -1,4 +1,3 @@
-import { PlatformType } from '@repo/types/setup';
 import { getApiEndpoint } from '../config';
 import { useAuthStore } from '../stores/auth';
 
@@ -7,6 +6,7 @@ export interface ApiResponse<T = any> {
   data?: T;
   message?: string;
   error?: string;
+  result?:T
 }
 
 export interface RequestConfig {
@@ -15,6 +15,17 @@ export interface RequestConfig {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   body?: any;
 }
+
+// Helper function to get auth state directly from the store
+const getAuthState = () => {
+  const state = useAuthStore.getState();
+  return {
+    user: state.user,
+    platform: state.platform,
+    tenantDomain: state.tenantDomain,
+    refreshToken: state.refreshToken,
+  };
+};
 
 export class BaseApiService {
   private baseURL: string;
@@ -39,21 +50,52 @@ export class BaseApiService {
   }
 
   private getAuthHeaders(): Record<string, string> {
-    const authStore = useAuthStore.getState();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
 
-    if (authStore.user?.access_token) {
-      headers['Authorization'] = `Bearer ${authStore.user.access_token}`;
+    // Get auth state directly from the store
+    const authState = getAuthState();
+    
+    // Include bearer token if available
+    if (authState.user?.access_token) {
+      headers['Authorization'] = `Bearer ${authState.user.access_token}`;
     }
 
-    if (authStore.platform) {
-      headers['X-Platform'] = authStore.platform;
+    if (authState.platform) {
+      headers['X-Platform'] = authState.platform;
     }
 
-    if (authStore.tenantDomain) {
-      headers['X-Tenant-Domain'] = authStore.tenantDomain;
+    if (authState.tenantDomain) {
+      headers['X-Tenant-Domain'] = authState.tenantDomain;
+    }
+
+    return headers;
+  }
+
+  private getSetupAuthHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // Get auth state directly from the store
+    const authState = getAuthState();
+
+    // Only include bearer token when both conditions are met:
+    // 1. The user value is not null
+    // 2. The user type is not GUEST
+    if (authState.user !== null && 
+        authState.user?.user_type !== 'GUEST' && 
+        authState.user?.access_token) {
+      headers['Authorization'] = `Bearer ${authState.user.access_token}`;
+    }
+
+    if (authState.platform) {
+      headers['X-Platform'] = authState.platform;
+    }
+
+    if (authState.tenantDomain) {
+      headers['X-Tenant-Domain'] = authState.tenantDomain;
     }
 
     return headers;
@@ -70,7 +112,16 @@ export class BaseApiService {
     };
 
     if (config.body && config.method !== 'GET') {
-      requestConfig.body = typeof config.body === 'string' ? config.body : JSON.stringify(config.body);
+      // Don't stringify FormData, let the browser handle it with the correct Content-Type
+      if (config.body instanceof FormData) {
+        requestConfig.body = config.body;
+        // Remove Content-Type header to let the browser set it with the correct boundary
+        if (requestConfig.headers) {
+          delete (requestConfig.headers as any)['Content-Type'];
+        }
+      } else {
+        requestConfig.body = typeof config.body === 'string' ? config.body : JSON.stringify(config.body);
+      }
     }
 
     try {
@@ -103,7 +154,11 @@ export class BaseApiService {
     this.isRefreshing = true;
 
     try {
-      await useAuthStore.getState().refreshToken();
+      // Get auth state using dependency injection to avoid circular dependency
+      const authState = getAuthState?.() || {};
+      if (authState.refreshToken) {
+        await authState.refreshToken();
+      }
       this.processQueue(null);
       return originalRequest();
     } catch (error) {
@@ -143,11 +198,44 @@ export class BaseApiService {
     return this.makeRequest<T>(url, { ...config, method: 'PATCH', body: data });
   }
 
-  async delete<T>(url: string, config: Omit<RequestConfig, 'method' | 'body'> = {}): Promise<ApiResponse<T>> {
+  async delete<T>(url: string, config: Omit<RequestConfig, 'method'> = {}): Promise<ApiResponse<T>> {
     return this.makeRequest<T>(url, { ...config, method: 'DELETE' });
   }
 
-  // Singleton instance
+  async postSetup<T>(url: string, data?: any, config: Omit<RequestConfig, 'method'> = {}): Promise<ApiResponse<T>> {
+    const fullUrl = url.startsWith('http') ? url : `${this.getBaseURL()}${url}`;
+    const headers = { ...this.getSetupAuthHeaders(), ...config.headers };
+    
+    const requestConfig: RequestInit = {
+      method: 'POST',
+      headers,
+      signal: AbortSignal.timeout(config.timeout || this.defaultTimeout),
+    };
+
+    if (data) {
+      requestConfig.body = typeof data === 'string' ? data : JSON.stringify(data);
+    }
+
+    try {
+      const response = await fetch(fullUrl, requestConfig);
+      
+      if (response.status === 401) {
+        return this.handleUnauthorized(() => this.postSetup(url, data, config));
+      }
+
+      const responseData = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      return responseData;
+    } catch (error: any) {
+      console.error('Setup API request failed:', error);
+      throw error;
+    }
+  }
+
   private static instance: BaseApiService;
 
   static getInstance(): BaseApiService {

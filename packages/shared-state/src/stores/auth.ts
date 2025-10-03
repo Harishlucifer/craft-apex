@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { UserData, SetupData, PlatformType } from "@repo/types/setup";
-import { setupApiService, authApiService } from "../api";
+import { SetupApiService, AuthApiService } from "../api";
 
 interface LoginCredentials {
   mobile: string;
@@ -39,8 +39,9 @@ interface AuthStore {
     email: string;
     password: string;
   }) => Promise<void>;
+  loginWithLink: (token: string, platform?: PlatformType) => Promise<void>;
   logout: () => void;
-  fetchSetup: (platform: PlatformType, tenantDomain: string) => Promise<void>;
+  fetchSetup: (platform: PlatformType, tenantDomain: string, token?: string) => Promise<void>;
   clearError: () => void;
   setPlatform: (platform: PlatformType) => void;
   setTenantDomain: (domain: string) => void;
@@ -109,16 +110,16 @@ export const useAuthStore = create<AuthStore>()(
             setPlatform(platform);
             setTenantDomain(tenantDomain);
 
-            const response = await setupApiService.fetchSetup();
-
-            if (response.status === 1 && response.data) {
+            const response = await SetupApiService.getInstance().fetchSetup(platform, tenantDomain);
+            console.log('Setup data fetched successfully', response)
+            if (response) {
               setSetupData(response.data);
-
+              console.log('Setup data fetched successfully', response.data)
               // If user is already authenticated (not guest), set user data
               if (response.data.user.user_type !== "GUEST") {
                 set({ user: response.data.user, isAuthenticated: true });
               }else {
-                console.log('User is guest')
+                console.log('User is guest',response.data)
                 set({ user: response.data.user, isAuthenticated: false });
               }
             } else {
@@ -159,7 +160,7 @@ export const useAuthStore = create<AuthStore>()(
             setLoginLoading(true);
             setError(null);
 
-            const response = await authApiService.loginWithMFA(
+            const response = await AuthApiService.getInstance().loginWithMFA(
               credentials,
               platform,
               tenantDomain
@@ -203,7 +204,7 @@ export const useAuthStore = create<AuthStore>()(
             setLoginLoading(true);
             setError(null);
 
-            const response = await authApiService.loginWithOtp(
+            const response = await AuthApiService.getInstance().loginWithOtp(
               credentials,
               platform,
               tenantDomain
@@ -249,12 +250,12 @@ export const useAuthStore = create<AuthStore>()(
             setLoginLoading(true);
             setError(null);
 
-            const response = await authApiService.loginWithPassword(
+            const response = await AuthApiService.getInstance().loginWithPassword(
               credentials,
               platform,
               tenantDomain
             );
-
+            
             if (response.status === 1 && response.data) {
               // Store complete setup data including modules, system config, and tenant config
               setSetupData(response.data);
@@ -293,7 +294,7 @@ export const useAuthStore = create<AuthStore>()(
           try {
             setError(null);
 
-            const response = await authApiService.refreshToken(
+            const response = await AuthApiService.getInstance().refreshToken(
               user.refresh_token,
               platform,
               tenantDomain
@@ -315,6 +316,47 @@ export const useAuthStore = create<AuthStore>()(
             setError(errorMessage);
             // On refresh failure, logout user
             set({
+              isAuthenticated: false,
+              user: null,
+              setupData: null,
+              error: errorMessage,
+            });
+            throw error;
+          }
+        },
+
+        loginWithLink: async (token: string, platform: PlatformType = "EMPLOYEE_PORTAL") => {
+          set({ isLoginLoading: true, error: null });
+
+          try {
+            const response = await AuthApiService.getInstance().loginWithLink(token, platform);
+
+            if (response.status === 1 && response.data) {
+              const { user, setup_data, access_token, refresh_token } = response.data;
+
+              // Store tokens in localStorage
+              if (access_token) {
+                localStorage.setItem("access_token", access_token);
+              }
+              if (refresh_token) {
+                localStorage.setItem("refresh_token", refresh_token);
+              }
+
+              set({
+                isAuthenticated: true,
+                user: user || null,
+                setupData: setup_data || null,
+                isLoginLoading: false,
+                error: null,
+              });
+            } else {
+              throw new Error(response.error || "Login with link failed");
+            }
+          } catch (error: any) {
+            const errorMessage = error.message || "Login with link failed";
+            console.error("Login with link error:", error);
+            set({
+              isLoginLoading: false,
               isAuthenticated: false,
               user: null,
               setupData: null,

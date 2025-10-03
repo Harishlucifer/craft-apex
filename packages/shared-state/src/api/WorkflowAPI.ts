@@ -1,6 +1,6 @@
 // WorkflowAPI.ts
-import { useAuthStore } from "@repo/shared-state/stores";
-import { useWorkflowStore, Workflow, WorkflowState } from "@repo/shared-state/stores";
+import { BaseApiService } from "./base";
+import { useWorkflowStore, Workflow, WorkflowState } from "../stores";
 
 /**
  * Optional invalidate callback shape:
@@ -26,21 +26,24 @@ export interface WorkflowPayload {
 }
 
 
-export class WorkflowAPI {
-    protected apiUrl: string;
-    protected user: any;
-    protected store: WorkflowState;
+export class WorkflowAPI extends BaseApiService {
+    private static workflowInstance: WorkflowAPI;
     private invalidate?: InvalidateFn;
 
-    /**
-     * @param invalidate optional callback to invalidate react-query caches:
-     *   new WorkflowAPI((key) => queryClient.invalidateQueries(key))
-     */
-    constructor(invalidate?: InvalidateFn) {
-        this.apiUrl = import.meta.env.VITE_API_ENDPOINT;
-        this.user = useAuthStore.getState().user;
-        this.store = useWorkflowStore.getState(); // snapshot of store's methods and state
+    protected constructor(invalidate?: InvalidateFn) {
+        super();
         this.invalidate = invalidate;
+    }
+
+    protected get store(): WorkflowState {
+        return useWorkflowStore.getState();
+    }
+
+    public static getInstance(invalidate?: InvalidateFn): WorkflowAPI {
+        if (!WorkflowAPI.workflowInstance) {
+            WorkflowAPI.workflowInstance = new WorkflowAPI(invalidate);
+        }
+        return WorkflowAPI.workflowInstance;
     }
 
     /**
@@ -48,17 +51,12 @@ export class WorkflowAPI {
      * return the value and use it directly**/
 
     async fetchJourneyTypes(workflowType: string, partnerType?: string | null) {
-        let url = `${this.apiUrl}/alpha/v1/master/journey-type/group?workflow_type=${workflowType ?? ""}`;
+        let endpoint = `/alpha/v1/master/journey-type/group?workflow_type=${workflowType ?? ""}`;
         if (partnerType) {
-            url += `&partner_type=${partnerType}`;
+            endpoint += `&partner_type=${partnerType}`;
         }
-        const res = await fetch(url, {
-            headers: {
-                Authorization: `Bearer ${this.user?.access_token}`,
-            },
-        });
-        if (!res.ok) throw new Error("Failed to fetch journey types");
-        return res.json();
+        const apiResponse = await this.get(endpoint);
+        return apiResponse.data;
     }
 
     /**
@@ -71,22 +69,11 @@ export class WorkflowAPI {
         this.store.setLoading(true);
 
         try {
-            const res = await fetch(`${this.apiUrl}/alpha/v1/workflow/build`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${this.user?.access_token}`,
-                },
-                body: JSON.stringify({...workflowPayload}),
-            });
+            const apiResponse = await this.post('/alpha/v1/workflow/build', workflowPayload);
 
-            if (res.status === 204) return null;
+            if (apiResponse.status === 204) return null;
 
-            const text = await res.text();
-            if (!text) return null;
-
-            const json = JSON.parse(text);
-            const workflowData = json.data as Workflow;
+            const workflowData = apiResponse.data as Workflow;
 
             if (workflowData) {
                 // Update zustand store so UI reacts
@@ -113,21 +100,16 @@ export class WorkflowAPI {
         this.store.setLoading(true);
 
         try {
-            const res = await fetch(`${this.apiUrl}/alpha/v1/workflow/execution`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${this.user?.access_token}`,
-                },
-                body: JSON.stringify({
-                    execute_step_id: step_id,
-                    workflow_type: type,
-                    source_id: id,
-                }),
-            });
+            const payload = {
+                execute_step_id: step_id,
+                workflow_type: type,
+                source_id: id,
+            };
+
+            const apiResponse = await this.post('/alpha/v1/workflow/execution', payload);
 
             // 204 -> nothing to parse, treat as success
-            if (res.status === 204) {
+            if (apiResponse.status === 204) {
                 // Mark step as completed locally since server doesn't return updated workflow
                 this.store.goToNextStep();
                 // Optionally invalidate client cache
@@ -135,11 +117,7 @@ export class WorkflowAPI {
                 return { success: true, data: null };
             }
 
-            const text = await res.text();
-            if (!text) return { success: false, data: null };
-
-            const json = JSON.parse(text);
-            const workflowData = json.data as Workflow;
+            const workflowData = apiResponse.data as Workflow;
 
             if (workflowData) {
                 // Update store with returned workflow (server is authoritative)
@@ -148,7 +126,7 @@ export class WorkflowAPI {
                 this.invalidate?.(["workflow", id, type]);
             }
 
-            return { success: res.status === 200, data: workflowData ?? null };
+            return { success: apiResponse.status === 200, data: workflowData ?? null };
         } catch (err) {
             console.error("❌ executeWorkflow error:", err);
             return { success: false, data: null };

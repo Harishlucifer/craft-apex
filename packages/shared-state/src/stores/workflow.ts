@@ -351,7 +351,7 @@ export const useWorkflowStore = create<WorkflowState>()(
                   });
 
                 } else if (currentStageIndex > 0) {
-                  // Go to previous stage’s last step
+                  // Go to previous stage's last step
                   const previousStageIndex = currentStageIndex - 1;
                   const previousStage = workflow.stages[previousStageIndex];
 
