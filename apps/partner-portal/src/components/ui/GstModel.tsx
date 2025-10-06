@@ -27,7 +27,7 @@ interface GstModelProps {
   areaList: AreaItem[];
   area_id:string;
   selectedArea?: string; // Add this line
-  setSelectedArea: (area: AreaItem) => void;
+  setSelectedArea: (area: string) => void;
   gstModalOpen: boolean;
   handlePincodeSelect: (value: string) => void;
   showPinCodeList: boolean;
@@ -136,12 +136,7 @@ export function GstModel({
       value={selectedArea || ""}
       className={`w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-[url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")] bg-no-repeat bg-[right_0.75rem_center] ${areaList?.length === 0 ? 'bg-gray-100 text-gray-400' : 'bg-white hover:border-gray-400'}`}
       disabled={areaList?.length === 0}
-      onChange={(e) => {
-        const area = areaList.find(area => area.value === e.target.value);
-        if (area) {
-          setSelectedArea(area);
-        }
-      }}>
+      onChange={(e) => setSelectedArea(e.target.value)}>
     <option value="">Select area</option>
     {areaList.map((area: AreaItem) => {
         return (

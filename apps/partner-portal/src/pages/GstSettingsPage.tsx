@@ -198,9 +198,8 @@ export function GstListPage() {
         updateURLParams({page: newPage.toString()});
     };
     const setSelectedArea = (area:any)=> {
-        console.log(area.target.value)
-        setValue("area_id",area.target.value)
-        return area.target.value
+        setArea_id(area)
+        setValue("area_id",area)
     }
 
     const handleGstView = async (mode : string,id: string) => {
