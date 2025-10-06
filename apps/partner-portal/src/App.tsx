@@ -15,6 +15,7 @@ import { TaskListPage } from "./pages/TaskListPage";
 import { LeadListPage } from "./pages/LeadListPage";
 import { LeadDetailPage } from "./pages/LeadDetailPage";
 import { PartnerDetailPage } from "./pages/PartnerDetailPage";
+import  Estimate from "./pages/Finance/Estimate.tsx";
 
 function App() {
     return (
@@ -69,6 +70,15 @@ function App() {
                         </ModuleProvider>
                     }
                 />
+                <Route path="/finance/payable-earnings"
+                       element={
+                    <ModuleProvider>
+                        <ProtectedRoute requireModuleAccess={true}>
+                            <Estimate/>
+                        </ProtectedRoute>
+                    </ModuleProvider>
+
+                }/>
                 <Route
                     path="/lead/create/:id"
                     element={

@@ -37,6 +37,9 @@ yarn-error.log*
 # ui
 dist/
 
+# idr
+.idea
+
 package-lock.json
 yarn.lock
 
