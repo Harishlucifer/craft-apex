@@ -2,6 +2,8 @@ export * from './setup';
 export * from './auth';
 export * from './leads';
 export * from './base';
+export * from './TerritoryApi'
+export { TerritoryApiService } from './TerritoryApi';
 
 // Export specific classes to avoid conflicts
 export { WorkflowAPI } from './WorkflowAPI';

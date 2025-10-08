@@ -1,4 +1,3 @@
-
 import { BaseApiService } from './base';
 
 export interface Territory {
@@ -59,8 +58,8 @@ export class TerritoryApiService {
         const response = await this.api.get<TerritoryApiResponse>(endpoint);
 
         // Always return the array or empty array
-        return (response?.data?.data || []) as Territory[];
+        return (response?.data || []) as Territory[];
     }
 }
 
-export default TerritoryApiService;
+// export { TerritoryApiService };
