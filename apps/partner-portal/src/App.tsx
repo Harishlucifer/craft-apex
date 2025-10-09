@@ -10,11 +10,11 @@ import "./App.css";
 import { ModuleProvider } from "@repo/shared-state/contexts";
 import { LoginPage } from "./pages/LoginPage";
 import { DashboardPage } from "./pages/DashboardPage";
-import { ModulePage } from "./pages/ModulePage";
 import { TaskListPage } from "./pages/TaskListPage";
 import { LeadListPage } from "./pages/LeadListPage";
 import { LeadDetailPage } from "./pages/LeadDetailPage";
 import { PartnerDetailPage } from "./pages/PartnerDetailPage";
+import EmployeeUserList from "@/pages/ModulePage.tsx";
 
 function App() {
     return (
@@ -84,7 +84,7 @@ function App() {
                     element={
                         <ModuleProvider>
                             <ProtectedRoute requireModuleAccess={true}>
-                                <ModulePage/>
+                                <EmployeeUserList/>
                             </ProtectedRoute>
                         </ModuleProvider>
                     }
@@ -96,7 +96,7 @@ function App() {
                     element={
                         <ModuleProvider>
                             <ProtectedRoute requireModuleAccess={false}>
-                                <ModulePage/>
+                                <EmployeeUserList/>
                             </ProtectedRoute>
                         </ModuleProvider>
                     }
