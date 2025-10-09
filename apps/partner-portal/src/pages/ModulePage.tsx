@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {forwardRef, useState} from "react";
 import {
     Table,
     TableHeader,
@@ -22,8 +22,6 @@ import { Badge } from "@repo/ui/components/ui/badge";
 import { Pencil, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { ModuleLayout } from "@repo/ui/module";
-import {UserAPIModule} from "@repo/shared-state/api";
-
 
 type User = {
     name: string;
@@ -39,8 +37,7 @@ type User = {
     created_at: string;
 };
 
-const EmployeeUserList: React.FC = () => {
-    console.log(UserAPIModule)
+const EmployeeUserList =forwardRef( () =>{
     const [users, setUsers] = useState<User[]>([
         {
             name: "Samson",
@@ -238,8 +235,6 @@ const EmployeeUserList: React.FC = () => {
             created_at: "2025-09-28T15:00:00+05:30",
         },
     ]);
-
-
     const [search, setSearch] = useState("");
     const [isOpen, setIsOpen] = useState(false);
     const [formData, setFormData] = useState({
@@ -539,6 +534,6 @@ const EmployeeUserList: React.FC = () => {
             </div>
         </ModuleLayout>
     );
-};
+});
 
 export default EmployeeUserList;

@@ -1,9 +1,8 @@
 import { BaseApiService } from "./base";
 import { LeadState, useLeadStore } from "../stores/Lead";
 
-
 export interface UserModuleResponse {
-    data: any;
+    data:[];
     status: number;
 }
 
@@ -24,7 +23,6 @@ export class UserAPIModule extends BaseApiService{
         }
         return UserAPIModule.userModuleInstance;
     }
-
     async fetchUserModuleList(): Promise<UserModuleResponse | undefined> {
         this.leadStore.setLoading(true);
         this.leadStore.clearError();
@@ -32,14 +30,13 @@ export class UserAPIModule extends BaseApiService{
         try {
             const endpoint = `/alpha/v1/channel/channel-user`;
             const response = await this.get<UserModuleResponse>(endpoint);
-
-            const responseData = response?.data?.data ?? [];
-            const status = response?.data?.status ?? 0;
-
-            return { data: responseData, status:status };
+            const responseData = response?.data || response;
+            return responseData as UserModuleResponse;
         } catch (error) {
-            console.error("Error fetching user module list:", error);
-            this.leadStore.setError(String(error));
+            const errorMessage = error instanceof Error ? error.message : "Failed to fetch offers";
+            this.leadStore.setError(errorMessage);
+            console.error('LenderOfferAPI.fetchEligibleOffers error:', errorMessage);
+            throw error;
         } finally {
             this.leadStore.setLoading(false);
         }
