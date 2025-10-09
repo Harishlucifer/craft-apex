@@ -3,7 +3,12 @@ export * from './auth';
 export * from './leads';
 export * from './base';
 export * from './TerritoryApi'
+export * from "./ChannelListAPI";
 export { TerritoryApiService } from './TerritoryApi';
+export { EstimateApiService } from "./EstimateAPI"; // class -> normal export
+export type { Estimate, EstimateResponse, EstimateSummary, EstimateParams } from "./EstimateAPI"; // types -> export type
+
+
 
 // Export specific classes to avoid conflicts
 export { WorkflowAPI } from './WorkflowAPI';
