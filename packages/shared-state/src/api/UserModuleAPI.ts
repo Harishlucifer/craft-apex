@@ -51,5 +51,3 @@ export class UserModuleAPI extends BaseApiService{
         }
     }
 }
-
-export const userModuleAPI = UserModuleAPI.getInstance();
