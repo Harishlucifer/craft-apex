@@ -7,14 +7,8 @@ export interface UserModuleResponse {
     status: number;
 }
 
-export interface ApiResponse<T> {
-    data?: T;
-    message?: string;
-    status?: number;
-}
-
-export class UserModuleAPI extends BaseApiService{
-    private static userModuleInstance: UserModuleAPI;
+export class UserAPIModule extends BaseApiService{
+    private static userModuleInstance: UserAPIModule;
 
     private constructor() {
         super();
@@ -24,11 +18,11 @@ export class UserModuleAPI extends BaseApiService{
         return useLeadStore.getState();
     }
 
-    public static getInstance(): UserModuleAPI {
-        if (!UserModuleAPI.userModuleInstance) {
-            UserModuleAPI.userModuleInstance = new UserModuleAPI();
+    public static getInstance(): UserAPIModule {
+        if (!UserAPIModule.userModuleInstance) {
+            UserAPIModule.userModuleInstance = new UserAPIModule();
         }
-        return UserModuleAPI.userModuleInstance;
+        return UserAPIModule.userModuleInstance;
     }
 
     async fetchUserModuleList(): Promise<UserModuleResponse | undefined> {
@@ -37,12 +31,12 @@ export class UserModuleAPI extends BaseApiService{
 
         try {
             const endpoint = `/alpha/v1/channel/channel-user`;
-            const response = await this.get<ApiResponse<UserModuleResponse>>(endpoint);
+            const response = await this.get<UserModuleResponse>(endpoint);
 
             const responseData = response?.data?.data ?? [];
             const status = response?.data?.status ?? 0;
 
-            return { data: responseData, status };
+            return { data: responseData, status:status };
         } catch (error) {
             console.error("Error fetching user module list:", error);
             this.leadStore.setError(String(error));

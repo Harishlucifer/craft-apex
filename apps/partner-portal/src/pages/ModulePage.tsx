@@ -22,7 +22,8 @@ import { Badge } from "@repo/ui/components/ui/badge";
 import { Pencil, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { ModuleLayout } from "@repo/ui/module";
-import {UserModuleAPI} from "@repo/shared-state/api";
+import {UserAPIModule} from "@repo/shared-state/api";
+
 
 type User = {
     name: string;
@@ -39,9 +40,7 @@ type User = {
 };
 
 const EmployeeUserList: React.FC = () => {
-
-    const userModuleAPI = UserModuleAPI.getInstance();
-    console.log("userModuleAPI", userModuleAPI);
+    console.log(UserAPIModule)
     const [users, setUsers] = useState<User[]>([
         {
             name: "Samson",
