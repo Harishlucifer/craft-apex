@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requireModuleAccess = false }: ProtectedRouteProps) {
-  const { isAuthenticated, setupData } = useAuthStore();
+  const { isAuthenticated, setupData, user } = useAuthStore();
   const location = useLocation();
   
   // Only use module context when module access is required
@@ -28,8 +28,9 @@ export function ProtectedRoute({ children, requireModuleAccess = false }: Protec
     }
   }
 
-  // Redirect to login if not authenticated
-  if (!isAuthenticated) {
+  // Treat GUEST as unauthenticated and redirect to login
+  const isGuest = !isAuthenticated || user?.user_type === 'GUEST';
+  if (isGuest) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

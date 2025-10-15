@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryProvider } from '@repo/shared-state/query'
 import { initializeSharedState } from '@repo/shared-state/config'
+import { useAuthStore } from '@repo/shared-state/stores'
 import App from './App.tsx'
 import './index.css'
 
@@ -10,10 +11,14 @@ initializeSharedState({
   apiEndpoint: import.meta.env.VITE_API_ENDPOINT || 'http://localhost:5050'
 })
 
+// Initialize platform and tenant domain at app startup
+const authStore = useAuthStore.getState()
+const tenantDomain = window.location.hostname
+authStore.setPlatform('EMPLOYEE_PORTAL')
+authStore.setTenantDomain(tenantDomain)
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <QueryProvider>
-      <App />
-    </QueryProvider>
-  </React.StrictMode>,
+  <QueryProvider>
+    <App />
+  </QueryProvider>,
 )

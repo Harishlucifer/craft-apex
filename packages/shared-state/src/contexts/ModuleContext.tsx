@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { createContext, useContext, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores';
 import { ModuleData } from '@repo/types/setup';
 
@@ -7,20 +7,31 @@ interface ModuleContextType {
   currentModule: ModuleData | null;
   parentModule: ModuleData | null;
   breadcrumbs: Array<{ title: string; url: string; moduleId?: string }>;
+  // New: child expansion and navigation helpers
+  expandedModuleId: string | null;
+  getChildren: (moduleId: string | null) => ModuleData[];
+  setExpandedModuleId: (moduleId: string | null) => void;
+  navigateToModule: (moduleOrId: ModuleData | string) => void;
 }
 
 const ModuleContext = createContext<ModuleContextType | undefined>(undefined);
 
 export function ModuleProvider({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { setupData } = useAuthStore();
+  const [expandedModuleId, setExpandedModuleId] = useState<string | null>(null);
   
   const moduleData = useMemo(() => {
     if (!setupData?.module || !location.pathname) {
       return {
         currentModule: null,
         parentModule: null,
-        breadcrumbs: []
+        breadcrumbs: [],
+        expandedModuleId: null,
+        getChildren: () => [],
+        setExpandedModuleId: () => {},
+        navigateToModule: () => {}
       };
     }
 
@@ -94,30 +105,20 @@ export function ModuleProvider({ children }: { children: React.ReactNode }) {
       } else {
         // For modules with parents, build full hierarchy
         const buildModuleHierarchy = (module: ModuleData): ModuleData[] => {
-          // Find all ancestors of this module
-          const findAncestors = (targetModule: ModuleData, moduleList: ModuleData[], ancestors: ModuleData[] = []): ModuleData[] => {
-            // Find parent of target module
-            for (const mod of moduleList) {
-              if (mod.child_module && mod.child_module.length > 0) {
-                const hasChild = mod.child_module.some(child => child.module_id === targetModule.module_id);
-                if (hasChild) {
-                  // Found parent, now find its ancestors
-                  const parentAncestors = findAncestors(mod, modules, []);
-                  return [...parentAncestors, mod, ...ancestors];
-                }
-                
-                // Recursively check nested children
-                const nestedResult = findAncestors(targetModule, mod.child_module, ancestors);
-                if (nestedResult.length > 0) {
-                  return [mod, ...nestedResult];
-                }
+          // Robust ancestor path finder that supports additional nested levels
+          const findPath = (list: ModuleData[], targetId: string, path: ModuleData[] = []): ModuleData[] => {
+            for (const m of list) {
+              const nextPath = [...path, m];
+              if (m.module_id === targetId) return nextPath;
+              if (m.child_module && m.child_module.length > 0) {
+                const childPath = findPath(m.child_module, targetId, nextPath);
+                if (childPath.length > 0) return childPath;
               }
             }
-            return ancestors;
+            return [];
           };
-          
-          const ancestors = findAncestors(module, modules);
-          return [...ancestors, module];
+          const fullPath = findPath(modules, module.module_id);
+          return fullPath.length > 0 ? fullPath : [module];
         };
         
         const moduleHierarchy = buildModuleHierarchy(currentModule);
@@ -134,10 +135,45 @@ export function ModuleProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
+    // Helpers: children resolver and navigation
+    const findModuleById = (list: ModuleData[], id: string): ModuleData | null => {
+      for (const m of list) {
+        if (m.module_id === id) return m;
+        if (m.child_module && m.child_module.length > 0) {
+          const found = findModuleById(m.child_module, id);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const getModuleUrl = (m: ModuleData): string => {
+      const moduleCode = m.code || m.name.toLowerCase().replace(/\s+/g, '-');
+      return m.url || `/partner/${moduleCode}`;
+    };
+
+    const getChildren = (moduleId: string | null): ModuleData[] => {
+      if (!moduleId) return [];
+      const target = findModuleById(modules, moduleId);
+      return target?.child_module || [];
+    };
+
+    const navigateToModule = (moduleOrId: ModuleData | string) => {
+      const target = typeof moduleOrId === 'string' ? findModuleById(modules, moduleOrId) : moduleOrId;
+      if (target) {
+        const url = getModuleUrl(target);
+        navigate(url);
+      }
+    };
+
     return {
       currentModule,
       parentModule,
-      breadcrumbs
+      breadcrumbs,
+      expandedModuleId,
+      getChildren,
+      setExpandedModuleId,
+      navigateToModule,
     };
   }, [location.pathname, setupData?.module]);
 

@@ -26,6 +26,13 @@ function createQueryClient() {
 export function QueryProvider({ children }: QueryProviderProps) {
   const queryClient = React.useMemo(() => createQueryClient(), []);
   
+  // Expose QueryClient for TanStack Query DevTools
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.__TANSTACK_QUERY_CLIENT__ = queryClient;
+    }
+  }, [queryClient]);
+  
   return (
     <QueryClientProvider client={queryClient}>
       {children}

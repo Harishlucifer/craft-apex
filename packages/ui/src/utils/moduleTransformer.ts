@@ -107,27 +107,27 @@ export function transformModulesToNavigation(modules: ModuleData[] | null): Side
     // Skip hidden modules
     if (module.display_mode === 'HIDDEN') return false;
     
-    // For modules without URL, create a default URL
-    if (!module.url) {
-      const moduleCode = module.code || module.name.toLowerCase().replace(/\s+/g, '-');
-      module.url = `/partner/${moduleCode}`;
-    }
-    
     return hasModuleAccess(module);
   });
 
-  // Group modules by parent_module
-  const moduleMap = new Map<string, ModuleData[]>();
+  // Group modules by parent reference (can be name or ID depending on API)
+  const childrenByParentId = new Map<string, ModuleData[]>();
+  const childrenByParentName = new Map<string, ModuleData[]>();
   const rootModules: ModuleData[] = [];
 
   accessibleModules.forEach(module => {
     if (!module.parent_module || module.parent_module === '0' || module.parent_module === '') {
       rootModules.push(module);
     } else {
-      if (!moduleMap.has(module.parent_module)) {
-        moduleMap.set(module.parent_module, []);
+      // parent_module may carry a name or an id; store in both maps
+      const parentKey = String(module.parent_module);
+      if (!childrenByParentName.has(parentKey)) childrenByParentName.set(parentKey, []);
+      childrenByParentName.get(parentKey)!.push(module);
+
+      // Also store by explicit parent id if available
+      if (module.parent_module && typeof module.parent_module === 'string') {
+        // nothing more we can infer
       }
-      moduleMap.get(module.parent_module)!.push(module);
     }
   });
 
@@ -135,7 +135,8 @@ export function transformModulesToNavigation(modules: ModuleData[] | null): Side
   function transformModule(module: ModuleData): SidebarNavItem {
     // Use the module's URL if it exists, otherwise fall back to module code pattern
     const moduleCode = module.code || module.name.toLowerCase().replace(/\s+/g, '-');
-    const moduleUrl = module.url || `/partner/${moduleCode}`;
+    const basePath = module.system === 'PARTNER_PORTAL' ? '/partner' : '';
+    const moduleUrl = module.url || `${basePath}/${moduleCode}`;
     
     const iconName = convertIconToLucideName(module.icon || 'default');
     const IconComponent = React.forwardRef<SVGSVGElement, any>((props, ref) => 
@@ -151,17 +152,26 @@ export function transformModulesToNavigation(modules: ModuleData[] | null): Side
     };
 
     // Add child modules if they exist
-    // First check if module has direct child_module array
+    // Prefer direct child_module array, but also merge any external references by name/id
     let childModules: ModuleData[] = [];
     if (module.child_module && module.child_module.length > 0) {
       childModules = module.child_module;
-    } else {
-      // Otherwise check if other modules reference this as parent
-      const childrenFromMap = moduleMap.get(module.module_id) || [];
-      if (childrenFromMap.length > 0) {
-        childModules = childrenFromMap;
-      }
     }
+
+    // Merge children looked up by name (API often sets parent_module to parent's name)
+    const byName = childrenByParentName.get(module.name) || [];
+    // Merge children by id if present
+    const byId = childrenByParentId.get(String(module.module_id)) || [];
+    childModules = [...childModules, ...byName, ...byId];
+
+    // Deduplicate by module_id
+    const seen = new Set<string>();
+    childModules = childModules.filter((m) => {
+      const id = String(m.module_id);
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
     
     if (childModules.length > 0) {
       navItem.items = childModules.map(transformModule);
