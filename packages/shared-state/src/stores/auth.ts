@@ -209,7 +209,8 @@ export const useAuthStore = create<AuthStore>()(
               platform,
               tenantDomain
             );
-            if (response.status < 0) {
+            // status -6 means OTP sent successfully, only treat -1 as error
+            if (response.status === -1) {
               throw new Error(response.error || "Login failed");
             }
             if (response.status === 1 && response.data) {

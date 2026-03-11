@@ -109,12 +109,9 @@ export class AuthApiService {
         // OTP verification - expect successful login
         return data;
       } else {
-        // OTP send - check for successful OTP send (status 6 indicates success)
-        if (data.status === -1) {
-          throw new Error(data.error || "Failed to send OTP");
-        }
-        if (data.status !== 6) {
-          throw new Error(data.message || "Failed to send OTP");
+        // OTP send - check for successful OTP send (status -6 indicates success)
+        if (data.status !== -6) {
+          throw new Error(data.error || data.message || "Failed to send OTP");
         }
         return data;
       }

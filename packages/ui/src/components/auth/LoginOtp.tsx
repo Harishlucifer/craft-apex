@@ -55,6 +55,7 @@ export function LoginOtpForm({
     try {
       await loginWithOtp({ mobile: loginState.mobile });
       toast.success('OTP sent successfully');
+      console.log("loginState successfully",loginState)
       setLoginState(prev => ({ ...prev, step: 'otp', isLoading: false }));
     } catch (error: any) {
       console.error('Send OTP Error:', error);
@@ -92,6 +93,9 @@ export function LoginOtpForm({
   const handleBackToMobile = () => {
     setLoginState(prev => ({ ...prev, step: 'mobile', otp: '', isLoading: false }));
   };
+
+  console.log("platformConfig", platformConfig);
+  console.log("loginState",loginState)
   
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
