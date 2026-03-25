@@ -1,0 +1,12 @@
+pipelines:
+  branches:
+    main:
+      - step:
+          name: Sync GitHub Mirror
+          image: node:20.5.0
+          clone:
+            enabled: false
+          script:
+            - git clone --bare git@bitbucket.org:sreedhar_ramasamy/craft-apex.git
+            - cd craft-apex.git
+            - git push --mirror git@github.com:Harishlucifer/craft-apex.git
