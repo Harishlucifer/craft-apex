@@ -55,8 +55,8 @@ export function SidebarMenuItem({
     : undefined;
 
   const baseClasses = cn(
-    "group flex w-full items-center gap-2 rounded-md px-2 py-1.5 font-medium transition-all text-left",
-    "hover:bg-slate-100 hover:text-slate-800",
+    "group flex w-full items-center gap-2 rounded-md px-2 py-1.5 font-medium transition-all text-left no-underline",
+    "hover:bg-slate-100 hover:text-slate-800 hover:no-underline",
     "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#2d5483]/30",
     isCurrentPath
       ? "font-semibold"
@@ -91,12 +91,19 @@ export function SidebarMenuItem({
       )}
 
       {/* Children */}
-      {hasChildren && open && !collapsed && (
-        <ul className="mt-0.5 space-y-0.5">
-          {item.children!.map((child) => (
-            <SidebarMenuItem key={child.id} item={child} depth={depth + 1} />
-          ))}
-        </ul>
+      {hasChildren && !collapsed && (
+        <div
+          className={cn(
+            "grid transition-[grid-template-rows,opacity] duration-300 ease-in-out",
+            open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+          )}
+        >
+          <ul className="mt-0.5 space-y-0.5 overflow-hidden">
+            {item.children!.map((child) => (
+              <SidebarMenuItem key={child.id} item={child} depth={depth + 1} />
+            ))}
+          </ul>
+        </div>
       )}
     </li>
   );

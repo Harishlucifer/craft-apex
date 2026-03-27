@@ -62,7 +62,7 @@ export function DualSidebarLayout({
         {/* ── Icon Rail ── */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 flex w-[62px] flex-col items-center bg-gradient-to-b from-slate-50 to-white border-r border-slate-200/80 transition-transform duration-300 lg:relative lg:z-0",
+            "fixed inset-y-0 left-0 z-50 flex w-[62px] flex-col items-center bg-gradient-to-b from-slate-50 to-white border-r border-slate-200/80 transition-transform duration-300 lg:relative lg:z-20",
             config.header ? "top-[52px] lg:top-0" : "top-0",
             mobileOpen
               ? "translate-x-0"
@@ -92,46 +92,45 @@ export function DualSidebarLayout({
         </aside>
 
         {/* ── Secondary sidebar ── */}
-        {hasSecondary && (
-          <aside
-            className={cn(
-              "fixed z-50 flex w-[230px] flex-col bg-white border-r border-slate-200/80 shadow-lg transition-all duration-300 ease-in-out lg:relative lg:z-0 lg:shadow-none",
-              config.header
-                ? "inset-y-0 top-[52px] lg:top-0"
-                : "inset-y-0 top-0",
-              mobileOpen ? "left-[62px]" : "left-0 lg:left-0"
-            )}
-          >
-            {/* Section header */}
-            <div className="flex h-12 items-center justify-between border-b border-slate-100 px-3">
-              <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded bg-primary/10 text-primary">
-                  {activeRailItem?.icon}
-                </span>
-                <span className="text-sm font-semibold text-slate-800">
-                  {activeRailItem?.label ?? "Menu"}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveRail(null)}
-                className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
-                aria-label="Close"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+        <aside
+          className={cn(
+            "fixed z-40 flex w-[230px] flex-col bg-white border-r border-slate-200/80 shadow-lg transition-all duration-300 ease-in-out lg:relative lg:z-10 lg:shadow-none",
+            config.header
+              ? "inset-y-0 top-[52px] lg:top-0"
+              : "inset-y-0 top-0",
+            mobileOpen ? "left-[62px]" : "left-0 lg:left-0",
+            hasSecondary ? "translate-x-0 lg:ml-0 opacity-100" : "-translate-x-full lg:-ml-[230px] opacity-0 lg:opacity-100"
+          )}
+        >
+          {/* Section header */}
+          <div className="flex h-12 items-center justify-between border-b border-slate-100 px-3">
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded bg-primary/10 text-primary">
+                {activeRailItem?.icon}
+              </span>
+              <span className="text-sm font-semibold text-slate-800">
+                {activeRailItem?.label ?? "Menu"}
+              </span>
             </div>
+            <button
+              type="button"
+              onClick={() => setActiveRail(null)}
+              className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+              aria-label="Close"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
 
-            {/* Menu items */}
-            <nav className="flex-1 overflow-y-auto px-2 py-2 scrollbar-thin">
-              <ul className="space-y-0.5 text-left">
-                {activeRailItem?.children?.map((item) => (
-                  <SidebarMenuItem key={item.id} item={item} />
-                ))}
-              </ul>
-            </nav>
-          </aside>
-        )}
+          {/* Menu items */}
+          <nav className="flex-1 overflow-y-auto px-2 py-2 scrollbar-thin">
+            <ul className="space-y-0.5 text-left">
+              {activeRailItem?.children?.map((item) => (
+                <SidebarMenuItem key={item.id} item={item} />
+              ))}
+            </ul>
+          </nav>
+        </aside>
 
         {/* ── Main content ── */}
         <main className="flex flex-1 flex-col overflow-hidden bg-slate-50/50">

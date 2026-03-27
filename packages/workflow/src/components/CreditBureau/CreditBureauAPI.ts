@@ -124,7 +124,7 @@ export class CreditBureauAPI extends BaseApiService {
     const response = await this.get(
       "/alpha/v1/lookup?group_code=APPLICATION_BUREAU"
     );
-    return response?.data ?? response;
+    return (response as any)?.data ?? response;
   }
 
   /** Fetch bureau pull list for an application */
@@ -132,7 +132,7 @@ export class CreditBureauAPI extends BaseApiService {
     const response = await this.get(
       `/alpha/v1/onboarding/${applicationId}/cam/APPLICATION_BUREAU`
     );
-    return response?.data ?? response;
+    return (response as any)?.data ?? response;
   }
 
   /** Update applicant bureau data via sync */
@@ -145,7 +145,7 @@ export class CreditBureauAPI extends BaseApiService {
       "/alpha/v1/sync/direct-integrate/application/update",
       payload
     );
-    return response?.data ?? response;
+    return (response as any)?.data ?? response;
   }
 
   /** Initialise a bureau analysis run */
@@ -154,7 +154,7 @@ export class CreditBureauAPI extends BaseApiService {
       "/alpha/v1/cam/bureau-analysis",
       payload
     );
-    if (response?.data) return response.data;
+    if ((response as any)?.data) return (response as any).data;
     throw new Error("Bureau Init failed");
   }
 
@@ -163,7 +163,7 @@ export class CreditBureauAPI extends BaseApiService {
     source_id: string;
     workflow_type: string;
   }): Promise<any> {
-    const response = await this.post("/alpha/v1/workflow/build", payload);
+    const response: any = await this.post("/alpha/v1/workflow/build", payload);
     if (response?.data?.data) return response.data.data;
     if (response?.data) return response.data;
     throw new Error("Workflow Build failed");
@@ -179,7 +179,7 @@ export class CreditBureauAPI extends BaseApiService {
       "/alpha/v1/workflow/execution",
       payload
     );
-    if (response?.data) return response.data;
+    if ((response as any)?.data) return (response as any).data;
     throw new Error("Workflow Execution failed");
   }
 
@@ -192,6 +192,6 @@ export class CreditBureauAPI extends BaseApiService {
       `/iaas/internal/bureau/application/${workOrderId}/update`,
       payload
     );
-    return response?.data ?? response;
+    return (response as any)?.data ?? response;
   }
 }
