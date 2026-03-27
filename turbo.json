@@ -1,14 +1,21 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": ["APP_API_URL"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
-   
-    
-
-    
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "check-types": {
+      "dependsOn": ["^check-types"]
+    }
   }
 }

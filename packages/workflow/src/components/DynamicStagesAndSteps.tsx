@@ -273,8 +273,10 @@ export const DynamicStagesAndSteps: React.FC<ExtendedDynamicStagesAndStepsProps>
 
   const getStageStatus = (stage: Stage, stageIndex: number) => {
     if (
-      stage.task_status === "2" ||
-      stage.steps.every((s) => s.task_status === "2")
+      String(stage.task_status) === "2" ||
+      stage.steps.every((s) => String(s.task_status) === "2") ||
+      stageIndex < currentStage ||
+      completedStages.has(stageIndex)
     )
       return "completed";
     if (stageIndex === currentStage) return "active";
@@ -286,7 +288,12 @@ export const DynamicStagesAndSteps: React.FC<ExtendedDynamicStagesAndStepsProps>
     stageIndex: number,
     stepIndex: number
   ) => {
-    if (step.task_status === "2") return "completed";
+    if (
+      String(step.task_status) === "2" ||
+      stageIndex < currentStage ||
+      (stageIndex === currentStage && stepIndex < currentStep)
+    )
+      return "completed";
     if (stageIndex === currentStage && stepIndex === currentStep)
       return "active";
     return "inactive";
