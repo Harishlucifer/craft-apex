@@ -58,7 +58,9 @@ export const DynamicStagesAndSteps: React.FC<ExtendedDynamicStagesAndStepsProps>
   const journey_type = searchParams.get("journey_type");
   const loan_type = searchParams.get("loan_type");
 
-  const [showJourneyModal, setShowJourneyModal] = useState(false);
+  const [showJourneyModal, setShowJourneyModal] = useState(
+    !id && !journey_type && !loan_type
+  );
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // ── Queries ──────────────────────────────────────────────────────────────
@@ -353,12 +355,14 @@ export const DynamicStagesAndSteps: React.FC<ExtendedDynamicStagesAndStepsProps>
 
   // Show journey modal
   if (showJourneyModal && journeyTypesQuery.data) {
+    const journeyModalData =
+      (journeyTypesQuery.data as any)?.data || (journeyTypesQuery.data as any);
     return (
       <JourneyTypeModal
         open={showJourneyModal}
         workflowType={workflowType}
         onClose={() => setShowJourneyModal(false)}
-        data={(journeyTypesQuery.data as any)?.data}
+        data={journeyModalData}
         onSelect={(journey: any) => {
           setShowJourneyModal(false);
           handleJourneySelection(journey);
