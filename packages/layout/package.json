@@ -1,0 +1,33 @@
+{
+  "name": "@craft-apex/layout",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types.ts",
+    "./header": "./src/components/header/index.ts",
+    "./store": "./src/store/header-store.ts",
+    "./hooks": "./src/hooks/header-hooks.ts"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
+    "lucide-react": "^0.577.0",
+    "remixicon": "^4.9.1",
+    "tailwind-merge": "^2.2.0",
+    "zustand": "^4.5.0",
+    "@tanstack/react-query": "^5.28.0"
+  },
+  "devDependencies": {
+    "@craft-apex/config-tailwind": "*",
+    "@craft-apex/typescript-config": "*",
+    "@types/react": "^18.2.0",
+    "typescript": "^5.4.0"
+  },
+  "peerDependencies": {
+    "next": ">=14.0.0",
+    "react": "^18.2.0"
+  }
+}

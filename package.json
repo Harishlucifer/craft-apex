@@ -1,32 +1,33 @@
 {
-  "name": "with-tailwind",
+  "name": "craft-apex",
   "private": true,
-  "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "dev:partner": "turbo run dev --filter=partner-portal",
-    "dev:employee": "turbo run dev --filter=employee-portal",
-    "dev:customer": "turbo run dev --filter=customer-portal",
-    "build:partner": "turbo run build --filter=partner-portal",
-    "build:employee": "turbo run build --filter=employee-portal",
-    "build:customer": "turbo run build --filter=customer-portal",
-    "lint": "turbo run lint",
-    "check-types": "turbo run check-types",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "clean": "turbo run clean",
-    "install:all": "yarn install"
-  },
-  "devDependencies": {
-    "prettier": "^3.6.0",
-    "prettier-plugin-tailwindcss": "^0.6.11",
-    "turbo": "^2.5.6"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "packageManager": "yarn@1.22.22",
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "scripts": {
+    "build": "turbo build",
+    "build:employee": "turbo build --filter=@craft-apex/employee-portal",
+    "build:partner": "turbo build --filter=@craft-apex/partner-portal",
+    "build:customer": "turbo build --filter=@craft-apex/customer-portal",
+    "dev": "turbo dev",
+    "dev:employee": "turbo dev --filter=@craft-apex/employee-portal",
+    "dev:partner": "turbo dev --filter=@craft-apex/partner-portal",
+    "dev:customer": "turbo dev --filter=@craft-apex/customer-portal",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "turbo": "^2.4.0",
+    "typescript": "^5.4.0"
+  },
+  "packageManager": "yarn@1.22.22",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "geist": "^1.7.0"
+  }
 }

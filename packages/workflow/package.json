@@ -1,0 +1,31 @@
+{
+  "name": "@craft-apex/workflow",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./components": "./src/components/index.ts",
+    "./api": "./src/api/index.ts",
+    "./types": "./src/types/index.ts"
+  },
+  "dependencies": {
+    "@craft-apex/ui": "*",
+    "@tanstack/react-query": "^5.28.0",
+    "craft-formbuilder": "*",
+    "lucide-react": "^0.577.0",
+    "react": "^18.2.0",
+    "sonner": "*",
+    "zustand": "^4.5.0",
+    "flatpickr": "*"
+  },
+  "devDependencies": {
+    "@craft-apex/typescript-config": "*",
+    "@types/react": "^18.2.0",
+    "typescript": "^5.4.0"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
+  }
+}
