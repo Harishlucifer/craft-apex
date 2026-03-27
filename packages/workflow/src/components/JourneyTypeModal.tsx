@@ -124,8 +124,8 @@ export const JourneyTypeModal = ({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent
-        className="w-[90vw] max-w-[520px] rounded-2xl shadow-2xl border-0 overflow-hidden p-0"
-        style={{ maxHeight: "80vh", overflowY: "auto" }}
+        className="rounded-2xl shadow-2xl border-0 overflow-hidden p-0"
+        style={{ width: "70vw", maxWidth: "800px", maxHeight: "80vh", overflowY: "auto" }}
       >
         <div style={{ padding: "24px 24px 16px" }}>
           {/* ── Select Loan Type ─────────────────────────────────────── */}
@@ -145,8 +145,8 @@ export const JourneyTypeModal = ({
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(85px, 1fr))",
-                  gap: "10px",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))",
+                  gap: "12px",
                 }}
               >
                 {uniqueLoanTypes.map(
@@ -243,8 +243,8 @@ export const JourneyTypeModal = ({
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
-                  gap: "10px",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
+                  gap: "12px",
                 }}
               >
                 {availableJourneys.map(

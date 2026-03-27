@@ -64,8 +64,8 @@ const DialogContent = React.forwardRef<
       <DialogOverlay />
       {/* Centering wrapper — flexbox is more reliable than translate */}
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{ pointerEvents: "none" }}
+        className="fixed inset-0 z-50 flex items-start justify-center"
+        style={{ pointerEvents: "none", paddingTop: "5vh", padding: "5vh 16px 16px" }}
       >
         <div
           ref={ref}
