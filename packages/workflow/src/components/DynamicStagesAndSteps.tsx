@@ -226,25 +226,35 @@ export const DynamicStagesAndSteps: React.FC<ExtendedDynamicStagesAndStepsProps>
           data: data.data,
           version,
         });
-        const workflowId =
-          id || createUpdateResponse?.source_id || sourceId;
 
-        if (!workflowId) {
+        // Extract the application ID from the response
+        // The create API returns it as: application_id at top level,
+        // or nested in result.application.application_id
+        const applicationId =
+          id ||
+          createUpdateResponse?.application_id ||
+          createUpdateResponse?.result?.application?.application_id ||
+          createUpdateResponse?.source_id ||
+          sourceId;
+
+        if (!applicationId) {
           throw new Error("No valid ID found for workflow execution");
         }
 
-        if (!id && createUpdateResponse?.source_id) {
+        // Update the URL to include the application ID if this is a new creation
+        if (!id && applicationId) {
           const currentPath = window.location.pathname;
           const newPath = currentPath.replace(
             /\/create$/,
-            `/create/${createUpdateResponse.source_id}`
+            `/create/${applicationId}`
           );
           navigate(newPath + window.location.search, { replace: true });
         }
 
+        // Execute the workflow step using the application ID
         await executeWorkflowMutation.mutateAsync({
           step_id: currentStepData.id,
-          id: workflowId,
+          id: String(applicationId),
         });
       } else if (data?.isValidForm && data?.data == null) {
         await executeWorkflowMutation.mutateAsync({
