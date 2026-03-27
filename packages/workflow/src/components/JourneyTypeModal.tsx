@@ -124,18 +124,31 @@ export const JourneyTypeModal = ({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent
-        className="max-w-2xl w-full rounded-2xl shadow-2xl border-0 overflow-hidden p-0"
-        style={{ maxHeight: "85vh", overflowY: "auto" }}
+        className="w-[90vw] max-w-[520px] rounded-2xl shadow-2xl border-0 overflow-hidden p-0"
+        style={{ maxHeight: "80vh", overflowY: "auto" }}
       >
-        <div className="p-6 pb-0">
+        <div style={{ padding: "24px 24px 16px" }}>
           {/* ── Select Loan Type ─────────────────────────────────────── */}
           {!isPartnerOnboarding && (
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">
+            <div style={{ marginBottom: "20px" }}>
+              <h2
+                style={{
+                  fontSize: "15px",
+                  fontWeight: 700,
+                  color: "#111827",
+                  marginBottom: "12px",
+                }}
+              >
                 Select Loan Type
               </h2>
 
-              <div className="flex flex-wrap gap-3">
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(85px, 1fr))",
+                  gap: "10px",
+                }}
+              >
                 {uniqueLoanTypes.map(
                   (loanType) =>
                     loanType && (() => {
@@ -145,31 +158,53 @@ export const JourneyTypeModal = ({
                       return (
                         <button
                           key={loanType.code}
-                          className={`group flex flex-col items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 cursor-pointer text-center min-w-[100px] max-w-[110px]
-                            ${
-                              isSelected
-                                ? "border-blue-500 bg-blue-50 shadow-md shadow-blue-100"
-                                : "border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm"
-                            }`}
                           onClick={() => handleLoanTypeSelect(loanType.code)}
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "6px",
+                            padding: "12px 8px",
+                            borderRadius: "12px",
+                            border: isSelected
+                              ? "2px solid #3b82f6"
+                              : "2px solid #e5e7eb",
+                            background: isSelected ? "#eff6ff" : "#fff",
+                            boxShadow: isSelected
+                              ? "0 2px 8px rgba(59,130,246,0.15)"
+                              : "none",
+                            cursor: "pointer",
+                            transition: "all 0.2s ease",
+                            textAlign: "center",
+                          }}
                         >
                           <div
-                            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200
-                              ${
-                                isSelected
-                                  ? "bg-blue-600 text-white scale-105"
-                                  : "bg-blue-600 text-white group-hover:scale-105"
-                              }`}
+                            style={{
+                              width: "36px",
+                              height: "36px",
+                              borderRadius: "10px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              background: isSelected
+                                ? "linear-gradient(135deg, #3b82f6, #2563eb)"
+                                : "linear-gradient(135deg, #3b82f6, #6366f1)",
+                              color: "#fff",
+                              transition: "all 0.2s ease",
+                              transform: isSelected ? "scale(1.05)" : "scale(1)",
+                            }}
                           >
-                            <IconComp className="w-5 h-5" />
+                            <IconComp style={{ width: "18px", height: "18px" }} />
                           </div>
                           <span
-                            className={`text-xs font-medium leading-tight transition-colors
-                              ${
-                                isSelected
-                                  ? "text-blue-700"
-                                  : "text-gray-700 group-hover:text-blue-600"
-                              }`}
+                            style={{
+                              fontSize: "11px",
+                              fontWeight: isSelected ? 600 : 500,
+                              lineHeight: "1.3",
+                              color: isSelected ? "#1d4ed8" : "#374151",
+                              transition: "color 0.2s ease",
+                            }}
                           >
                             {loanType.name}
                           </span>
@@ -182,17 +217,36 @@ export const JourneyTypeModal = ({
           )}
 
           {/* ── Select Journey Type ────────────────────────────────────── */}
-          <div className="mb-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">
+          <div>
+            <h2
+              style={{
+                fontSize: "15px",
+                fontWeight: 700,
+                color: "#111827",
+                marginBottom: "12px",
+              }}
+            >
               Select Journey Type
             </h2>
 
             {(!isPartnerOnboarding && !selectedLoanType) ? (
-              <p className="text-sm text-gray-400 py-4">
+              <p
+                style={{
+                  fontSize: "13px",
+                  color: "#9ca3af",
+                  padding: "12px 0",
+                }}
+              >
                 Please select a loan type first
               </p>
             ) : (
-              <div className="flex flex-wrap gap-3">
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
+                  gap: "10px",
+                }}
+              >
                 {availableJourneys.map(
                   (journey) =>
                     journey && (() => {
@@ -202,43 +256,82 @@ export const JourneyTypeModal = ({
                       return (
                         <button
                           key={journey.id}
-                          className={`group relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer text-center min-w-[110px] max-w-[130px]
-                            ${
-                              isSelected
-                                ? "border-blue-500 bg-blue-50 shadow-md shadow-blue-100 ring-1 ring-blue-200"
-                                : "border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm"
-                            }`}
                           onClick={() => setSelectedJourneyType(journey)}
+                          style={{
+                            position: "relative",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "6px",
+                            padding: "14px 10px",
+                            borderRadius: "12px",
+                            border: isSelected
+                              ? "2px solid #3b82f6"
+                              : "2px solid #e5e7eb",
+                            background: isSelected ? "#eff6ff" : "#fff",
+                            boxShadow: isSelected
+                              ? "0 2px 8px rgba(59,130,246,0.15)"
+                              : "none",
+                            cursor: "pointer",
+                            transition: "all 0.2s ease",
+                            textAlign: "center",
+                          }}
                         >
                           <div
-                            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200
-                              ${
-                                isSelected
-                                  ? "bg-blue-600 text-white scale-105"
-                                  : "bg-blue-600 text-white group-hover:scale-105"
-                              }`}
+                            style={{
+                              width: "36px",
+                              height: "36px",
+                              borderRadius: "10px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              background: isSelected
+                                ? "linear-gradient(135deg, #3b82f6, #2563eb)"
+                                : "linear-gradient(135deg, #3b82f6, #6366f1)",
+                              color: "#fff",
+                              transition: "all 0.2s ease",
+                              transform: isSelected ? "scale(1.05)" : "scale(1)",
+                            }}
                           >
-                            <JIcon className="w-5 h-5" />
+                            <JIcon style={{ width: "18px", height: "18px" }} />
                           </div>
                           <span
-                            className={`text-xs font-medium leading-tight capitalize transition-colors
-                              ${
-                                isSelected
-                                  ? "text-blue-700"
-                                  : "text-gray-700 group-hover:text-blue-600"
-                              }`}
+                            style={{
+                              fontSize: "11px",
+                              fontWeight: isSelected ? 600 : 500,
+                              lineHeight: "1.3",
+                              color: isSelected ? "#1d4ed8" : "#374151",
+                              textTransform: "capitalize",
+                              transition: "color 0.2s ease",
+                            }}
                           >
                             {journey.name}
                           </span>
 
                           {/* Selected checkmark */}
                           {isSelected && (
-                            <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center animate-in zoom-in duration-200">
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "4px",
+                                right: "4px",
+                                width: "18px",
+                                height: "18px",
+                                borderRadius: "50%",
+                                background: "#3b82f6",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                animation: "dialogContentIn 0.2s ease",
+                              }}
+                            >
                               <svg
-                                className="w-3 h-3 text-white"
-                                fill="none"
+                                width="10"
+                                height="10"
                                 viewBox="0 0 24 24"
-                                stroke="currentColor"
+                                fill="none"
+                                stroke="white"
                                 strokeWidth={3}
                               >
                                 <path
@@ -259,19 +352,38 @@ export const JourneyTypeModal = ({
         </div>
 
         {/* ── Action Buttons ────────────────────────────────────────── */}
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: "10px",
+            padding: "14px 24px",
+            borderTop: "1px solid #f3f4f6",
+            background: "rgba(249, 250, 251, 0.5)",
+          }}
+        >
           <Button
             variant="outline"
             onClick={onClose}
-            className="px-5 py-2 rounded-lg border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors"
+            className="rounded-lg border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors"
+            style={{ height: "36px", fontSize: "13px", fontWeight: 600, padding: "0 16px" }}
           >
             Close
           </Button>
           <Button
             onClick={handleStartJourney}
             disabled={!selectedJourneyType}
-            className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm
-                       disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            className="rounded-lg text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            style={{
+              height: "36px",
+              fontSize: "13px",
+              fontWeight: 600,
+              padding: "0 16px",
+              background: selectedJourneyType
+                ? "linear-gradient(135deg, #3b82f6, #6366f1)"
+                : "#94a3b8",
+              border: "none",
+            }}
           >
             Start Lead Journey
           </Button>
