@@ -1,5 +1,6 @@
 {
   "name": "craft-apex",
+  "type": "module",
   "private": true,
   "workspaces": [
     "apps/*",
@@ -30,4 +31,5 @@
     "dotenv": "^17.3.1",
     "geist": "^1.7.0"
   }
+
 }
