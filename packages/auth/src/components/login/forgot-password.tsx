@@ -1,7 +1,5 @@
-"use client";
-
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { Loader2, ArrowLeft } from "lucide-react";
 import axiosInstance from "../../axios-instance";
 import type { LoginConfig } from "../../types/login";
@@ -119,7 +117,7 @@ export function ForgotPassword({ config }: ForgotPasswordProps) {
 
       <div className="text-center">
         <Link
-          href="/login"
+          to="/login"
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors"
         >
           <ArrowLeft className="h-3 w-3" />

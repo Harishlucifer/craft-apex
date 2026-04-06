@@ -1,11 +1,9 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useSetupStore } from "../store/setup-store";
 
 /* ------------------------------------------------------------------ */
-/*  AuthProtected – Next.js App Router auth guard                      */
+/*  AuthProtected – auth guard for protected routes                     */
 /*                                                                      */
 /*  Wraps protected routes. If no access_token is found in             */
 /*  localStorage or the Zustand store, redirects to /login.             */
@@ -26,8 +24,8 @@ export function AuthProtected({
   loginRoute = "/login",
   loadingFallback,
 }: AuthProtectedProps) {
-  const router = useRouter();
-  const pathname = usePathname();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { user, setSetupData } = useSetupStore();
   const [isChecking, setIsChecking] = useState(true);
   const [isAuthed, setIsAuthed] = useState(false);
@@ -60,8 +58,8 @@ export function AuthProtected({
     // 3. No valid auth found → redirect to login
     setIsAuthed(false);
     setIsChecking(false);
-    router.replace(loginRoute);
-  }, [user, setSetupData, router, loginRoute]);
+    navigate(loginRoute, { replace: true });
+  }, [user, setSetupData, navigate, loginRoute]);
 
   if (isChecking) {
     return (

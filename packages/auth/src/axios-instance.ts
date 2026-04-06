@@ -4,8 +4,30 @@ import axios from "axios";
 // Axios instance – shared across the monorepo via @craft-apex/auth/axios
 // ---------------------------------------------------------------------------
 
+/**
+ * Safely read an env variable at runtime.
+ * Works in Vite (import.meta.env), and falls back to process.env for Node/tests.
+ */
+function getEnv(key: string): string {
+  // Vite injects import.meta.env at build time
+  try {
+    // @ts-ignore – import.meta.env may not exist in all environments
+    if (typeof import.meta !== "undefined" && import.meta.env) {
+      // @ts-ignore
+      return (import.meta.env as Record<string, string>)[key] ?? "";
+    }
+  } catch {
+    // not in a Vite environment
+  }
+  // Fallback for Node / tests
+  if (typeof process !== "undefined" && process.env) {
+    return process.env[key] ?? "";
+  }
+  return "";
+}
+
 const axiosInstance = axios.create({
-  baseURL: process.env.APP_API_URL,
+  baseURL: getEnv("VITE_API_ENDPOINT") || getEnv("APP_API_URL"),
   timeout: 5000000,
   headers: {
     "Content-Type": "application/json",
@@ -37,7 +59,8 @@ axiosInstance.interceptors.request.use(
     // ── Inject X-Platform header ──────────────────────────────────────
     // Determined by the running app via NEXT_PUBLIC_PLATFORM env var
     const platform =
-      process.env.NEXT_PUBLIC_PLATFORM ??
+      getEnv("VITE_PLATFORM") ||
+      getEnv("NEXT_PUBLIC_PLATFORM") ||
       (typeof window !== "undefined"
         ? localStorage.getItem("platform") ?? "EMPLOYEE_PORTAL"
         : "EMPLOYEE_PORTAL");
@@ -49,7 +72,7 @@ axiosInstance.interceptors.request.use(
     const tenantDomain =
       typeof window !== "undefined"
         ? window.location.origin
-        : process.env.NEXT_PUBLIC_TENANT_DOMAIN ?? "";
+        : getEnv("VITE_TENANT_DOMAIN") || getEnv("NEXT_PUBLIC_TENANT_DOMAIN") || "";
     if (tenantDomain) {
       config.headers["X-Tenant-Domain"] = tenantDomain;
     }

@@ -1,8 +1,5 @@
-"use client";
-
 import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, useLocation } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { cn } from "../lib/utils";
 import type { MenuItem } from "../types";
@@ -22,7 +19,7 @@ export function SidebarMenuItem({
   depth = 0,
   collapsed = false,
 }: SidebarMenuItemProps) {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const isCurrentPath = item.href ? pathname === item.href : false;
   const [open, setOpen] = useState(item.isActive ?? isCurrentPath ?? false);
   const hasChildren = item.children && item.children.length > 0;
@@ -79,7 +76,7 @@ export function SidebarMenuItem({
         </button>
       ) : item.href ? (
         <Link
-          href={item.href}
+          to={item.href}
           className={baseClasses}
           style={activeStyle}
           title={collapsed ? item.label : undefined}

@@ -15,7 +15,7 @@
     "@tanstack/react-query": "^5.28.0",
     "craft-formbuilder": "*",
     "lucide-react": "^0.577.0",
-    "react": "^18.2.0",
+    "react": ">=18.2.0",
     "sonner": "*",
     "zustand": "^4.5.0",
     "flatpickr": "*"
@@ -26,6 +26,6 @@
     "typescript": "^5.4.0"
   },
   "peerDependencies": {
-    "react": "^18.2.0"
+    "react": ">=18.2.0"
   }
 }

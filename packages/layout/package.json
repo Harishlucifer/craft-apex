@@ -21,13 +21,12 @@
     "@tanstack/react-query": "^5.28.0"
   },
   "devDependencies": {
-    "@craft-apex/config-tailwind": "*",
     "@craft-apex/typescript-config": "*",
-    "@types/react": "^18.2.0",
+    "@types/react": ">=19.0.0",
     "typescript": "^5.4.0"
   },
   "peerDependencies": {
-    "next": ">=14.0.0",
-    "react": "^18.2.0"
+    "react": ">=18.2.0",
+    "react-router-dom": ">=7.0.0"
   }
 }

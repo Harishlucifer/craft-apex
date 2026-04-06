@@ -1,7 +1,5 @@
-"use client";
-
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { cn } from "../lib/utils";
 import type { LayoutConfig, MenuItem } from "../types";
@@ -122,19 +120,19 @@ function TopNavItem({ item }: { item: MenuItem }) {
   if (!hasChildren) {
     return item.href ? (
       <Link
-        href={item.href}
+        to={item.href}
         className={cn(
           "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-sidebar-foreground transition-colors",
           "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
           item.isActive && "bg-sidebar-accent text-sidebar-accent-foreground"
         )}
       >
-        {item.icon && <span className="h-4 w-4">{item.icon}</span>}
+        {!!item.icon && <span className="h-4 w-4">{item.icon}</span>}
         {item.label}
       </Link>
     ) : (
       <span className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-sidebar-foreground">
-        {item.icon && <span className="h-4 w-4">{item.icon}</span>}
+        {!!item.icon && <span className="h-4 w-4">{item.icon}</span>}
         {item.label}
       </span>
     );
@@ -151,7 +149,7 @@ function TopNavItem({ item }: { item: MenuItem }) {
           open && "bg-sidebar-accent text-sidebar-accent-foreground"
         )}
       >
-        {item.icon && <span className="h-4 w-4">{item.icon}</span>}
+        {!!item.icon && <span className="h-4 w-4">{item.icon}</span>}
         {item.label}
         <ChevronDown
           className={cn(
@@ -190,7 +188,7 @@ function DropdownItem({
   if (item.href) {
     return (
       <Link
-        href={item.href}
+        to={item.href}
         onClick={onSelect}
         className={cn(
           "flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-popover-foreground transition-colors",
@@ -198,7 +196,7 @@ function DropdownItem({
           item.isActive && "bg-accent text-accent-foreground"
         )}
       >
-        {item.icon && (
+        {!!item.icon && (
           <span className="flex h-4 w-4 items-center justify-center">
             {item.icon}
           </span>
@@ -210,7 +208,7 @@ function DropdownItem({
 
   return (
     <span className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-popover-foreground">
-      {item.icon && (
+      {!!item.icon && (
         <span className="flex h-4 w-4 items-center justify-center">
           {item.icon}
         </span>
@@ -243,8 +241,8 @@ function MobileNavItem({
   if (!hasChildren && item.href) {
     return (
       <li>
-        <Link href={item.href} className={baseClasses} onClick={onNavigate}>
-          {item.icon && <span className="h-4 w-4">{item.icon}</span>}
+        <Link to={item.href} className={baseClasses} onClick={onNavigate}>
+          {!!item.icon && <span className="h-4 w-4">{item.icon}</span>}
           {item.label}
         </Link>
       </li>
@@ -259,7 +257,7 @@ function MobileNavItem({
           onClick={() => setOpen((p) => !p)}
           className={baseClasses}
         >
-          {item.icon && <span className="h-4 w-4">{item.icon}</span>}
+          {!!item.icon && <span className="h-4 w-4">{item.icon}</span>}
           <span className="flex-1 text-left">{item.label}</span>
           <ChevronDown
             className={cn(
@@ -286,7 +284,7 @@ function MobileNavItem({
   return (
     <li>
       <span className={baseClasses}>
-        {item.icon && <span className="h-4 w-4">{item.icon}</span>}
+        {!!item.icon && <span className="h-4 w-4">{item.icon}</span>}
         {item.label}
       </span>
     </li>

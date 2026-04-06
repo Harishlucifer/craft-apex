@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { useSetupStore } from "../store/setup-store";
 import axiosInstance from "../axios-instance";
 
@@ -8,7 +8,7 @@ import axiosInstance from "../axios-instance";
 /* ------------------------------------------------------------------ */
 
 export function useAuth() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { user, module, privilege, system, tenant, reset, data } =
     useSetupStore();
 
@@ -27,9 +27,9 @@ export function useAuth() {
       localStorage.removeItem("module");
       localStorage.removeItem("guestToken");
       reset();
-      router.replace(redirectTo);
+      navigate(redirectTo, { replace: true });
     },
-    [reset, router]
+    [reset, navigate]
   );
 
   /** Get a module tree for verifying route access (mirrors Routes/index.js logic) */

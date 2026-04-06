@@ -1,5 +1,5 @@
 {
-  "extends": "@craft-apex/typescript-config/nextjs.json",
+  "extends": "@craft-apex/typescript-config/vite.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
@@ -7,6 +7,6 @@
       "@craft-apex/ui/*": ["../../packages/ui/src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src", "vite.config.ts"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -1,4 +1,4 @@
-"use client";
+
 
 import { useMemo, useEffect } from "react";
 import { AppLayout, modulesToRailItems, getIconForName } from "@craft-apex/layout";

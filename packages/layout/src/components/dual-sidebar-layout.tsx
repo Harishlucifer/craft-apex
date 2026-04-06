@@ -1,8 +1,6 @@
-"use client";
-
 import { useState } from "react";
 import { PanelLeft, X } from "lucide-react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { cn } from "../lib/utils";
 import { SidebarMenuItem } from "./sidebar-menu-item";
 import type { LayoutConfig, MenuItem } from "../types";
@@ -216,7 +214,7 @@ function RailButton({
 
   if (!hasChildren && item.href) {
     return (
-      <Link href={item.href} className={classes} style={activeStyle} title={item.label}>
+      <Link to={item.href} className={classes} style={activeStyle} title={item.label}>
         {inner}
       </Link>
     );

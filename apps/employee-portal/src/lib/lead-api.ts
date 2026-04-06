@@ -1,4 +1,4 @@
-"use client";
+
 
 /* ------------------------------------------------------------------ */
 /*  Lead API — extends WorkflowAPI for lead-specific operations         */
@@ -60,7 +60,7 @@ export class LeadAPI extends WorkflowAPI {
 
 if (typeof window !== "undefined") {
   // Set the API endpoint from env
-  const apiUrl = process.env.APP_API_URL || "";
+  const apiUrl = import.meta.env.VITE_API_ENDPOINT || "";
   if (apiUrl) {
     setApiEndpoint(apiUrl);
   }
@@ -69,7 +69,7 @@ if (typeof window !== "undefined") {
   setAuthProvider({
     getAccessToken: () => localStorage.getItem("accessToken"),
     getPlatform: () =>
-      process.env.NEXT_PUBLIC_PLATFORM ??
+      import.meta.env.VITE_PLATFORM ??
       localStorage.getItem("platform") ??
       "EMPLOYEE_PORTAL",
     getTenantDomain: () => window.location.origin,

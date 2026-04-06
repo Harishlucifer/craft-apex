@@ -1,7 +1,5 @@
-"use client";
-
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import axiosInstance from "../../axios-instance";
 import { useSetupStore } from "../../store/setup-store";
@@ -123,7 +121,7 @@ export function LoginPassword({ config }: LoginPasswordProps) {
           </label>
           {!config.hidePasswordReset && (
             <Link
-              href={config.forgotPasswordRoute ?? "/forgot-password"}
+              to={config.forgotPasswordRoute ?? "/forgot-password"}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               Forgot Password

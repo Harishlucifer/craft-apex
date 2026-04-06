@@ -1,6 +1,4 @@
-"use client";
-
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { LoginPassword } from "./login-password";
 import { LoginOtp } from "./login-otp";
 import { LoginMfa } from "./login-mfa";
@@ -158,7 +156,7 @@ export function LoginPage({ loginType, config }: LoginPageProps) {
                   <p className="text-sm text-muted-foreground">
                     Don&apos;t have an account?{" "}
                     <Link
-                      href={config.signupRoute}
+                      to={config.signupRoute}
                       className="font-semibold text-foreground underline underline-offset-2 hover:text-primary transition-colors"
                     >
                       {config.signupLabel ?? "Sign Up"}

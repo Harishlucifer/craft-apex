@@ -1,7 +1,6 @@
-"use client";
 
 import { useMemo } from "react";
-import { usePathname } from "next/navigation";
+import { useLocation } from "react-router-dom";
 import { useSetupStore } from "@craft-apex/auth";
 
 /* ------------------------------------------------------------------ */
@@ -126,7 +125,7 @@ function findModuleForPath(
  * ```
  */
 export function useModuleData(): ModuleData | null {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const { module: modules } = useSetupStore();
 
   const moduleData = useMemo(() => {

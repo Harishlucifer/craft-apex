@@ -1,7 +1,6 @@
-"use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useSetupStore, axiosInstance } from "@craft-apex/auth";
 import {
@@ -18,7 +17,7 @@ import "remixicon/fonts/remixicon.css";
 /* ------------------------------------------------------------------ */
 
 export function EmployeeHeader() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { user, tenant } = useSetupStore();
 
   // Inject the shared axios instance so header hooks can make API calls
@@ -50,7 +49,7 @@ export function EmployeeHeader() {
       {/* ── Back button ── */}
       <button
         type="button"
-        onClick={() => router.back()}
+        onClick={() => navigate(-1)}
         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
         aria-label="Go back"
       >
@@ -101,8 +100,8 @@ export function EmployeeHeader() {
           email={user?.email}
           userType={user?.user_type}
           isAdmin={user?.is_admin}
-          onNavigate={(href) => router.push(href)}
-          onLogout={() => router.push("/logout")}
+          onNavigate={(href) => navigate(href)}
+          onLogout={() => navigate("/logout")}
         />
       </div>
     </div>
