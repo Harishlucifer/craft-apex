@@ -50,6 +50,9 @@ import EmployerListPage from "@/features/employer/employer-list/employer-list.pa
 import EmployerUploadListPage from "@/features/employer/employer-upload-list/employer-upload-list.page";
 import LenderPincodeListPage from "@/features/lender-pincode/lender-pincode-list/lender-pincode-list.page";
 import AskListPage from "@/features/ask/ask-list/ask-list.page";
+import FulfillmentListPage from "@/features/lead/fulfillment-list/fulfillment-list.page";
+import PartnerLeadsListPage from "@/features/partner/partner-leads-list/partner-leads-list.page";
+import NewChannelListPage from "@/features/channel/new-channel-list/new-channel-list.page";
 
 /**
  * Explicit route tree. Every path is a real legacy path (verified against
@@ -211,6 +214,14 @@ export const router = createBrowserRouter([
       // Channel/Lead wrappers that legacy renders via <LeadList/> (same v2 application list)
       { path: "/channel/lead-list", element: <LeadListPage /> },
       { path: "/check-bureau/lead/list", element: <LeadListPage /> },
+
+      // Fulfillment lists — legacy /Components/Lead/FullFillmentList.js (v1 application endpoint)
+      { path: "/fulfillment/list", element: <FulfillmentListPage /> },
+      { path: "/fulfillment/fresh-list", element: <FulfillmentListPage /> },
+
+      // Partner leads / view — legacy /pages/Channel/{PartnerLeads,NewChannelList}.js
+      { path: "/partner/list", element: <PartnerLeadsListPage /> },
+      { path: "/partner-view", element: <NewChannelListPage /> },
     ],
   },
   { path: "/", element: <Navigate to="/dashboard" replace /> },
