@@ -1,32 +1,27 @@
 {
   "name": "craft-apex",
-  "type": "module",
   "private": true,
+  "version": "0.1.0",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "build": "turbo build",
-    "build:employee": "turbo build --filter=@craft-apex/employee-portal",
-    "build:partner": "turbo build --filter=@craft-apex/partner-portal",
-    "build:customer": "turbo build --filter=@craft-apex/customer-portal",
-    "dev": "turbo dev",
-    "dev:employee": "turbo dev --filter=@craft-apex/employee-portal",
-    "dev:partner": "turbo dev --filter=@craft-apex/partner-portal",
-    "dev:customer": "turbo dev --filter=@craft-apex/customer-portal",
-    "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "dev": "turbo run dev",
+    "dev:employee": "turbo run dev --filter=@craft-apex/employee-portal",
+    "build": "turbo run build",
+    "build:employee": "turbo run build --filter=@craft-apex/employee-portal",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
   },
   "devDependencies": {
-    "prettier": "^3.2.5",
-    "turbo": "^2.4.0",
-    "typescript": "^5.4.0"
+    "prettier": "^3.3.3",
+    "turbo": "^2.1.0",
+    "typescript": "^5.5.4"
   },
-  "packageManager": "yarn@1.22.22",
+  "packageManager": "npm@11.12.1",
   "engines": {
     "node": ">=18"
-  },
-  "dependencies": {}
-
+  }
 }

@@ -1,15 +1,6 @@
 {
   "name": "@craft-apex/typescript-config",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
-  "license": "MIT",
-  "publishConfig": {
-    "access": "public"
-  },
-  "exports": {
-    "./base.json": "./base.json",
-    "./nextjs.json": "./nextjs.json",
-    "./react-library.json": "./react-library.json",
-    "./vite.json": "./vite.json"
-  }
+  "files": ["base.json", "vite.json", "react-library.json"]
 }

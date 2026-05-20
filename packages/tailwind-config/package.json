@@ -1,0 +1,11 @@
+{
+  "name": "@craft-apex/tailwind-config",
+  "version": "0.1.0",
+  "private": true,
+  "main": "tailwind.preset.ts",
+  "files": ["tailwind.preset.ts"],
+  "devDependencies": {
+    "tailwindcss": "^3.4.10",
+    "tailwindcss-animate": "^1.0.7"
+  }
+}

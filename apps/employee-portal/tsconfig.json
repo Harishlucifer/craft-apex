@@ -2,11 +2,15 @@
   "extends": "@craft-apex/typescript-config/vite.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "types": ["vite/client", "node"],
     "paths": {
-      "@/*": ["./src/*"],
-      "@craft-apex/ui/*": ["../../packages/ui/src/*"]
+      "@/*": ["src/*"],
+      "@craft-apex/ui": ["../../packages/ui/src/index.ts"],
+      "@craft-apex/api": ["../../packages/api/src/index.ts"],
+      "@craft-apex/auth": ["../../packages/auth/src/index.ts"],
+      "@craft-apex/layout": ["../../packages/layout/src/index.ts"]
     }
   },
-  "include": ["src", "vite.config.ts"],
+  "include": ["src", "vite.config.ts", "../../packages/*/src"],
   "exclude": ["node_modules", "dist"]
 }

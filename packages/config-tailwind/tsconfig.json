@@ -1,8 +1,0 @@
-{
-  "extends": "@craft-apex/typescript-config/base.json",
-  "compilerOptions": {
-    "outDir": "dist"
-  },
-  "include": ["."],
-  "exclude": ["dist", "node_modules"]
-}

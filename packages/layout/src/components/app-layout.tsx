@@ -1,36 +1,25 @@
-"use client";
+import { Outlet } from "react-router-dom";
+import { DualSidebar } from "./dual-sidebar";
+import { Header } from "./header";
+import { Breadcrumbs } from "./breadcrumbs";
 
-import type { LayoutConfig } from "../types";
-import { SidebarLayout } from "./sidebar-layout";
-import { DualSidebarLayout } from "./dual-sidebar-layout";
-import { TopNavLayout } from "./topnav-layout";
-
-/* ------------------------------------------------------------------ */
-/*  AppLayout – single entry point for all layout variants             */
-/*                                                                     */
-/*  Usage:                                                             */
-/*    <AppLayout config={layoutConfig}>{children}</AppLayout>          */
-/* ------------------------------------------------------------------ */
-
-interface AppLayoutProps {
-  config: LayoutConfig;
-  children: React.ReactNode;
-}
-
-export function AppLayout({ config, children }: AppLayoutProps) {
-  switch (config.variant) {
-    case "sidebar":
-      return <SidebarLayout config={config}>{children}</SidebarLayout>;
-
-    case "dual-sidebar":
-      return (
-        <DualSidebarLayout config={config}>{children}</DualSidebarLayout>
-      );
-
-    case "topnav":
-      return <TopNavLayout config={config}>{children}</TopNavLayout>;
-
-    default:
-      return <SidebarLayout config={config}>{children}</SidebarLayout>;
-  }
+export function AppLayout({ brand }: { brand: string }) {
+  return (
+    <div className="flex h-screen flex-col overflow-hidden">
+      {/* Full-width navbar on top */}
+      <Header brand={brand} />
+      {/* Sidebar sits under the navbar, beside the content */}
+      <div className="flex flex-1 overflow-hidden">
+        <DualSidebar />
+        <main className="flex-1 overflow-y-auto bg-muted/30">
+          <div className="border-b border-slate-200 bg-white px-6 py-3">
+            <Breadcrumbs />
+          </div>
+          <div className="p-6">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 }

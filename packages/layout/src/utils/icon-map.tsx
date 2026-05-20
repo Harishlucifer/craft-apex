@@ -1,33 +1,63 @@
-import "remixicon/fonts/remixicon.css";
-
-/* ------------------------------------------------------------------ */
-/*  Remix Icon component                                               */
-/*                                                                      */
-/*  The API returns icon names like "ri-store-2-line". Since we now     */
-/*  use the Remix Icon font, we can render them directly as <i> tags.   */
-/* ------------------------------------------------------------------ */
-
-interface RemixIconProps {
-  name: string;
-  className?: string;
-}
+import {
+  LayoutGrid,
+  Users,
+  ShoppingCart,
+  Wallet,
+  Briefcase,
+  BarChart3,
+  Package,
+  Settings,
+  HelpCircle,
+  FileText,
+  ClipboardList,
+  Truck,
+  CreditCard,
+  Building2,
+  Landmark,
+  Scale,
+  Megaphone,
+  UserCheck,
+  ShieldCheck,
+  ListChecks,
+  Boxes,
+  type LucideIcon,
+} from "lucide-react";
 
 /**
- * Render a Remix Icon by its class name.
- * Usage: <RemixIcon name="ri-store-2-line" />
+ * Legacy stores `module.icon` as an icon-font class (remix/feather), which
+ * we can't render directly. Map by keyword from the icon class or the label
+ * to a lucide icon; fall back to a neutral box. Presentational only.
  */
-export function RemixIcon({ name, className = "" }: RemixIconProps) {
-  return <i className={`${name} ${className}`} />;
-}
+const KEYWORDS: [RegExp, LucideIcon][] = [
+  [/dash|home|grid/, LayoutGrid],
+  [/user|employee|hrms|hr\b|people|role/, Users],
+  [/sale|lead|cart|order/, ShoppingCart],
+  [/purchase|procure|vendor/, Boxes],
+  [/finance|payable|receivable|invoice|payment|wallet/, Wallet],
+  [/account|ledger|treasury|bank/, Landmark],
+  [/card|disburs/, CreditCard],
+  [/report|analytic|mis|chart/, BarChart3],
+  [/product|catalog|scheme|loan-type/, Package],
+  [/system|config|setting|master|parameter/, Settings],
+  [/support|help|faq/, HelpCircle],
+  [/legal|rule|compliance/, Scale],
+  [/market|campaign|template/, Megaphone],
+  [/verif|kyc|check/, UserCheck],
+  [/security|access|privilege/, ShieldCheck],
+  [/channel|partner|apf|company|builder/, Building2],
+  [/collection|repayment|los|lms|recovery/, ListChecks],
+  [/document|doc|note|quotation/, FileText],
+  [/delivery|challan|tracking|conveyance/, Truck],
+  [/queue|q\b|list|application/, ClipboardList],
+];
 
-/**
- * Get a Remix Icon React element for a given icon name string from the API.
- * Falls back to a dashboard icon if no name is provided.
- */
-export function getIconForName(
-  iconName?: string,
-  size: string = "text-lg"
-): React.ReactNode {
-  const name = iconName || "ri-dashboard-line";
-  return <RemixIcon name={name} className={size} />;
+export function resolveIcon(opts: {
+  icon?: string;
+  label: string;
+}): LucideIcon {
+  const hay = `${opts.icon ?? ""} ${opts.label}`.toLowerCase();
+  for (const [re, Icon] of KEYWORDS) {
+    if (re.test(hay)) return Icon;
+  }
+  return Briefcase;
 }

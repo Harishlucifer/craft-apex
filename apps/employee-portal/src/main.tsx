@@ -1,6 +1,10 @@
-import { createRoot } from "react-dom/client";
-import "@fontsource-variable/geist";
-import "./index.css";
-import { App } from "./App";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "@craft-apex/ui/globals.css";
+import { App } from "@/app";
 
-createRoot(document.getElementById("root")!).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
