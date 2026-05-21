@@ -90,6 +90,10 @@ import GstStatusListPage from "@/features/finance/gst-status-list/gst-status-lis
 import Customer360Page from "@/features/customer-360/customer-360.page";
 import ApprovalQPage from "@/features/application/approval-q/approval-q.page";
 import MisPendencyReportPage from "@/features/reports/mis-pendency-report/mis-pendency-report.page";
+import MisSourceProductivityPage from "@/features/reports/mis-source-productivity/mis-source-productivity.page";
+import MisBankPerformancePage from "@/features/reports/mis-bank-performance/mis-bank-performance.page";
+import MisMonthWisePerformancePage from "@/features/reports/mis-month-wise-performance/mis-month-wise-performance.page";
+import MisProcessStatusPage from "@/features/reports/mis-process-status/mis-process-status.page";
 
 /**
  * Explicit route tree. Every path is a real legacy path (verified against
@@ -241,9 +245,13 @@ export const router = createBrowserRouter([
 
       // Reports — User Login (legacy /pages/Reports/UserLoginReport)
       { path: "/reports/user-login-report", element: <UserLoginReportPage /> },
-      // MIS — Pendency (legacy /pages/MIS/PendencyReports). Uses the shared
-      // ReportShell + Pendency dashboard cards + 11-col table + CSV export.
+      // MIS reports — all share the ReportShell scaffold (date filter +
+      // dashboard cards + funnel table + CSV export).
       { path: "/reports/mis/pendency-reports", element: <MisPendencyReportPage /> },
+      { path: "/reports/mis/source-productivity", element: <MisSourceProductivityPage /> },
+      { path: "/reports/mis/bank-performance", element: <MisBankPerformancePage /> },
+      { path: "/reports/mis/month-wise-performance", element: <MisMonthWisePerformancePage /> },
+      { path: "/reports/mis/process-status", element: <MisProcessStatusPage /> },
 
       // Workflow + Field/Component Master
       { path: "/settings/workflow", element: <WorkflowListPage /> },

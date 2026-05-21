@@ -135,8 +135,11 @@ backend), or large multi-component flows deferred to Phase 4.3 / Phase 5.
 ## Phase 5 — Untouched domain modules 🟡
 
 Each is one or more list pages plus its own forms. Pick one module per session.
-First MIS report (Pendency) landed using the Phase 6 report scaffold —
-template is now in place for the remaining ~18 Reports + MIS pages.
+Reports/MIS work is well underway — 6 reports landed using the Phase 6 report
+scaffold (User Login, Pendency, Source Productivity, Bank Performance,
+Month-Wise Performance, Process Status). Template is in place for the
+remaining ~14 Reports + MIS pages — each new report is ~3 files (types + api
++ page) + 1 route wiring.
 
 - HR Mgmt — leave, attendance
 - Incentive Module — incentive structures
@@ -172,7 +175,8 @@ template is now in place for the remaining ~18 Reports + MIS pages.
   header (title + back + Export button), filter card (grid body + Search /
   Reset footer), table-area children. `useReportExport(reportType, fileName)`
   wraps `GET /alpha/v1/report/export/:report_type?…` → triggers anchor
-  download (legacy contract). Used by `user-login-report` and `mis-pendency-report`.
+  download (legacy contract). Used by `user-login-report`,
+  `mis-pendency-report`, `mis-source-productivity`, `mis-bank-performance`.
 - ⬜ Channel/Partner approval queue — multi-status badges + approval drawer.
 
 ---
