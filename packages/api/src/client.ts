@@ -40,7 +40,23 @@ export function createApiClient(opts: ApiClientOptions): AxiosInstance {
   const instance = axios.create({
     baseURL: opts.baseURL,
     headers: { "Content-Type": "application/json" },
-    transformRequest: [(data) => (data == null ? data : BIG.stringify(data))],
+    transformRequest: [
+      (data, headers) => {
+        if (data == null) return data;
+        // FormData / Blob must pass through untouched so the browser sets the
+        // multipart boundary and binary parts are preserved.
+        if (
+          typeof FormData !== "undefined" && data instanceof FormData
+        ) {
+          if (headers && typeof headers.delete === "function") {
+            headers.delete("Content-Type");
+          }
+          return data;
+        }
+        if (typeof Blob !== "undefined" && data instanceof Blob) return data;
+        return BIG.stringify(data);
+      },
+    ],
     transformResponse: [
       (data) => {
         if (typeof data !== "string" || data.length === 0) return data;

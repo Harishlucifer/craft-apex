@@ -2,7 +2,7 @@
 // GET /alpha/v2/application?page=N&exclude_journey_type=VERIFICATION
 //   /lead/list/fulfilled -> &status=3 ; /lead/list/archived -> &status=-1
 
-export type LeadListScope = "ALL" | "FULFILLED" | "ARCHIVED";
+export type LeadListScope = "ALL" | "FULFILLED" | "ARCHIVED" | "DEDUPE";
 
 export interface LeadRow {
   id?: string;

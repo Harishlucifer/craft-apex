@@ -17,7 +17,9 @@ const scopeFromPath = (path: string): LeadListScope =>
     ? "FULFILLED"
     : path.endsWith("/archived")
       ? "ARCHIVED"
-      : "ALL";
+      : path.endsWith("/dedupe-q")
+        ? "DEDUPE"
+        : "ALL";
 
 const fmtAmount = (v: unknown) =>
   v === undefined || v === null || v === ""

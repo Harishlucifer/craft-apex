@@ -2,6 +2,7 @@
 // GET /alpha/v1/master/checklist -> { result: ChecklistRow[] }
 
 export interface ChecklistRow {
+  checklist_id?: string | number;
   rule_id?: string | number;
   title?: string;
   type?: string;

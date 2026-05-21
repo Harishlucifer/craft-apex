@@ -1,5 +1,13 @@
-import { Search } from "lucide-react";
-import { Badge, Input, TableCell, TableHead, TableRow } from "@craft-apex/ui";
+import { Link } from "react-router-dom";
+import { Pencil, Plus, Search } from "lucide-react";
+import {
+  Badge,
+  Button,
+  Input,
+  TableCell,
+  TableHead,
+  TableRow,
+} from "@craft-apex/ui";
 import {
   DataTableShell,
   TABLE_HEADER_ROW_CLASS,
@@ -20,18 +28,25 @@ export default function MarketingMediaListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="relative w-full max-w-md">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-        <Input
-          value={list.search}
-          onChange={(e) => list.setSearch(e.target.value)}
-          placeholder="Search by title, type, tags…"
-          className="h-10 rounded-full bg-white pl-9"
-        />
+      <div className="flex items-center justify-between gap-3">
+        <div className="relative w-full max-w-md">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Input
+            value={list.search}
+            onChange={(e) => list.setSearch(e.target.value)}
+            placeholder="Search by title, type, tags…"
+            className="h-10 rounded-full bg-white pl-9"
+          />
+        </div>
+        <Button asChild>
+          <Link to="/marketing/media/create">
+            <Plus className="h-4 w-4" /> Add Media
+          </Link>
+        </Button>
       </div>
 
       <DataTableShell
-        columnCount={6}
+        columnCount={7}
         loading={isFetching && data.length === 0}
         isEmpty={!isFetching && list.total === 0}
         emptyTitle="No media assets"
@@ -51,6 +66,9 @@ export default function MarketingMediaListPage() {
             <TableHead className={TABLE_HEAD_CLASS}>Tags</TableHead>
             <TableHead className={TABLE_HEAD_CLASS}>URL</TableHead>
             <TableHead className={TABLE_HEAD_CLASS}>Status</TableHead>
+            <TableHead className={`${TABLE_HEAD_CLASS} text-right`}>
+              Action
+            </TableHead>
           </TableRow>
         }
       >
@@ -65,7 +83,9 @@ export default function MarketingMediaListPage() {
             <TableCell className="font-medium">{r.title ?? "—"}</TableCell>
             <TableCell>{r.media_type ?? "—"}</TableCell>
             <TableCell className="text-xs text-slate-500">
-              {r.media_tags ?? "—"}
+              {Array.isArray(r.media_tags)
+                ? (r.media_tags as unknown as string[]).join(", ")
+                : r.media_tags ?? "—"}
             </TableCell>
             <TableCell className="max-w-[280px] truncate text-xs text-slate-500">
               {r.media_url ?? "—"}
@@ -74,6 +94,13 @@ export default function MarketingMediaListPage() {
               <Badge variant={r.status === 1 ? "success" : "destructive"}>
                 {r.status === 1 ? "Active" : "Inactive"}
               </Badge>
+            </TableCell>
+            <TableCell className="text-right">
+              <Button asChild size="sm" variant="ghost" className="gap-1.5">
+                <Link to={`/marketing/media/create/${String(r.media_id ?? "")}`}>
+                  <Pencil className="h-3.5 w-3.5" /> Edit
+                </Link>
+              </Button>
             </TableCell>
           </TableRow>
         ))}

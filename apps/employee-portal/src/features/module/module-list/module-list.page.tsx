@@ -1,5 +1,13 @@
-import { Search } from "lucide-react";
-import { Badge, Input, TableCell, TableHead, TableRow } from "@craft-apex/ui";
+import { Link } from "react-router-dom";
+import { Pencil, Plus, Search } from "lucide-react";
+import {
+  Badge,
+  Button,
+  Input,
+  TableCell,
+  TableHead,
+  TableRow,
+} from "@craft-apex/ui";
 import {
   DataTableShell,
   TABLE_HEADER_ROW_CLASS,
@@ -20,18 +28,25 @@ export default function ModuleListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="relative w-full max-w-md">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-        <Input
-          value={list.search}
-          onChange={(e) => list.setSearch(e.target.value)}
-          placeholder="Search by code, name, platform, URL…"
-          className="h-10 rounded-full bg-white pl-9"
-        />
+      <div className="flex items-center justify-between gap-3">
+        <div className="relative w-full max-w-md">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Input
+            value={list.search}
+            onChange={(e) => list.setSearch(e.target.value)}
+            placeholder="Search by code, name, platform, URL…"
+            className="h-10 rounded-full bg-white pl-9"
+          />
+        </div>
+        <Button asChild>
+          <Link to="/settings/module/create">
+            <Plus className="h-4 w-4" /> Add Module
+          </Link>
+        </Button>
       </div>
 
       <DataTableShell
-        columnCount={7}
+        columnCount={8}
         loading={isFetching && data.length === 0}
         isEmpty={!isFetching && list.total === 0}
         emptyTitle="No modules found"
@@ -52,6 +67,9 @@ export default function ModuleListPage() {
             <TableHead className={TABLE_HEAD_CLASS}>URL</TableHead>
             <TableHead className={TABLE_HEAD_CLASS}>Parent</TableHead>
             <TableHead className={TABLE_HEAD_CLASS}>Status</TableHead>
+            <TableHead className={`${TABLE_HEAD_CLASS} text-right`}>
+              Action
+            </TableHead>
           </TableRow>
         }
       >
@@ -74,6 +92,13 @@ export default function ModuleListPage() {
               <Badge variant={r.status === 1 ? "success" : "destructive"}>
                 {r.status === 1 ? "Active" : "Inactive"}
               </Badge>
+            </TableCell>
+            <TableCell className="text-right">
+              <Button asChild size="sm" variant="ghost" className="gap-1.5">
+                <Link to={`/settings/module/create/${String(r.module_id ?? "")}`}>
+                  <Pencil className="h-3.5 w-3.5" /> Edit
+                </Link>
+              </Button>
             </TableCell>
           </TableRow>
         ))}

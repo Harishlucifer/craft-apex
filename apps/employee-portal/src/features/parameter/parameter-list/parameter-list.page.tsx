@@ -1,5 +1,13 @@
-import { Search } from "lucide-react";
-import { Badge, Input, TableCell, TableHead, TableRow } from "@craft-apex/ui";
+import { Link } from "react-router-dom";
+import { Pencil, Plus, Search } from "lucide-react";
+import {
+  Badge,
+  Button,
+  Input,
+  TableCell,
+  TableHead,
+  TableRow,
+} from "@craft-apex/ui";
 import {
   DataTableShell,
   TABLE_HEADER_ROW_CLASS,
@@ -30,10 +38,15 @@ export default function ParameterListPage() {
             className="h-10 rounded-full bg-white pl-9"
           />
         </div>
+        <Button asChild>
+          <Link to="/settings/parameter/create">
+            <Plus className="h-4 w-4" /> Add Parameter
+          </Link>
+        </Button>
       </div>
 
       <DataTableShell
-        columnCount={7}
+        columnCount={8}
         loading={isFetching && data.length === 0}
         isEmpty={!isFetching && list.total === 0}
         emptyTitle="No parameters found"
@@ -54,6 +67,9 @@ export default function ParameterListPage() {
             <TableHead className={TABLE_HEAD_CLASS}>Source</TableHead>
             <TableHead className={TABLE_HEAD_CLASS}>Field</TableHead>
             <TableHead className={TABLE_HEAD_CLASS}>Status</TableHead>
+            <TableHead className={`${TABLE_HEAD_CLASS} text-right`}>
+              Action
+            </TableHead>
           </TableRow>
         }
       >
@@ -74,6 +90,15 @@ export default function ParameterListPage() {
               <Badge variant={r.status === 1 ? "success" : "destructive"}>
                 {r.status === 1 ? "Active" : "Inactive"}
               </Badge>
+            </TableCell>
+            <TableCell className="text-right">
+              <Button asChild size="sm" variant="ghost" className="gap-1.5">
+                <Link
+                  to={`/settings/parameter/create/${String(r.parameter_id ?? "")}`}
+                >
+                  <Pencil className="h-3.5 w-3.5" /> Edit
+                </Link>
+              </Button>
             </TableCell>
           </TableRow>
         ))}
