@@ -2,6 +2,7 @@ export * from "./types";
 export * from "./module-store";
 export * from "./use-module";
 export * from "./menu";
+export * from "./permission-gate";
 export { Sidebar } from "./components/sidebar";
 export { DualSidebar } from "./components/dual-sidebar";
 export { Header } from "./components/header";

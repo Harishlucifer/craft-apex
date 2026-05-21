@@ -1,8 +1,9 @@
 # Migration Phases — Status & Pending Work
 
-Tracker for the `craft-apex` rewrite. The original plan had Phases 1–6; Phase 8
-was added later for the workflow runtime deferral from Phase 3. **There is no
-Phase 7** (gap left in numbering).
+Tracker for the `craft-apex` rewrite. The original plan had Phases 1–6 + 8
+(Phase 7 was unused). **Phase 7 is now active** — it owns the heavy legacy
+ports that were deferred out of Phase 4 (each is a 500-1500 LOC page or
+multi-step wizard needing its own dedicated session).
 
 Hard rule throughout: every endpoint, query param, request body, and response
 field name is read verbatim from `craft-frontend` legacy code — no guessing,
@@ -49,77 +50,77 @@ All 7 sub-phases typecheck-clean.
 
 ---
 
-## Phase 3 — Other Add/Edit forms for existing list pages 🟡
-
-5 of 7 done. Sub-phases 3.6/3.7 were deferred to **Phase 8** because they all
-sit on top of `PartnerFlowWithDynamic` + the dynamic flow engine.
+## Phase 3 — Other Add/Edit forms for existing list pages ✅
 
 | Sub-phase | Feature | Status |
 |---|---|---|
-| 3.1 | Payout Plan wizard (+ Incentive Plan variant) | ✅ |
+| 3.1 | Payout Plan wizard | ✅ |
+| 3.1a | Incentive Plan variant (`EMPLOYEE` user type) | ✅ — same `PayoutPlanFormPage`; mode toggled by `location.pathname.includes("incentive")`. Wired at `/finance/add-incentive-plan[/:id]` and `/collection/incentive-plan-list`. |
 | 3.2 | Marketing Campaign wizard | ✅ |
 | 3.3 | Employee (tabbed) | ✅ |
 | 3.4 | Lender Scheme wizard | ✅ |
+| 3.4a | Receivable Scheme (`PAYABLE` mode flipped) | ✅ — legacy `AddScheme.js` hardcoded `mode="PAYABLE"` (the receivable branch was never live). Mirrored by redirecting `/finance/add-receivable-scheme` → `/settings/add-scheme` in [`routes.tsx`](../apps/employee-portal/src/routes.tsx). |
 | 3.5 | Territory | ✅ |
-| 3.6 | New Channel / Partner / Vendor / APF onboarding | → Phase 8 |
-| 3.7 | BC onboarding | → Phase 8 |
+| 3.6 | Partner / Vendor / APF onboarding | ✅ — wired through `OnboardingPage` + workflow runtime in **Phase 8.4**. Legacy `NewChannelList` navigates directly to `/partner/onboarding/:id`; no separate modal-driven Add. |
+| 3.7 | BC onboarding | ✅ — wired in **Phase 8.4** (`/bc/onboarding[/:id]` + `/bc/partner/onboarding[/:id]`). |
 
 ---
 
-## Phase 4 — Missing list/queue pages 🟡
+## Phase 4 — Missing list/queue pages ✅ (closed with deferrals)
 
-77 routes originally placeholder-wired. **62 still on `RoutePlaceholder`** —
-the rest are real pages now. Remaining placeholders are either legacy stubs
-(no real implementation in `craft-frontend`), legacy mock-data pages (no
-backend), or large multi-component flows deferred to Phase 4.3 / Phase 5.
+77 routes originally placeholder-wired. **60 still on `RoutePlaceholder`** —
+the rest are real pages now. Phase 4 is **closed**: every remaining
+placeholder is in its final-decided state — either a documented legacy
+stub/mock (cannot port without backend) or a flagged candidate for the new
+**Phase 7 — Heavy legacy ports** queue.
 
 | Sub-phase | Scope | Status |
 |---|---|---|
 | 4.0 | Shared `RoutePlaceholder` + wire all 77 missing routes | ✅ |
 | 4.1 | Verification Queue, Dedupe Q | ✅ |
-| 4.2 | Activity tracking, Enquiry, FLDG, Attach Loan, Vehicle | 🟡 — most legacy files are mocks or 1000+ LOC; deferred |
-| 4.3 | Finance Payable/Receivable estimate + invoice + Sales perf | ⬜ deferred (Phase 5 report scaffold will help) |
+| 4.2 | Activity tracking, Enquiry, FLDG, Attach Loan, Vehicle | ✅ — Activity dashboards → Phase 7; FLDG / Attach Loan / Vehicle are legacy mocks (won't port); Enquiry → Phase 7 |
+| 4.3 | Finance Payable/Receivable estimate + invoice + Sales perf | ⬜ → Phase 5 (each is its own report) |
 
-### Phase 4 pages landed (real ports)
+### Phase 4 pages landed (real ports — 11 total)
 
 - Verification Queue — `/operations/verification/`
 - Dedupe Q — `/lead/dedupe-q` (reuses `LeadListPage`)
-- **Pincode Eligibility** — `/utility/pincode-eligibility`
-- **Marketing Campaign Audience** — `/marketing/campaign/:id` (+ `/collection/campaign/:id` reuses it)
-- **Business Card** — `/utility/business-card`
-- **Lender Eligible Pincode List** — `/settings/lender/eligible-pincode/list`
-- **GST Status (Approved channels)** — `/finance/gst-status`
-- **Customer 360** — `/customer360-relationship[/:id]` (API-driven sections only; FD / Credit Cards / Insurance tabs were legacy mocks, skipped)
-- **Lead Approval Queue** — `/lead/list/approval-q` (reuses tracking-q types)
+- Pincode Eligibility — `/utility/pincode-eligibility`
+- Marketing Campaign Audience — `/marketing/campaign/:id` (+ `/collection/campaign/:id`)
+- Business Card — `/utility/business-card`
+- Lender Eligible Pincode List — `/settings/lender/eligible-pincode/list`
+- GST Status — `/finance/gst-status`
+- Customer 360 — `/customer360-relationship[/:id]` (API-driven sections only)
+- Lead Approval Queue — `/lead/list/approval-q`
+- **CDN File Manager** — `/cdn-file-manager` (read-only browser; uploads deferred)
+- **Marketing Campaign Summary** — `/marketing/campaign/summary` (status tabs + audience filter + clickable cards; uses Phase 6 report scaffold)
 
-### Remaining placeholders (62 routes) — categorized
+### Remaining placeholders (60 routes) — final-state categorization
 
-**Legacy mock-data or stub (no backend) — defer until real API exists:**
-- `/attach/fldg[/add[/:id]]`, `/attach/loan-account[/add[/:id]]` — PortfolioList mock
+**A. Legacy stub / mock (no real backend) — won't-port until backend exists:**
+- `/attach/fldg[/add[/:id]]`, `/attach/loan-account[/add[/:id]]` — PortfolioList mock data
 - `/bc/partner/bulk-upload`, `/partner/bulk-upload`, `/lead/bulk-upload`, `/enquiry/bulk-upload` — 11-line stubs
-- `/bc/pending`, `/bc/portfolio/view` — PortfolioList mock
+- `/bc/pending`, `/bc/portfolio/view` — PortfolioList mock data
 - `/lead/lender-view` — 11-line stub
 - `/los/login-initiate[/:id]` — 12-line stub
-- `/operations/verification/summary` — no backing component
-- `/settings/vehicle`, `/settings/vehicle-details` — legacy component missing / commented
-- Vehicle masters (`/settings/used-vehicle-makes`, etc.) — mock data in legacy
+- `/operations/verification/summary` — no backing component file
+- `/settings/vehicle`, `/settings/vehicle-details`, `/settings/used-vehicle-makes`, vehicle masters — legacy component missing or mock data
 
-**Large legacy port (500+ LOC), warrants dedicated session:**
-- `/activity/daily-activity`, `/activity/lead-disposition`, `/activity/partner-disposition` — MIS reports
+**B. Phase 7 — Heavy legacy ports (each warrants its own dedicated session):**
+- `/activity/daily-activity`, `/activity/lead-disposition`, `/activity/partner-disposition` — MIS reports (~500 LOC each with 3 sub-components)
 - `/activity/live-tracking` — Google Maps + TerritoryTree + EmployeeList
-- `/cdn-file-manager` — CDN file manager
 - `/enquiry/customer/list`, `/enquiry/lead/list` — 1474 LOC EnquiryList
-- `/enquiry/customer/lead[/:id]` — multi-step intake
+- `/enquiry/customer/lead[/:id]` — multi-step intake form
 - `/lead/create[/:id]` — LeadCreation multi-step wizard
-- `/marketing/campaign/summary` — chart-heavy campaign dashboard
 - `/meet/join` — 1382 LOC WebRTC video call
 - `/operations/verification/:id` — 1189 LOC VerificationFlow
 - `/operations/verification/transfer` — 774 LOC
 - `/utility/doc-checklist-share` — 598 LOC
-- `/utility/lead-reassign` — 446 LOC (selectable rows + employee territory)
+- `/utility/lead-reassign` — 446 LOC (selectable rows + employee territory pickers)
 - `/vehicle/lead/create[/:id]` — AutoFlow vehicle finance wizard
 
-**Phase 4.3 — finance accounting cluster (deferred together):**
+**C. Phase 4.3 finance accounting cluster** (defer to Phase 5 — each fits the
+report scaffold once its endpoint is verified against the legacy):
 - `/finance/gst/{filing,vendor-gst,withheld}`, `/finance/tds/status`,
   `/setting/lender-gst`, `/settings/company-gst`
 - `/finance/{accounting/month-closing, adjustment-card,
@@ -132,14 +133,77 @@ backend), or large multi-component flows deferred to Phase 4.3 / Phase 5.
 
 ---
 
-## Phase 5 — Untouched domain modules 🟡
+## Phase 5 — Untouched domain modules ✅ (closed with deferrals)
 
-Each is one or more list pages plus its own forms. Pick one module per session.
-Reports/MIS work is well underway — 6 reports landed using the Phase 6 report
-scaffold (User Login, Pendency, Source Productivity, Bank Performance,
-Month-Wise Performance, Process Status). Template is in place for the
-remaining ~14 Reports + MIS pages — each new report is ~3 files (types + api
-+ page) + 1 route wiring.
+Phase 5 is **closed**. 7 reports landed against real APIs using the Phase 6
+report scaffold; everything else is either a legacy mock (won't-port) or a
+large multi-component page deferred to **Phase 7 — Heavy legacy ports**.
+
+### Reports / MIS — landed (7)
+
+- User Login Report — `/reports/user-login-report`
+- MIS Pendency — `/reports/mis/pendency-reports`
+- MIS Source Productivity — `/reports/mis/source-productivity`
+- MIS Bank Performance — `/reports/mis/bank-performance`
+- MIS Month-Wise Performance — `/reports/mis/month-wise-performance`
+- MIS Process Status — `/reports/mis/process-status`
+- **MIS Conveyance Report** — `/reports/mis/conveyance-report` (date input
+  YYYY-MM-DD → API DD/MM/YYYY conversion; 5 dashboard cards + 6-col verification table)
+
+### Reports / MIS — deferred to Phase 7 (large)
+
+- **Daily Sales Report** (`/reports/mis/daily-sales-report`,
+  `/activity/daily-activity`) — 3 sub-components (PerformanceAnalytics,
+  SalesSummaryReport, DispositionDetails); ~500 LOC
+- **Attendance Report** (`/reports/mis/attendance-report`) — 363 LOC, 8 API
+  refs (employee role + attendance + summary + punch-out revert + territory)
+- **Verification TAT Report** (`/reports/mis/verification-tat-report`) — 451 LOC,
+  4 lookup endpoints + complex filter structure
+- **Lead Disposition** (`/activity/lead-disposition`) — disposition stream
+- **Partner Disposition** (`/activity/partner-disposition`) — partner-flow
+  disposition aggregation
+- **Channel Sales Report** (`/reports/mis/channel-sales-reports`) — legacy is
+  mock-only (no API call), won't-port until backend exists
+- **Product Performance** (`/reports/mis/product-performance`) — chart-heavy
+  (loan_amount_chart + loan_type_chart Apex chart sub-components)
+
+### Reports / non-MIS — pending audit
+
+- `/reports/leads` (LeadDownloads / LeadStatus) — date+status+CSV export with
+  request-list table
+- `/reports/partners` (PartnersDownload) — POST `/alpha/v1/report/partner` with
+  date+status filters → CSV download
+- `/reports/bureau-reports-list`, `/reports/bureau-report-flow[/:id]` — bureau
+  reporting flow
+- `/reports/system-usage-report` — platform usage analytics
+- `/reports/business-dashboard`, `/reports/portfolio-parameters`,
+  `/reports/lms/dashboard`, `/reports/npa/dashboard`, `/reports/pdd-dashboard`
+  — per earlier audit, most LMS dashboards in legacy are mock-only
+
+### Untouched domains — won't-port (legacy is mock-only)
+
+Per audit (`grep -l APIENDPOINTS` across each domain dir): no real API
+implementation in legacy. These will need fresh backend work before they can
+be re-ported.
+
+| Domain | Real API files / total | Disposition |
+|---|---|---|
+| HR Mgmt (HRMgmt) | 0 / 4 | mock only |
+| Incentive Module | 0 / 3 | mock only |
+| Industry master | 0 / 1 | mock only |
+| Fixed Assets | 0 / 9 | mock only |
+| Trade Advance | 0 / 3 | mock only |
+| Treasury | 0 / 5 | mock only |
+| Decision Queue | 0 / many | mock only |
+| LMS Closed Accounts | 0 / 1 | mock only |
+| Performance Mgmt | 2 / 5 | → Phase 7 (AssgnTarget + AttachIncentives multi-step flows) |
+
+### Phase 4.3 finance accounting cluster
+
+Stays redirected here from Phase 4. Each fits the `ReportShell` scaffold —
+port one when the corresponding endpoint is verified against legacy
+(`craft-frontend/src/pages/PayableReceivableMgmt/*` etc.). 21 routes wait,
+each independent.
 
 - HR Mgmt — leave, attendance
 - Incentive Module — incentive structures
@@ -165,8 +229,15 @@ remaining ~14 Reports + MIS pages — each new report is ~3 files (types + api
 
 ## Phase 6 — Cross-cutting polish 🟡
 
-- ⬜ Permissions / `withModule` parity — currently routes are public; legacy
-  uses module-driven privileges (`useModule().allowed_permission.{add,edit,view}`).
+- 🟡 **Permissions / `withModule` parity** — partial. `useModulePermission(action)`
+  exists in `@craft-apex/layout`; added `<PermissionGate action="…">` (hide
+  on deny) and `<RouteGuard action="…" redirectTo="…">` (redirect on deny) in
+  [`packages/layout/src/permission-gate.tsx`](../packages/layout/src/permission-gate.tsx).
+  Applied to Employee, Loan Type, Lender, Doc Checklist, Marketing Campaign
+  list pages (Add + Edit gated). Pattern is now in place — remaining list
+  pages can opt in by wrapping their Add / Edit buttons in `<PermissionGate>`.
+  `<RouteGuard>` is exported but not yet wired into `routes.tsx` (would gate
+  page-level access).
 - ⬜ Common queue filter strip (PartnerDisposition, ProcessStatus, etc.).
 - ⬜ Bulk upload primitive (reused by Lead, Partner, BC, Enquiry, Lender Payout).
 - ✅ **Shared report scaffold** — `ReportShell` + `DateRangeFields` +
@@ -178,6 +249,35 @@ remaining ~14 Reports + MIS pages — each new report is ~3 files (types + api
   download (legacy contract). Used by `user-login-report`,
   `mis-pendency-report`, `mis-source-productivity`, `mis-bank-performance`.
 - ⬜ Channel/Partner approval queue — multi-status badges + approval drawer.
+
+---
+
+## Phase 7 — Heavy legacy ports ⬜
+
+Pages too large to port in a Phase 4 batch — each needs its own dedicated
+session because of multi-component sub-trees, third-party dependencies, or
+multi-step wizard state. Listed in rough priority order.
+
+| Route | Legacy file | LOC | Why heavy |
+|---|---|---|---|
+| `/activity/daily-activity` | `/pages/MIS/DailySalesReport.js` | ~500 + 3 sub | 3 sub-components (SalesSummaryReport, DispositionDetails, PerformanceAnalytics) |
+| `/activity/lead-disposition` | `/pages/MIS/LeadDisposition/LeadDisposition.js` | ~500 | Disposition stream rendering |
+| `/activity/partner-disposition` | `/pages/MIS/PartnerDisposition/PartnerDispositionReport.js` | ~500 | Partner-flow disposition |
+| `/activity/live-tracking` | `/pages/ActivityTracking/LiveTracking.js` | ~600 | Google Maps + TerritoryTree + EmployeeList |
+| `/enquiry/customer/list`, `/enquiry/lead/list` | `/pages/EnquiryMgmt/List.js` | 1474 | Enquiry list with intake actions |
+| `/enquiry/customer/lead[/:id]` | `EnquiryCustomerLeadsFollowUp.js` | ~600 | Multi-step intake |
+| `/lead/create[/:id]` | `LeadCreation/LeadCreation.js` | very large | Multi-step lead intake wizard |
+| `/meet/join` | `/Components/Verification/videoPDMeet/VideoCallScreen.js` | 1382 | WebRTC video call |
+| `/operations/verification/:id` | `/Components/Verification/VerificationFlow.js` | 1189 | Verification step flow |
+| `/operations/verification/transfer` | `/pages/Verification/VerificationTransfer.js` | 774 | Reassignment wizard |
+| `/utility/doc-checklist-share` | `/pages/DocumentChecklist/ChecklistShare.js` | 598 | Share link generation |
+| `/utility/lead-reassign` | `/pages/Utility/Utilityreassign.js` | 446 | Selectable rows + employee territory pickers |
+| `/vehicle/lead/create[/:id]` | `AutoFlow` (CarLead) | very large | Vehicle finance wizard |
+| `/reports/mis/daily-sales-report` + `/activity/daily-activity` | `/pages/MIS/DailySalesReport.js` | ~500 + 3 sub | Performance / Sales summary / Disposition sub-cards |
+| `/reports/mis/attendance-report` | `AttendanceReport.js` | 363 + 5 endpoints | Employee role + attendance + summary + punch revert + territory |
+| `/reports/mis/verification-tat-report` | `VerificationTATReport.js` | 451 | Multi-lookup filter (category + loan type + territory + verification list) |
+| `/reports/mis/product-performance` | `ProductPerformance/index.js` | 302 + charts | Apex `loan_amount_chart` + `loan_type_chart` sub-components |
+| `/reports/lms/dashboard` etc. | `/pages/Reports/LMS/*` | mocks | All LMS reports are hard-coded mock data in legacy |
 
 ---
 

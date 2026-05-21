@@ -8,7 +8,7 @@ import {
   TableHead,
   TableRow,
 } from "@craft-apex/ui";
-import { useModule } from "@craft-apex/layout";
+import { PermissionGate, useModule } from "@craft-apex/layout";
 import {
   DataTableShell,
   TABLE_HEADER_ROW_CLASS,
@@ -45,11 +45,13 @@ export default function CampaignListPage() {
             className="h-10 rounded-full bg-white pl-9"
           />
         </div>
-        <Button asChild>
-          <Link to="/marketing/campaign/create">
-            <Plus className="h-4 w-4" /> Add Campaign
-          </Link>
-        </Button>
+        <PermissionGate action="add">
+          <Button asChild>
+            <Link to="/marketing/campaign/create">
+              <Plus className="h-4 w-4" /> Add Campaign
+            </Link>
+          </Button>
+        </PermissionGate>
       </div>
 
       <DataTableShell
@@ -102,13 +104,15 @@ export default function CampaignListPage() {
               </Badge>
             </TableCell>
             <TableCell className="text-right">
-              <Button asChild size="sm" variant="ghost" className="gap-1.5">
-                <Link
-                  to={`/marketing/campaign/create/${String(r.campaign_id ?? "")}`}
-                >
-                  <Pencil className="h-3.5 w-3.5" /> Edit
-                </Link>
-              </Button>
+              <PermissionGate action="edit">
+                <Button asChild size="sm" variant="ghost" className="gap-1.5">
+                  <Link
+                    to={`/marketing/campaign/create/${String(r.campaign_id ?? "")}`}
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </Link>
+                </Button>
+              </PermissionGate>
             </TableCell>
           </TableRow>
         ))}

@@ -94,6 +94,9 @@ import MisSourceProductivityPage from "@/features/reports/mis-source-productivit
 import MisBankPerformancePage from "@/features/reports/mis-bank-performance/mis-bank-performance.page";
 import MisMonthWisePerformancePage from "@/features/reports/mis-month-wise-performance/mis-month-wise-performance.page";
 import MisProcessStatusPage from "@/features/reports/mis-process-status/mis-process-status.page";
+import MisConveyanceReportPage from "@/features/reports/mis-conveyance-report/mis-conveyance-report.page";
+import CdnFileManagerPage from "@/features/cdn-file-manager/cdn-file-manager.page";
+import CampaignSummaryPage from "@/features/marketing/campaign-summary/campaign-summary.page";
 
 /**
  * Explicit route tree. Every path is a real legacy path (verified against
@@ -252,6 +255,7 @@ export const router = createBrowserRouter([
       { path: "/reports/mis/bank-performance", element: <MisBankPerformancePage /> },
       { path: "/reports/mis/month-wise-performance", element: <MisMonthWisePerformancePage /> },
       { path: "/reports/mis/process-status", element: <MisProcessStatusPage /> },
+      { path: "/reports/mis/conveyance-report", element: <MisConveyanceReportPage /> },
 
       // Workflow + Field/Component Master
       { path: "/settings/workflow", element: <WorkflowListPage /> },
@@ -367,7 +371,7 @@ export const router = createBrowserRouter([
       { path: "/bc/portfolio/view", element: <RoutePlaceholder title="BC Portfolio" legacyNotes={["Legacy PortfolioList uses mock data — no real API"]} /> },
 
       // CDN / Customer 360 / Default
-      { path: "/cdn-file-manager", element: <RoutePlaceholder title="CDN File Manager" backTo="/dashboard" legacyNotes={["Legacy /pages/Configuration/CDNFileManager/CDNFiles (525 LOC) — defer to follow-up"]} /> },
+      { path: "/cdn-file-manager", element: <CdnFileManagerPage /> },
       { path: "/customer360-relationship", element: <Customer360Page /> },
       { path: "/customer360-relationship/:id", element: <Customer360Page /> },
       { path: "/default/route", element: <Navigate to="/dashboard" replace /> },
@@ -432,7 +436,7 @@ export const router = createBrowserRouter([
 
       // Marketing campaign detail / summary
       { path: "/marketing/campaign/:id", element: <CampaignAudiencePage /> },
-      { path: "/marketing/campaign/summary", element: <RoutePlaceholder title="Campaign Summary" backTo="/marketing/campaign" legacyNotes={["Legacy /pages/Marketing/CampaignMgmt/CampaignSummary (508 LOC) — chart-heavy"]} /> },
+      { path: "/marketing/campaign/summary", element: <CampaignSummaryPage /> },
 
       // Meet — WebRTC video PD meet (large)
       { path: "/meet/join", element: <RoutePlaceholder title="Join Meeting" legacyNotes={["Legacy /Components/Verification/videoPDMeet/VideoCallScreen (1382 LOC WebRTC)"]} /> },

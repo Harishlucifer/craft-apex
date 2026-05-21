@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Pencil, Plus } from "lucide-react";
+import { PermissionGate } from "@craft-apex/layout";
 import {
   Badge,
   Button,
@@ -28,11 +29,13 @@ export default function EmployeeListPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end">
-        <Button asChild>
-          <Link to="/settings/employee/create">
-            <Plus className="h-4 w-4" /> Add Employee
-          </Link>
-        </Button>
+        <PermissionGate action="add">
+          <Button asChild>
+            <Link to="/settings/employee/create">
+              <Plus className="h-4 w-4" /> Add Employee
+            </Link>
+          </Button>
+        </PermissionGate>
       </div>
       <DataTableShell
         columnCount={9}
@@ -89,11 +92,13 @@ export default function EmployeeListPage() {
               </Badge>
             </TableCell>
             <TableCell className="text-right">
-              <Button asChild size="sm" variant="ghost" className="gap-1.5">
-                <Link to={`/settings/employee/create/${String(r.employee_id ?? "")}`}>
-                  <Pencil className="h-3.5 w-3.5" /> Edit
-                </Link>
-              </Button>
+              <PermissionGate action="edit">
+                <Button asChild size="sm" variant="ghost" className="gap-1.5">
+                  <Link to={`/settings/employee/create/${String(r.employee_id ?? "")}`}>
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </Link>
+                </Button>
+              </PermissionGate>
             </TableCell>
           </TableRow>
         ))}

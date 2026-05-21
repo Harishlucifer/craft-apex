@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Pencil, Plus, Search } from "lucide-react";
+import { PermissionGate } from "@craft-apex/layout";
 import {
   Badge,
   Button,
@@ -38,11 +39,13 @@ export default function LoanTypeListPage() {
             className="h-10 rounded-full bg-white pl-9"
           />
         </div>
-        <Button asChild>
-          <Link to="/settings/add-loan-types">
-            <Plus className="h-4 w-4" /> Add Loan Type
-          </Link>
-        </Button>
+        <PermissionGate action="add">
+          <Button asChild>
+            <Link to="/settings/add-loan-types">
+              <Plus className="h-4 w-4" /> Add Loan Type
+            </Link>
+          </Button>
+        </PermissionGate>
       </div>
 
       <DataTableShell
@@ -85,11 +88,13 @@ export default function LoanTypeListPage() {
               </Badge>
             </TableCell>
             <TableCell className="text-right">
-              <Button asChild size="sm" variant="ghost" className="gap-1.5">
-                <Link to={`/settings/add-loan-types/${String(r.id ?? "")}`}>
-                  <Pencil className="h-3.5 w-3.5" /> Edit
-                </Link>
-              </Button>
+              <PermissionGate action="edit">
+                <Button asChild size="sm" variant="ghost" className="gap-1.5">
+                  <Link to={`/settings/add-loan-types/${String(r.id ?? "")}`}>
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </Link>
+                </Button>
+              </PermissionGate>
             </TableCell>
           </TableRow>
         ))}
