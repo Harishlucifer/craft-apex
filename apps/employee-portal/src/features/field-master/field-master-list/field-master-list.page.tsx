@@ -1,3 +1,4 @@
+import { PermissionGate } from "@craft-apex/layout";
 import { Link, useLocation } from "react-router-dom";
 import { Pencil, Plus, Search } from "lucide-react";
 import {
@@ -96,13 +97,15 @@ export default function FieldMasterListPage() {
               </Badge>
             </TableCell>
             <TableCell className="text-right">
-              <Button asChild size="sm" variant="ghost" className="gap-1.5">
-                <Link
-                  to={`${createPath}/${String(r.id ?? r.field_master_id ?? "")}`}
-                >
-                  <Pencil className="h-3.5 w-3.5" /> Edit
-                </Link>
-              </Button>
+              <PermissionGate action="edit">
+                <Button asChild size="sm" variant="ghost" className="gap-1.5">
+                  <Link
+                    to={`${createPath}/${String(r.id ?? r.field_master_id ?? "")}`}
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </Link>
+                </Button>
+              </PermissionGate>
             </TableCell>
           </TableRow>
         ))}

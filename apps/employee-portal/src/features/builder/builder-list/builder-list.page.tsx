@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Pencil, Plus, Search } from "lucide-react";
+import { PermissionGate } from "@craft-apex/layout";
 import {
   Badge,
   Button,
@@ -38,11 +39,13 @@ export default function BuilderListPage() {
             className="h-10 rounded-full bg-white pl-9"
           />
         </div>
-        <Button asChild>
-          <Link to="/settings/builders/create">
-            <Plus className="h-4 w-4" /> Add Builder
-          </Link>
-        </Button>
+        <PermissionGate action="add">
+          <Button asChild>
+            <Link to="/settings/builders/create">
+              <Plus className="h-4 w-4" /> Add Builder
+            </Link>
+          </Button>
+        </PermissionGate>
       </div>
 
       <DataTableShell
@@ -94,13 +97,15 @@ export default function BuilderListPage() {
               </Badge>
             </TableCell>
             <TableCell className="text-right">
-              <Button asChild size="sm" variant="ghost" className="gap-1.5">
-                <Link
-                  to={`/settings/builders/create/${String(r.developer_id ?? "")}`}
-                >
-                  <Pencil className="h-3.5 w-3.5" /> Edit
-                </Link>
-              </Button>
+              <PermissionGate action="edit">
+                <Button asChild size="sm" variant="ghost" className="gap-1.5">
+                  <Link
+                    to={`/settings/builders/create/${String(r.developer_id ?? "")}`}
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </Link>
+                </Button>
+              </PermissionGate>
             </TableCell>
           </TableRow>
         ))}

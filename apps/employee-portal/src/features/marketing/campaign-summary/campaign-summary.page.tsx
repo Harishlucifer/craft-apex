@@ -15,6 +15,10 @@ import {
   ReportShell,
   useDateRange,
 } from "@/components/report-shell";
+import {
+  ActiveFiltersStrip,
+  type ActiveFilter,
+} from "@/components/active-filters-strip";
 import { useCampaignSummary } from "./campaign-summary.api";
 import type { CampaignSummary } from "./campaign-summary.types";
 
@@ -103,6 +107,42 @@ export default function CampaignSummaryPage() {
     [campaigns]
   );
 
+  // Active filter chips (skip the implied "all" tab — that's the default).
+  const activeFilters: ActiveFilter[] = useMemo(() => {
+    const out: ActiveFilter[] = [];
+    if (activeTab !== "all") {
+      const label =
+        STATUS_TABS.find((t) => t.key === activeTab)?.label ?? activeTab;
+      out.push({ label: "Status", value: label, onClear: () => setActiveTab("all") });
+    }
+    if (dataSource !== "all") {
+      const opt = DATA_SOURCE_OPTIONS.find((o) => o.value === dataSource);
+      out.push({
+        label: "Audience",
+        value: opt?.label ?? dataSource,
+        onClear: () => setDataSource("all"),
+      });
+    }
+    if (dateRange.startDate) {
+      out.push({
+        label: "From",
+        value: dateRange.startDate,
+        onClear: () => dateRange.setStartDate(""),
+      });
+    }
+    if (dateRange.endDate) {
+      out.push({
+        label: "To",
+        value: dateRange.endDate,
+        onClear: () => dateRange.setEndDate(""),
+      });
+    }
+    if (search.trim()) {
+      out.push({ label: "Search", value: search.trim(), onClear: () => setSearch("") });
+    }
+    return out;
+  }, [activeTab, dataSource, dateRange, search]);
+
   return (
     <ReportShell
       title="Campaign Summary"
@@ -137,6 +177,15 @@ export default function CampaignSummaryPage() {
               </Link>
             </Button>
           </div>
+          <ActiveFiltersStrip
+            filters={activeFilters}
+            onClearAll={() => {
+              setActiveTab("all");
+              setDataSource("all");
+              dateRange.reset();
+              setSearch("");
+            }}
+          />
         </div>
       }
       filters={

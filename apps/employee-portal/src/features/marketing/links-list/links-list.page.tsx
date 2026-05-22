@@ -1,3 +1,4 @@
+import { PermissionGate } from "@craft-apex/layout";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Pencil, Plus, Search } from "lucide-react";

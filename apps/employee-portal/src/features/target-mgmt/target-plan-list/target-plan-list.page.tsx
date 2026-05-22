@@ -1,3 +1,4 @@
+import { PermissionGate } from "@craft-apex/layout";
 import { Link } from "react-router-dom";
 import { Pencil, Plus, Search } from "lucide-react";
 import {
@@ -41,11 +42,13 @@ export default function TargetPlanListPage() {
             className="h-10 rounded-full bg-white pl-9"
           />
         </div>
-        <Button asChild>
-          <Link to="/target/add-plan">
-            <Plus className="h-4 w-4" /> Add Target Plan
-          </Link>
-        </Button>
+        <PermissionGate action="add">
+          <Button asChild>
+            <Link to="/target/add-plan">
+              <Plus className="h-4 w-4" /> Add Target Plan
+            </Link>
+          </Button>
+        </PermissionGate>
       </div>
 
       <DataTableShell
@@ -102,13 +105,15 @@ export default function TargetPlanListPage() {
               </Badge>
             </TableCell>
             <TableCell className="text-right">
-              <Button asChild size="sm" variant="ghost" className="gap-1.5">
-                <Link
-                  to={`/target/add-plan/${String(r.target_plan_id ?? "")}`}
-                >
-                  <Pencil className="h-3.5 w-3.5" /> Edit
-                </Link>
-              </Button>
+              <PermissionGate action="edit">
+                <Button asChild size="sm" variant="ghost" className="gap-1.5">
+                  <Link
+                    to={`/target/add-plan/${String(r.target_plan_id ?? "")}`}
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </Link>
+                </Button>
+              </PermissionGate>
             </TableCell>
           </TableRow>
         ))}

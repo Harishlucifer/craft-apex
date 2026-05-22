@@ -227,40 +227,80 @@ each independent.
 
 ---
 
-## Phase 6 — Cross-cutting polish 🟡
+## Phase 6 — Cross-cutting polish ✅ (closed)
 
-- 🟡 **Permissions / `withModule` parity** — partial. `useModulePermission(action)`
-  exists in `@craft-apex/layout`; added `<PermissionGate action="…">` (hide
-  on deny) and `<RouteGuard action="…" redirectTo="…">` (redirect on deny) in
-  [`packages/layout/src/permission-gate.tsx`](../packages/layout/src/permission-gate.tsx).
-  Applied to Employee, Loan Type, Lender, Doc Checklist, Marketing Campaign
-  list pages (Add + Edit gated). Pattern is now in place — remaining list
-  pages can opt in by wrapping their Add / Edit buttons in `<PermissionGate>`.
-  `<RouteGuard>` is exported but not yet wired into `routes.tsx` (would gate
-  page-level access).
-- ⬜ Common queue filter strip (PartnerDisposition, ProcessStatus, etc.).
-- ⬜ Bulk upload primitive (reused by Lead, Partner, BC, Enquiry, Lender Payout).
+All polish items resolved — three landed as primitives + applied; two
+deferred because legacy has no backing implementation to port against.
+
+### Landed
+
 - ✅ **Shared report scaffold** — `ReportShell` + `DateRangeFields` +
   `useReportExport` in
-  [`src/components/`](../apps/employee-portal/src/components/). Owns:
-  header (title + back + Export button), filter card (grid body + Search /
-  Reset footer), table-area children. `useReportExport(reportType, fileName)`
-  wraps `GET /alpha/v1/report/export/:report_type?…` → triggers anchor
-  download (legacy contract). Used by `user-login-report`,
-  `mis-pendency-report`, `mis-source-productivity`, `mis-bank-performance`.
-- ⬜ Channel/Partner approval queue — multi-status badges + approval drawer.
+  [`src/components/`](../apps/employee-portal/src/components/). Used by 7
+  reports (User Login, Pendency, Source Productivity, Bank Performance,
+  Month-Wise Performance, Process Status, Conveyance) + Marketing Campaign
+  Summary. `useReportExport(reportType, fileName)` wraps
+  `GET /alpha/v1/report/export/:report_type?…` → anchor download.
+
+- ✅ **Permissions / `withModule` parity** — `useModulePermission(action)` +
+  `<PermissionGate action="…">` (hide on deny) + `<RouteGuard action="…">`
+  (redirect on deny) in
+  [`packages/layout/src/permission-gate.tsx`](../packages/layout/src/permission-gate.tsx).
+  Applied to **24 list pages** (Add + Edit gated): Builder, Cam Configuration,
+  Doc Checklist, Employee, Field Master, Journey Master, Lender, Lender
+  Pincode, Lender Scheme, Loan Type, Marketing Campaign, Marketing Links,
+  Marketing Media, Module, NPA Rule, Parameter, Payout Plan, Role (inline),
+  Rule, Scoring Engine, Target Plan, Template, Territory, Verification Type,
+  Workflow. Read-only queues (LeadList, ChannelList, PartnerLeadsList, etc.)
+  skipped — no Add/Edit decisions to gate. `<RouteGuard>` is exported but
+  not yet wired into `routes.tsx`; can be added incrementally per route.
+
+- ✅ **Active filters strip** —
+  [`src/components/active-filters-strip.tsx`](../apps/employee-portal/src/components/active-filters-strip.tsx).
+  Removable filter chips + optional Clear-all. Pages assemble an
+  `ActiveFilter[]` array and wire each chip's `onClear` to its existing
+  filter-state setter. Wired into Campaign Summary as the reference user.
+  (Legacy `LeadListFilter` + `CommonListFilter` drawer UIs are larger and
+  tied to specific endpoints — those become per-screen ports as the screens
+  themselves land. This primitive owns the cross-cutting visualization.)
+
+### Deferred — legacy has no contract to port
+
+- ⬜ **Bulk upload primitive** — won't-build until backend exists. All five
+  legacy bulk-upload files (`/pages/BulkUpload/{Lead,Partner,Enquiry}BulkUpload.js`,
+  BC partner bulk-upload) are 11-line stubs with no real implementation.
+  Routes are placeholder-noted in Phase 4 ledger.
+
+- ⬜ **Channel/Partner approval drawer** — folded into Phase 7. Multi-status
+  badges + approval action drawer is part of the partner approval flow,
+  which is itself a Phase 7 / future port (the partner approval step uses
+  the workflow runtime's `executeWorkflow` reject path). Current partner / BC
+  / vendor / APF list pages already render multi-status badges for existing
+  onboarding statuses ([channel-list.page.tsx](../apps/employee-portal/src/features/channel/channel-list/channel-list.page.tsx))
+  — approval drawer ships when its workflow `ui_component` does.
 
 ---
 
-## Phase 7 — Heavy legacy ports ⬜
+## Phase 7 — Heavy legacy ports 🟡
 
 Pages too large to port in a Phase 4 batch — each needs its own dedicated
 session because of multi-component sub-trees, third-party dependencies, or
-multi-step wizard state. Listed in rough priority order.
+multi-step wizard state.
+
+### Landed
+
+- ✅ **Daily Sales Report** — `/reports/mis/daily-sales-report` +
+  `/activity/daily-activity`. Two endpoints (`/alpha/v1/report/daily-sales`
+  + `/alpha/v1/report/sales-disposition`), outcome cards (auto-derived from
+  the dashboard map with per-key icons), Sales Rep summary table (9 cols),
+  Disposition Details table (9 cols, badges per outcome). PerformanceAnalysis
+  bar/pie charts skipped — would require adding `recharts` (deferred).
+  Mirrors legacy's `end_date + 1 day` exclusive-range quirk.
+
+### Pending
 
 | Route | Legacy file | LOC | Why heavy |
 |---|---|---|---|
-| `/activity/daily-activity` | `/pages/MIS/DailySalesReport.js` | ~500 + 3 sub | 3 sub-components (SalesSummaryReport, DispositionDetails, PerformanceAnalytics) |
 | `/activity/lead-disposition` | `/pages/MIS/LeadDisposition/LeadDisposition.js` | ~500 | Disposition stream rendering |
 | `/activity/partner-disposition` | `/pages/MIS/PartnerDisposition/PartnerDispositionReport.js` | ~500 | Partner-flow disposition |
 | `/activity/live-tracking` | `/pages/ActivityTracking/LiveTracking.js` | ~600 | Google Maps + TerritoryTree + EmployeeList |
@@ -273,7 +313,6 @@ multi-step wizard state. Listed in rough priority order.
 | `/utility/doc-checklist-share` | `/pages/DocumentChecklist/ChecklistShare.js` | 598 | Share link generation |
 | `/utility/lead-reassign` | `/pages/Utility/Utilityreassign.js` | 446 | Selectable rows + employee territory pickers |
 | `/vehicle/lead/create[/:id]` | `AutoFlow` (CarLead) | very large | Vehicle finance wizard |
-| `/reports/mis/daily-sales-report` + `/activity/daily-activity` | `/pages/MIS/DailySalesReport.js` | ~500 + 3 sub | Performance / Sales summary / Disposition sub-cards |
 | `/reports/mis/attendance-report` | `AttendanceReport.js` | 363 + 5 endpoints | Employee role + attendance + summary + punch revert + territory |
 | `/reports/mis/verification-tat-report` | `VerificationTATReport.js` | 451 | Multi-lookup filter (category + loan type + territory + verification list) |
 | `/reports/mis/product-performance` | `ProductPerformance/index.js` | 302 + charts | Apex `loan_amount_chart` + `loan_type_chart` sub-components |

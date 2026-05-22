@@ -1,3 +1,4 @@
+import { PermissionGate } from "@craft-apex/layout";
 import { Link } from "react-router-dom";
 import { Plus, Search } from "lucide-react";
 import { Button, Input, TableCell, TableHead, TableRow } from "@craft-apex/ui";
@@ -40,11 +41,13 @@ export default function LenderPincodeListPage() {
             className="h-10 rounded-full bg-white pl-9"
           />
         </div>
-        <Button asChild>
-          <Link to="/settings/lender/pin-code/create">
-            <Plus className="h-4 w-4" /> Add Pincode Upload
-          </Link>
-        </Button>
+        <PermissionGate action="add">
+          <Button asChild>
+            <Link to="/settings/lender/pin-code/create">
+              <Plus className="h-4 w-4" /> Add Pincode Upload
+            </Link>
+          </Button>
+        </PermissionGate>
       </div>
 
       <DataTableShell

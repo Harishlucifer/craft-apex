@@ -95,6 +95,7 @@ import MisBankPerformancePage from "@/features/reports/mis-bank-performance/mis-
 import MisMonthWisePerformancePage from "@/features/reports/mis-month-wise-performance/mis-month-wise-performance.page";
 import MisProcessStatusPage from "@/features/reports/mis-process-status/mis-process-status.page";
 import MisConveyanceReportPage from "@/features/reports/mis-conveyance-report/mis-conveyance-report.page";
+import MisDailySalesReportPage from "@/features/reports/mis-daily-sales-report/mis-daily-sales-report.page";
 import CdnFileManagerPage from "@/features/cdn-file-manager/cdn-file-manager.page";
 import CampaignSummaryPage from "@/features/marketing/campaign-summary/campaign-summary.page";
 
@@ -256,6 +257,8 @@ export const router = createBrowserRouter([
       { path: "/reports/mis/month-wise-performance", element: <MisMonthWisePerformancePage /> },
       { path: "/reports/mis/process-status", element: <MisProcessStatusPage /> },
       { path: "/reports/mis/conveyance-report", element: <MisConveyanceReportPage /> },
+      // Daily Sales Report — same page is mounted at /activity/daily-activity in legacy.
+      { path: "/reports/mis/daily-sales-report", element: <MisDailySalesReportPage /> },
 
       // Workflow + Field/Component Master
       { path: "/settings/workflow", element: <WorkflowListPage /> },
@@ -351,7 +354,7 @@ export const router = createBrowserRouter([
 
       // Activity & tracking — large MIS reports (500+ LOC each in legacy with
       // 3-4 sub-components per page; deferred to Phase 5 report scaffold).
-      { path: "/activity/daily-activity", element: <RoutePlaceholder title="Daily Activity" backTo="/dashboard" legacyNotes={["Legacy /pages/MIS/DailySalesReport (~500 LOC + 3 sub-cards)"]} /> },
+      { path: "/activity/daily-activity", element: <MisDailySalesReportPage /> },
       { path: "/activity/lead-disposition", element: <RoutePlaceholder title="Lead Disposition" backTo="/dashboard" legacyNotes={["Legacy /pages/MIS/LeadDisposition (large dashboard)"]} /> },
       { path: "/activity/live-tracking", element: <RoutePlaceholder title="Live Tracking" backTo="/dashboard" legacyNotes={["Legacy /pages/ActivityTracking/LiveTracking — Google Maps + TerritoryTree + EmployeeList"]} /> },
       { path: "/activity/partner-disposition", element: <RoutePlaceholder title="Partner Disposition" backTo="/dashboard" legacyNotes={["Legacy /pages/MIS/PartnerDisposition (large dashboard)"]} /> },

@@ -8,7 +8,7 @@ import {
   TableHead,
   TableRow,
 } from "@craft-apex/ui";
-import { useModule } from "@craft-apex/layout";
+import { PermissionGate, useModule } from "@craft-apex/layout";
 import {
   DataTableShell,
   TABLE_HEADER_ROW_CLASS,
@@ -133,13 +133,15 @@ export default function PayoutPlanListPage() {
               </Badge>
             </TableCell>
             <TableCell className="text-right">
-              <Button asChild size="sm" variant="ghost" className="gap-1.5">
-                <Link
-                  to={`${createPath}/${String(r.payout_plan_id ?? "")}`}
-                >
-                  <Pencil className="h-3.5 w-3.5" /> Edit
-                </Link>
-              </Button>
+              <PermissionGate action="edit">
+                <Button asChild size="sm" variant="ghost" className="gap-1.5">
+                  <Link
+                    to={`${createPath}/${String(r.payout_plan_id ?? "")}`}
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </Link>
+                </Button>
+              </PermissionGate>
             </TableCell>
           </TableRow>
         ))}
