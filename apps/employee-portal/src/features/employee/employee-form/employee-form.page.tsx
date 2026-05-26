@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Check, Eye, EyeOff } from "lucide-react";
 import { Button, Input, Label, toast } from "@craft-apex/ui";
 import {
   useEmployeeDetail,
@@ -14,6 +14,16 @@ import {
   useSaveEmployee,
 } from "./employee-form.api";
 import type { EmployeeSavePayload } from "./employee-form.types";
+import EmployeeAddressStep from "./employee-address.step";
+import EmployeeTerritoryMapStep from "./employee-territory-map.step";
+import EmployeeAllocationStep from "./employee-allocation.step";
+
+const STEPS = [
+  "Employee Details",
+  "Employee Address",
+  "Territory Loan-type Mapping",
+  "Employee Allocation",
+];
 
 const selectClass =
   "h-9 w-full rounded-md border border-input bg-white px-3 text-sm text-slate-800 outline-none focus:border-[#4C7DF0] focus:ring-2 focus:ring-[#4C7DF0]/20";
@@ -64,7 +74,15 @@ type FormValues = z.infer<typeof baseSchema>;
 
 export default function EmployeeFormPage() {
   const navigate = useNavigate();
-  const { id } = useParams<{ id?: string }>();
+  const { id: routeId } = useParams<{ id?: string }>();
+  // `id` is the active employee id used by steps 2–4. For edit it comes from
+  // the URL; for create it's set after step 1 saves and the backend returns
+  // an `employee_id` in the response.
+  const [savedEmployeeId, setSavedEmployeeId] = useState<string | undefined>(
+    routeId
+  );
+  const id = savedEmployeeId ?? routeId;
+  const [activeStep, setActiveStep] = useState(0);
 
   const { data: hierarchy = [] } = useEmployeeHierarchy();
   const { data: roles = [] } = useEmployeeRoles();
@@ -160,19 +178,35 @@ export default function EmployeeFormPage() {
       data: detail?.data,
     };
     try {
-      await save.mutateAsync(payload);
+      const res = await save.mutateAsync(payload);
+      // Legacy `index.js` reads `response?.data?.result?.employee_id` after
+      // create; on edit the existing id is preserved.
+      const newId =
+        (res as any)?.result?.employee_id ??
+        (res as any)?.data?.result?.employee_id ??
+        (res as any)?.result?.user?.employee_id ??
+        (res as any)?.employee_id ??
+        id;
+      if (newId && newId !== savedEmployeeId) {
+        setSavedEmployeeId(String(newId));
+      }
       toast.success(`Employee ${id ? "updated" : "saved"} successfully`);
-      navigate("/settings/employee");
+      // Advance to step 2 instead of navigating away (legacy stepper parity).
+      setActiveStep(1);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save failed");
     }
   });
 
+  // Steps 2–4 need a saved employee id. Block forward navigation if not set.
+  const stepEmployeeId = id ?? "";
+  const canEnterLaterSteps = Boolean(stepEmployeeId);
+
   return (
     <div className="mx-auto max-w-5xl space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          {id ? "Edit Employee" : "Add Employee"}
+          {routeId ? "Edit Employee" : "Add Employee"}
         </h1>
         <Button asChild variant="outline" size="sm">
           <Link to="/settings/employee">
@@ -181,6 +215,47 @@ export default function EmployeeFormPage() {
         </Button>
       </div>
 
+      <Stepper
+        steps={STEPS}
+        activeStep={activeStep}
+        onStepClick={(i) => {
+          // Allow free navigation back; only allow forward when we have an id.
+          if (i <= activeStep || canEnterLaterSteps) setActiveStep(i);
+        }}
+      />
+
+      {activeStep === 1 && (
+        <EmployeeAddressStep
+          employeeId={stepEmployeeId}
+          onBack={() => setActiveStep(0)}
+          onNext={() => setActiveStep(2)}
+        />
+      )}
+
+      {activeStep === 2 && (
+        <EmployeeTerritoryMapStep
+          employeeId={stepEmployeeId}
+          employeeName={detail?.name}
+          onBack={() => setActiveStep(1)}
+          onNext={() => setActiveStep(3)}
+        />
+      )}
+
+      {activeStep === 3 && (
+        <EmployeeAllocationStep
+          employeeId={stepEmployeeId}
+          employee={{
+            username: detail?.name,
+            id: detail?.user_id ?? detail?.employee_id,
+          }}
+          onBack={() => setActiveStep(2)}
+          onSave={() => navigate("/settings/employee")}
+        />
+      )}
+
+      {activeStep !== 0 && null /* steps 2–4 above; step 0 below */}
+
+      {activeStep === 0 && (
       <form
         onSubmit={onSubmit}
         className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
@@ -333,23 +408,66 @@ export default function EmployeeFormPage() {
           )}
         </div>
 
-        {id && (
-          <p className="rounded-md border border-slate-100 bg-slate-50/40 p-3 text-xs text-slate-500">
-            Address, allocation, and territory map are preserved from the
-            existing record. The legacy multi-step tabs for those aren't ported
-            yet.
-          </p>
-        )}
-
         <div className="flex items-center justify-between border-t border-slate-100 pt-4">
           <Button asChild type="button" variant="outline">
-            <Link to="/settings/employee">Back</Link>
+            <Link to="/settings/employee">Cancel</Link>
           </Button>
           <Button type="submit" disabled={save.isPending}>
-            {save.isPending ? "Saving…" : id ? "Save" : "Create"}
+            {save.isPending
+              ? "Saving…"
+              : id
+                ? "Save & Next"
+                : "Create & Next"}
           </Button>
         </div>
       </form>
+      )}
+    </div>
+  );
+}
+
+function Stepper({
+  steps,
+  activeStep,
+  onStepClick,
+}: {
+  steps: string[];
+  activeStep: number;
+  onStepClick: (i: number) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+      {steps.map((label, i) => {
+        const isDone = i < activeStep;
+        const isActive = i === activeStep;
+        return (
+          <button
+            key={label}
+            type="button"
+            onClick={() => onStepClick(i)}
+            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
+              isActive
+                ? "bg-[#4C7DF0] text-white"
+                : isDone
+                  ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                  : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+            }`}
+          >
+            <span
+              className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold ${
+                isActive
+                  ? "bg-white/20 text-white"
+                  : isDone
+                    ? "bg-emerald-600 text-white"
+                    : "bg-slate-200 text-slate-600"
+              }`}
+            >
+              {isDone ? <Check className="h-3 w-3" /> : i + 1}
+            </span>
+            <span className="font-medium">{label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
