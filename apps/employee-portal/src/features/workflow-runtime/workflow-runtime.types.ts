@@ -17,6 +17,8 @@ export const WorkflowType = {
   Verification: "VERIFICATION",
   Campaign: "CAMPAIGN",
   BcPartnerOnboarding: "BC_PARTNER_ONBOARDING",
+  LeadCreation: "LEAD_CREATION",
+  CarBuyingJourney: "CAR_BUYING_JOURNEY",
 } as const;
 
 export type WorkflowTypeValue =

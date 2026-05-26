@@ -115,11 +115,17 @@ export function useSavePartner() {
 //     (Components/redux/partner/partnerThunks.js#createUpdatePartner)
 //   BC_ONBOARDING      -> POST /alpha/v1/collection
 //     (Components/redux/Collection/CollectionThunk.js#createUpdateCollection)
+//   LEAD_CREATION      -> POST /alpha/v1/application/create
+//     (Components/redux/application/applicationThunk.js#createUpdateApplication)
+//   VERIFICATION       -> POST /alpha/v1/verification/create
+//     (Components/redux/Verification/verificationThunk.js#createUpdateVerification)
 // Other workflow types don't have a verified save endpoint yet — those steps
 // will only advance via /alpha/v1/workflow/execution without persisting form data.
 const STEP_SAVE_ENDPOINTS: Record<string, string> = {
   PARTNER_ONBOARDING: "/alpha/v1/partner/create",
   BC_ONBOARDING: "/alpha/v1/collection",
+  LEAD_CREATION: "/alpha/v1/application/create",
+  VERIFICATION: "/alpha/v1/verification/create",
 };
 
 export function hasStepSaveEndpoint(workflowType: string): boolean {
@@ -163,8 +169,15 @@ export async function saveStepData(
     throw new Error(String(message));
   }
   const result = body?.result ?? body?.data?.result ?? body?.data ?? body;
+  // LEAD_CREATION lands a fresh id at `result.application.application_id`
+  // (legacy `EnquiryCustomerLeadsFollowUp.js:196` navigates to that id).
+  // PARTNER_ONBOARDING uses `result.application.channel_id`.
+  // VERIFICATION uses `result.verification_id` at the top level
+  // (legacy `VerificationFlow.js:698-701` navigates to that id).
   const sourceId =
+    result?.application?.application_id ??
     result?.application?.channel_id ??
+    result?.verification_id ??
     result?.channel_id ??
     result?.id ??
     undefined;

@@ -85,6 +85,8 @@ import { OnboardingPage } from "@/features/workflow-runtime";
 import PincodeEligibilityPage from "@/features/utility/pincode-eligibility/pincode-eligibility.page";
 import CampaignAudiencePage from "@/features/marketing/campaign-audience/campaign-audience.page";
 import BusinessCardPage from "@/features/utility/business-card/business-card.page";
+import LeadReassignPage from "@/features/utility/lead-reassign/lead-reassign.page";
+import DocChecklistSharePage from "@/features/utility/doc-checklist-share/doc-checklist-share.page";
 import LenderEligiblePincodeListPage from "@/features/lender-eligible-pincode/lender-eligible-pincode-list/lender-eligible-pincode-list.page";
 import GstStatusListPage from "@/features/finance/gst-status-list/gst-status-list.page";
 import Customer360Page from "@/features/customer-360/customer-360.page";
@@ -95,6 +97,48 @@ import MisBankPerformancePage from "@/features/reports/mis-bank-performance/mis-
 import MisMonthWisePerformancePage from "@/features/reports/mis-month-wise-performance/mis-month-wise-performance.page";
 import MisProcessStatusPage from "@/features/reports/mis-process-status/mis-process-status.page";
 import MisConveyanceReportPage from "@/features/reports/mis-conveyance-report/mis-conveyance-report.page";
+import MisAttendanceReportPage from "@/features/reports/mis-attendance-report/mis-attendance-report.page";
+import MisVerificationTatReportPage from "@/features/reports/mis-verification-tat-report/mis-verification-tat-report.page";
+import LeadDispositionPage from "@/features/reports/lead-disposition/lead-disposition.page";
+import PartnerDispositionPage from "@/features/reports/partner-disposition/partner-disposition.page";
+import MisProductPerformancePage from "@/features/reports/mis-product-performance/mis-product-performance.page";
+import EnquiryListPage from "@/features/enquiry/enquiry-list/enquiry-list.page";
+import LiveTrackingPage from "@/features/activity/live-tracking/live-tracking.page";
+import VerificationTransferPage from "@/features/operations/verification-transfer/verification-transfer.page";
+import MeetJoinPage from "@/features/meet/meet-join/meet-join.page";
+import GstFilingPage from "@/features/finance/gst-filing/gst-filing.page";
+import GstWithheldPage from "@/features/finance/gst-withheld/gst-withheld.page";
+import VendorGstPage from "@/features/finance/vendor-gst/vendor-gst.page";
+import TdsStatusPage from "@/features/finance/tds-status/tds-status.page";
+import PayableEstimatePage from "@/features/finance/payable-estimate/payable-estimate.page";
+import ReceivableEstimatePage from "@/features/finance/receivable-estimate/receivable-estimate.page";
+import PayableInvoicePage from "@/features/finance/payable-invoice/payable-invoice.page";
+import ReceivableInvoicePage from "@/features/finance/receivable-invoice/receivable-invoice.page";
+import LenderPayoutUploadPage from "@/features/finance/lender-payout-upload/lender-payout-upload.page";
+import InvoiceDetailsListPage from "@/features/finance/invoice-details/invoice-details-list.page";
+import InvoiceDetailsViewPage from "@/features/finance/invoice-details/invoice-details-view.page";
+import AdjustmentCardPage from "@/features/finance/adjustment-card/adjustment-card.page";
+import MonthClosingPage from "@/features/finance/month-closing/month-closing.page";
+import IncentiveEstimateListPage from "@/features/finance/incentive-estimate-list/incentive-estimate-list.page";
+import IncentiveStatementPage from "@/features/finance/incentive-statement/incentive-statement.page";
+import SalesInvoiceViewPage from "@/features/sales/invoice-view/invoice-view.page";
+import SalesShareableLinkPage from "@/features/sales/shareable-link/shareable-link.page";
+import SalesIncentiveEarningsPage from "@/features/finance/sales-incentive-earnings/sales-incentive-earnings.page";
+import SalesPayableEarningsPage from "@/features/finance/sales-payable-earnings/sales-payable-earnings.page";
+import SalesPerformanceOverviewPage from "@/features/finance/sales-performance-overview/sales-performance-overview.page";
+import LenderGstPage from "@/features/finance/lender-gst/lender-gst.page";
+import CompanyGstPage from "@/features/finance/company-gst/company-gst.page";
+import LeadDownloadsPage from "@/features/reports/lead-downloads/lead-downloads.page";
+import PartnerDownloadsPage from "@/features/reports/partner-downloads/partner-downloads.page";
+import PayoutReconciliationViewPage from "@/features/finance/payout-reconciliation-view/payout-reconciliation-view.page";
+import BureauReportsListPage from "@/features/reports/bureau-reports-list/bureau-reports-list.page";
+import BureauReportFlowPage from "@/features/reports/bureau-report-flow/bureau-report-flow.page";
+import SystemUsageReportPage from "@/features/reports/system-usage-report/system-usage-report.page";
+import BusinessDashboardPage from "@/features/reports/business-dashboard/business-dashboard.page";
+import PortfolioParametersPage from "@/features/reports/portfolio-parameters/portfolio-parameters.page";
+import LmsDashboardPage from "@/features/reports/lms-dashboard/lms-dashboard.page";
+import NpaDashboardPage from "@/features/reports/npa-dashboard/npa-dashboard.page";
+import PddDashboardPage from "@/features/reports/pdd-dashboard/pdd-dashboard.page";
 import MisDailySalesReportPage from "@/features/reports/mis-daily-sales-report/mis-daily-sales-report.page";
 import CdnFileManagerPage from "@/features/cdn-file-manager/cdn-file-manager.page";
 import CampaignSummaryPage from "@/features/marketing/campaign-summary/campaign-summary.page";
@@ -257,6 +301,9 @@ export const router = createBrowserRouter([
       { path: "/reports/mis/month-wise-performance", element: <MisMonthWisePerformancePage /> },
       { path: "/reports/mis/process-status", element: <MisProcessStatusPage /> },
       { path: "/reports/mis/conveyance-report", element: <MisConveyanceReportPage /> },
+      { path: "/reports/mis/attendance-report", element: <MisAttendanceReportPage /> },
+      { path: "/reports/mis/verification-tat-report", element: <MisVerificationTatReportPage /> },
+      { path: "/reports/mis/product-performance", element: <MisProductPerformancePage /> },
       // Daily Sales Report — same page is mounted at /activity/daily-activity in legacy.
       { path: "/reports/mis/daily-sales-report", element: <MisDailySalesReportPage /> },
 
@@ -355,9 +402,9 @@ export const router = createBrowserRouter([
       // Activity & tracking — large MIS reports (500+ LOC each in legacy with
       // 3-4 sub-components per page; deferred to Phase 5 report scaffold).
       { path: "/activity/daily-activity", element: <MisDailySalesReportPage /> },
-      { path: "/activity/lead-disposition", element: <RoutePlaceholder title="Lead Disposition" backTo="/dashboard" legacyNotes={["Legacy /pages/MIS/LeadDisposition (large dashboard)"]} /> },
-      { path: "/activity/live-tracking", element: <RoutePlaceholder title="Live Tracking" backTo="/dashboard" legacyNotes={["Legacy /pages/ActivityTracking/LiveTracking — Google Maps + TerritoryTree + EmployeeList"]} /> },
-      { path: "/activity/partner-disposition", element: <RoutePlaceholder title="Partner Disposition" backTo="/dashboard" legacyNotes={["Legacy /pages/MIS/PartnerDisposition (large dashboard)"]} /> },
+      { path: "/activity/lead-disposition", element: <LeadDispositionPage /> },
+      { path: "/activity/live-tracking", element: <LiveTrackingPage /> },
+      { path: "/activity/partner-disposition", element: <PartnerDispositionPage /> },
 
       // Attach / FLDG / Loan account — legacy uses hard-coded PortfolioList mock
       // data (no real API). Defer until backend portfolio endpoints exist.
@@ -386,49 +433,60 @@ export const router = createBrowserRouter([
       // Enquiry — legacy EnquiryList (1474 LOC) is too large for a single-screen
       // port; needs its own dedicated session. Bulk Upload is an 11-line stub.
       { path: "/enquiry/bulk-upload", element: <RoutePlaceholder title="Enquiry Bulk Upload" legacyNotes={["Legacy EnquiryBulkUpload is an 11-line stub"]} /> },
-      { path: "/enquiry/customer/list", element: <RoutePlaceholder title="Customer Enquiries" legacyNotes={["Legacy /pages/EnquiryMgmt/List (1474 LOC) — defer to dedicated session"]} /> },
-      { path: "/enquiry/customer/lead", element: <RoutePlaceholder title="Convert Enquiry to Lead" backTo="/enquiry/customer/list" legacyNotes={["Legacy EnquiryCustomerLeadsFollowUp — multi-step intake"]} /> },
-      { path: "/enquiry/customer/lead/:id", element: <RoutePlaceholder title="Enquiry → Lead Detail" backTo="/enquiry/customer/list" legacyNotes={["Legacy EnquiryCustomerLeadsFollowUp — multi-step intake"]} /> },
-      { path: "/enquiry/lead/list", element: <RoutePlaceholder title="Enquiry Leads" legacyNotes={["Legacy /pages/EnquiryMgmt/List (1474 LOC) — defer to dedicated session"]} /> },
+      { path: "/enquiry/customer/list", element: <EnquiryListPage /> },
+      { path: "/enquiry/customer/lead", element: <OnboardingPage title="Convert Enquiry to Lead" workflowType="LEAD_CREATION" listPath="/enquiry/customer/list" /> },
+      { path: "/enquiry/customer/lead/:id", element: <OnboardingPage title="Enquiry → Lead" workflowType="LEAD_CREATION" listPath="/enquiry/customer/list" /> },
+      { path: "/enquiry/lead/list", element: <EnquiryListPage /> },
 
       // Finance — GST / TDS. gst-status is ported; remaining filing/withheld
       // /vendor/tds/lender/company pages are Phase 4.3 (deferred — finance
       // accounting sub-area is multi-screen).
       { path: "/finance/gst-status", element: <GstStatusListPage /> },
-      { path: "/finance/gst/filing", element: <RoutePlaceholder title="GST Filing" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
-      { path: "/finance/gst/vendor-gst", element: <RoutePlaceholder title="Vendor GST" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
-      { path: "/finance/gst/withheld", element: <RoutePlaceholder title="GST Withheld" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
-      { path: "/finance/tds/status", element: <RoutePlaceholder title="TDS Status" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
-      { path: "/setting/lender-gst", element: <RoutePlaceholder title="Lender GST" backTo="/dashboard" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
-      { path: "/settings/company-gst", element: <RoutePlaceholder title="Company GST" backTo="/dashboard" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
+      { path: "/finance/gst/filing", element: <GstFilingPage /> },
+      { path: "/finance/gst/vendor-gst", element: <VendorGstPage /> },
+      { path: "/finance/gst/withheld", element: <GstWithheldPage /> },
+      { path: "/finance/tds/status", element: <TdsStatusPage /> },
+      { path: "/setting/lender-gst", element: <LenderGstPage /> },
+      { path: "/settings/company-gst", element: <CompanyGstPage /> },
 
       // Finance — Payable / Receivable estimates & invoices (Phase 4.3 deferred).
-      { path: "/finance/accounting/month-closing", element: <RoutePlaceholder title="Month Closing" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
+      { path: "/finance/accounting/month-closing", element: <MonthClosingPage /> },
       { path: "/finance/add-receivable-scheme", element: <Navigate to="/settings/add-scheme" replace /> },
-      { path: "/finance/adjustment-card", element: <RoutePlaceholder title="Adjustment Card" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
-      { path: "/finance/incentive-estimate-list", element: <RoutePlaceholder title="Incentive Estimate" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
-      { path: "/finance/incentive-statement", element: <RoutePlaceholder title="Incentive Statement" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
-      { path: "/finance/invoice-details/", element: <RoutePlaceholder title="Invoice Details" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
-      { path: "/finance/invoice-details/:id", element: <RoutePlaceholder title="Invoice Detail" backTo="/finance/invoice-details/" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
-      { path: "/finance/lender-payout-upload", element: <RoutePlaceholder title="Lender Payout Upload" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
-      { path: "/finance/payable-estimate", element: <RoutePlaceholder title="Payable Estimate" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
-      { path: "/finance/payable-invoice", element: <RoutePlaceholder title="Payable Invoice" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
-      { path: "/finance/payout-reconciliation-view/:id", element: <RoutePlaceholder title="Payout Reconciliation" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
-      { path: "/finance/receivable-estimate", element: <RoutePlaceholder title="Receivable Estimate" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
-      { path: "/finance/receivable-invoice", element: <RoutePlaceholder title="Receivable Invoice" legacyNotes={["Phase 4.3 — finance accounting"]} /> },
+      { path: "/finance/adjustment-card", element: <AdjustmentCardPage /> },
+      { path: "/finance/incentive-estimate-list", element: <IncentiveEstimateListPage /> },
+      { path: "/finance/incentive-statement", element: <IncentiveStatementPage /> },
+      { path: "/finance/invoice-details/", element: <InvoiceDetailsListPage /> },
+      { path: "/finance/invoice-details/:id", element: <InvoiceDetailsViewPage /> },
+      { path: "/finance/lender-payout-upload", element: <LenderPayoutUploadPage /> },
+      { path: "/finance/payable-estimate", element: <PayableEstimatePage /> },
+      { path: "/finance/payable-invoice", element: <PayableInvoicePage /> },
+      { path: "/finance/payout-reconciliation-view/:id", element: <PayoutReconciliationViewPage /> },
+      { path: "/reports/bureau-reports-list", element: <BureauReportsListPage /> },
+      { path: "/reports/bureau-report-flow", element: <BureauReportFlowPage /> },
+      { path: "/reports/bureau-report-flow/:id", element: <BureauReportFlowPage /> },
+      { path: "/reports/system-usage-report", element: <SystemUsageReportPage /> },
+      { path: "/reports/business-dashboard", element: <BusinessDashboardPage /> },
+      { path: "/reports/portfolio-parameters", element: <PortfolioParametersPage /> },
+      { path: "/reports/lms/dashboard", element: <LmsDashboardPage /> },
+      { path: "/reports/npa/dashboard", element: <NpaDashboardPage /> },
+      { path: "/reports/pdd-dashboard", element: <PddDashboardPage /> },
+      { path: "/finance/receivable-estimate", element: <ReceivableEstimatePage /> },
+      { path: "/finance/receivable-invoice", element: <ReceivableInvoicePage /> },
 
       // Finance — Sales perf (Phase 4.3 deferred — shares a sales-performance scaffold).
-      { path: "/finance/sales-incentive/earnings", element: <RoutePlaceholder title="Sales Incentive Earnings" legacyNotes={["Phase 4.3 — sales perf"]} /> },
-      { path: "/finance/sales-payable/earnings", element: <RoutePlaceholder title="Sales Payable Earnings" legacyNotes={["Phase 4.3 — sales perf"]} /> },
-      { path: "/finance/sales-performance/overview", element: <RoutePlaceholder title="Sales Performance Overview" legacyNotes={["Phase 4.3 — sales perf"]} /> },
-      { path: "/sales/incentive-statement", element: <RoutePlaceholder title="Sales Incentive Statement" legacyNotes={["Phase 4.3 — sales perf"]} /> },
-      { path: "/sales/invoice-view", element: <RoutePlaceholder title="Sales Invoice" legacyNotes={["Phase 4.3 — sales perf"]} /> },
-      { path: "/sales/shareable-link", element: <RoutePlaceholder title="Shareable Link" legacyNotes={["Phase 4.3 — sales perf"]} /> },
+      { path: "/finance/sales-incentive/earnings", element: <SalesIncentiveEarningsPage /> },
+      { path: "/finance/sales-payable/earnings", element: <SalesPayableEarningsPage /> },
+      { path: "/finance/sales-performance/overview", element: <SalesPerformanceOverviewPage /> },
+      { path: "/sales/incentive-statement", element: <IncentiveStatementPage /> },
+      { path: "/sales/invoice-view", element: <SalesInvoiceViewPage /> },
+      { path: "/sales/shareable-link", element: <SalesShareableLinkPage /> },
+      { path: "/reports/leads", element: <LeadDownloadsPage /> },
+      { path: "/reports/partners", element: <PartnerDownloadsPage /> },
 
       // Lead queues / actions
       { path: "/lead/bulk-upload", element: <RoutePlaceholder title="Lead Bulk Upload" legacyNotes={["Legacy LeadBulkUpload is an 11-line stub — defer until backend bulk endpoint exists"]} /> },
-      { path: "/lead/create", element: <RoutePlaceholder title="Create Lead" legacyNotes={["Legacy LeadCreation — large multi-step intake form; needs dedicated session"]} /> },
-      { path: "/lead/create/:id", element: <RoutePlaceholder title="Edit Lead" legacyNotes={["Legacy LeadCreation — large multi-step intake form; needs dedicated session"]} /> },
+      { path: "/lead/create", element: <OnboardingPage title="Create Lead" workflowType="LEAD_CREATION" listPath="/lead/list" /> },
+      { path: "/lead/create/:id", element: <OnboardingPage title="Edit Lead" workflowType="LEAD_CREATION" listPath="/lead/list" /> },
       { path: "/lead/dedupe-q", element: <LeadListPage /> },
       { path: "/lead/lender-view", element: <RoutePlaceholder title="Lender View" legacyNotes={["Legacy /pages/Application/LenderView is an 11-line stub"]} /> },
       { path: "/lead/list/approval-q", element: <ApprovalQPage /> },
@@ -442,15 +500,15 @@ export const router = createBrowserRouter([
       { path: "/marketing/campaign/summary", element: <CampaignSummaryPage /> },
 
       // Meet — WebRTC video PD meet (large)
-      { path: "/meet/join", element: <RoutePlaceholder title="Join Meeting" legacyNotes={["Legacy /Components/Verification/videoPDMeet/VideoCallScreen (1382 LOC WebRTC)"]} /> },
+      { path: "/meet/join", element: <MeetJoinPage /> },
 
       // Operations / Verification — detail/summary/transfer are large legacy
       // flows (VerificationFlow 1189 LOC, VerificationTransfer 774 LOC); the
       // Summary route had no backing file in legacy.
       { path: "/operations/verification/", element: <VerificationQueuePage /> },
-      { path: "/operations/verification/:id", element: <RoutePlaceholder title="Verification Detail" backTo="/operations/verification/" legacyNotes={["Legacy /Components/Verification/VerificationFlow (1189 LOC) — defer"]} /> },
+      { path: "/operations/verification/:id", element: <OnboardingPage title="Verification" workflowType="VERIFICATION" listPath="/operations/verification/" /> },
       { path: "/operations/verification/summary", element: <RoutePlaceholder title="Verification Summary" legacyNotes={["Legacy /pages/Verification/Dashboard not present — likely never shipped"]} /> },
-      { path: "/operations/verification/transfer", element: <RoutePlaceholder title="Verification Transfer" legacyNotes={["Legacy /pages/Verification/VerificationTransfer (774 LOC) — defer"]} /> },
+      { path: "/operations/verification/transfer", element: <VerificationTransferPage /> },
 
       // Partner bulk upload — legacy stub.
       { path: "/partner/bulk-upload", element: <RoutePlaceholder title="Partner Bulk Upload" legacyNotes={["Legacy PartnerBulkUpload is an 11-line stub"]} /> },
@@ -461,8 +519,8 @@ export const router = createBrowserRouter([
 
       // Utility
       { path: "/utility/business-card", element: <BusinessCardPage /> },
-      { path: "/utility/doc-checklist-share", element: <RoutePlaceholder title="Share Document Checklist" legacyNotes={["Legacy /pages/DocumentChecklist/ChecklistShare (598 LOC) — defer"]} /> },
-      { path: "/utility/lead-reassign", element: <RoutePlaceholder title="Lead Reassign" legacyNotes={["Legacy /pages/Utility/Utilityreassign (446 LOC) — defer"]} /> },
+      { path: "/utility/doc-checklist-share", element: <DocChecklistSharePage /> },
+      { path: "/utility/lead-reassign", element: <LeadReassignPage /> },
       { path: "/utility/pincode-eligibility", element: <PincodeEligibilityPage /> },
 
       // Vehicle — legacy /settings/vehicle has no backing component file in
@@ -470,8 +528,8 @@ export const router = createBrowserRouter([
       // /vehicle-models, /vehicle-price-matrix (use mock data anyway).
       { path: "/settings/vehicle", element: <RoutePlaceholder title="Vehicle Master" legacyNotes={["Legacy VehicleView component not found; vehicle masters use mock data"]} /> },
       { path: "/settings/vehicle-details", element: <RoutePlaceholder title="Vehicle Details" legacyNotes={["Legacy route commented out in craft-frontend"]} /> },
-      { path: "/vehicle/lead/create", element: <RoutePlaceholder title="Create Vehicle Lead" legacyNotes={["Legacy AutoFlow — large vehicle finance wizard"]} /> },
-      { path: "/vehicle/lead/create/:id", element: <RoutePlaceholder title="Edit Vehicle Lead" legacyNotes={["Legacy AutoFlow — large vehicle finance wizard"]} /> },
+      { path: "/vehicle/lead/create", element: <OnboardingPage title="Create Vehicle Lead" workflowType="CAR_BUYING_JOURNEY" listPath="/lead/list" /> },
+      { path: "/vehicle/lead/create/:id", element: <OnboardingPage title="Edit Vehicle Lead" workflowType="CAR_BUYING_JOURNEY" listPath="/lead/list" /> },
     ],
   },
   { path: "/", element: <Navigate to="/dashboard" replace /> },

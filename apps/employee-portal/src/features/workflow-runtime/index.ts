@@ -1,6 +1,14 @@
 export { WorkflowRuntime } from "./workflow-runtime";
 export { OnboardingPage } from "./onboarding-page";
 export { JourneyPicker } from "./journey-picker";
+export { FormBuilderRenderer } from "./form-builder-renderer";
+export { useAsyncFieldOptions } from "./form-builder-options";
+export type {
+  FormDefinition,
+  FormFieldDef,
+  FormFieldOption,
+  FormSection,
+} from "./form-builder.types";
 export {
   buildWorkflow,
   executeWorkflow,

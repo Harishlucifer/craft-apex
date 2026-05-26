@@ -6,6 +6,7 @@ import type {
   FormFieldDef,
   FormFieldOption,
 } from "./form-builder.types";
+import { useAsyncFieldOptions } from "./form-builder-options";
 
 interface Props {
   formJson: FormDefinition;
@@ -20,9 +21,11 @@ interface Props {
  * `validation.required` marker.
  *
  * Field type vocabulary mirrors legacy `craft-formbuilder`. Async option
- * sources (`source.api`), `addMore` nested forms, `autoFill`, and `repeatable`
- * form mode are not yet supported — those fall back to the inputs they nest
- * under (e.g. an api-sourced dropdown shows its static `options` only).
+ * sources (`source.api`) ARE supported via `useAsyncFieldOptions` — see
+ * form-builder-options.ts for the verbatim port (default labelKey "name" /
+ * valueKey "id", `{{dep}}` URL substitution, `dependentOn` refetch). Still
+ * deferred: `addMore` nested forms, `autoFill` cross-field mappings, and
+ * `repeatable` form-as-list mode.
  */
 export function FormBuilderRenderer({ formJson, value, onChange }: Props) {
   const sections = useMemo(() => {
@@ -79,6 +82,10 @@ interface FieldSlotProps {
 }
 
 function FieldSlot({ field, value, allValues, onChange }: FieldSlotProps) {
+  // Always call the hook so React's order-stable rules are satisfied. The hook
+  // self-disables when the field has no `source.api`.
+  const async = useAsyncFieldOptions(field, allValues);
+
   if (field.hidden) return null;
   if (field.conditionalOn && !matchesCondition(field.conditionalOn, allValues)) {
     return null;
@@ -96,6 +103,9 @@ function FieldSlot({ field, value, allValues, onChange }: FieldSlotProps) {
       <Label htmlFor={id} className="text-xs font-medium text-slate-700">
         {field.label ?? field.name}
         {required && <span className="ml-0.5 text-rose-500">*</span>}
+        {async.isLoading && (
+          <span className="ml-2 text-[10px] text-slate-400">loading…</span>
+        )}
       </Label>
       <FieldInput
         id={id}
@@ -104,6 +114,7 @@ function FieldSlot({ field, value, allValues, onChange }: FieldSlotProps) {
         disabled={disabled}
         placeholder={placeholder}
         onChange={onChange}
+        resolvedOptions={async.options}
       />
     </div>
   );
@@ -116,6 +127,8 @@ interface FieldInputProps {
   disabled: boolean;
   placeholder: string;
   onChange: (next: unknown) => void;
+  /** Pre-resolved options from useAsyncFieldOptions; takes priority over field.options. */
+  resolvedOptions: FormFieldOption[];
 }
 
 function FieldInput({
@@ -125,6 +138,7 @@ function FieldInput({
   disabled,
   placeholder,
   onChange,
+  resolvedOptions,
 }: FieldInputProps) {
   const fieldType = field.fieldType ?? "text";
   const stringValue =
@@ -247,7 +261,7 @@ function FieldInput({
       );
 
     case "checkbox-group": {
-      const opts = resolveOptions(field);
+      const opts = resolvedOptions.length > 0 ? resolvedOptions : resolveOptions(field);
       const arr = Array.isArray(value) ? (value as (string | number)[]) : [];
       const toggle = (v: string | number) =>
         onChange(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
@@ -273,7 +287,7 @@ function FieldInput({
     }
 
     case "radio": {
-      const opts = resolveOptions(field);
+      const opts = resolvedOptions.length > 0 ? resolvedOptions : resolveOptions(field);
       return (
         <div className="flex flex-wrap gap-3">
           {opts.map((o) => (
@@ -300,7 +314,7 @@ function FieldInput({
     case "dropdown":
     case "dropdown-search":
     case "text-auto-complete": {
-      const opts = resolveOptions(field);
+      const opts = resolvedOptions.length > 0 ? resolvedOptions : resolveOptions(field);
       return (
         <select
           id={id}
@@ -320,7 +334,7 @@ function FieldInput({
     }
 
     case "dropdown-multi-select": {
-      const opts = resolveOptions(field);
+      const opts = resolvedOptions.length > 0 ? resolvedOptions : resolveOptions(field);
       const arr = Array.isArray(value)
         ? (value as (string | number)[]).map((v) => String(v))
         : [];
