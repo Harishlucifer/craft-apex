@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@craft-apex/ui";
+import { useTranslation } from "@craft-apex/i18n";
 
 export interface DataTablePagination {
   page: number;
@@ -49,12 +50,13 @@ export function DataTableShell({
   columnCount,
   loading,
   isEmpty,
-  emptyTitle = "No records found",
+  emptyTitle,
   emptyDescription,
   emptyIcon,
   skeletonRows = 6,
   pagination,
 }: DataTableShellProps) {
+  const { t } = useTranslation("common");
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <Table>
@@ -78,7 +80,9 @@ export function DataTableShell({
               >
                 <div className="flex flex-col items-center gap-2">
                   {emptyIcon}
-                  <p className="font-medium text-slate-600">{emptyTitle}</p>
+                  <p className="font-medium text-slate-600">
+                    {emptyTitle ?? t("noRecordsFound")}
+                  </p>
                   {emptyDescription && (
                     <p className="text-xs">{emptyDescription}</p>
                   )}
@@ -104,6 +108,7 @@ function PaginationFooter({
   onPageChange,
   onPageSizeChange,
 }: DataTablePagination) {
+  const { t } = useTranslation("common");
   const rangeFrom = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const rangeTo = Math.min(page * pageSize, total);
   return (
@@ -111,12 +116,16 @@ function PaginationFooter({
       <div className="flex items-center gap-3">
         <span>
           {total === 0
-            ? "0 records"
-            : `Showing ${rangeFrom}–${rangeTo} of ${total}`}
+            ? t("zeroRecords")
+            : t("showingRange", {
+                from: rangeFrom,
+                to: rangeTo,
+                total,
+              })}
         </span>
         {onPageSizeChange && (
           <label className="flex items-center gap-2">
-            <span className="text-xs text-slate-400">Rows</span>
+            <span className="text-xs text-slate-400">{t("rows")}</span>
             <select
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}
@@ -138,12 +147,12 @@ function PaginationFooter({
           className="h-8 w-8 p-0"
           onClick={() => onPageChange(Math.max(1, page - 1))}
           disabled={page <= 1}
-          aria-label="Previous page"
+          aria-label={t("previousPage")}
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
         </Button>
         <span className="min-w-[5rem] text-center text-xs font-medium text-slate-600">
-          Page {page} / {totalPages}
+          {t("pageOfTotal", { page, total: totalPages })}
         </span>
         <Button
           variant="outline"
@@ -151,9 +160,9 @@ function PaginationFooter({
           className="h-8 w-8 p-0"
           onClick={() => onPageChange(Math.min(totalPages, page + 1))}
           disabled={page >= totalPages}
-          aria-label="Next page"
+          aria-label={t("nextPage")}
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
         </Button>
       </div>
     </div>

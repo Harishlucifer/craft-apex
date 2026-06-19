@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@craft-apex/ui";
+import { useMenuLabel, useTranslation } from "@craft-apex/i18n";
 import { buildMenu, type MenuItem } from "../menu";
 import { useModuleStore } from "../module-store";
 
@@ -24,6 +25,7 @@ function containsActive(item: MenuItem, pathname: string): boolean {
 }
 
 function Leaf({ item, depth }: { item: MenuItem; depth: number }) {
+  const ml = useMenuLabel();
   return (
     <li>
       <NavLink
@@ -32,15 +34,15 @@ function Leaf({ item, depth }: { item: MenuItem; depth: number }) {
         className={({ isActive }) =>
           cn(
             "block truncate rounded-md px-3 py-2 text-sm text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
-            depth === 1 && "pl-7",
-            depth === 2 && "pl-11",
+            depth === 1 && "ps-7",
+            depth === 2 && "ps-11",
             isActive &&
               isLink(item.link) &&
               "bg-sidebar-accent font-medium text-sidebar-foreground"
           )
         }
       >
-        {item.label}
+        {ml(item.label)}
       </NavLink>
     </li>
   );
@@ -54,6 +56,7 @@ function SubItem({
   item: MenuItem;
   pathname: string;
 }) {
+  const ml = useMenuLabel();
   const hasChildren = item.isChildItem && (item.childItems?.length ?? 0) > 0;
   const [open, setOpen] = useState(() =>
     hasChildren ? containsActive(item, pathname) : false
@@ -71,11 +74,11 @@ function SubItem({
         type="button"
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          "flex w-full items-center justify-between rounded-md px-3 py-2 pl-7 text-sm text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
+          "flex w-full items-center justify-between rounded-md px-3 py-2 ps-7 text-sm text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
           containsActive(item, pathname) && "text-sidebar-foreground"
         )}
       >
-        <span className="truncate">{item.label}</span>
+        <span className="truncate">{ml(item.label)}</span>
         <ChevronDown
           className={cn("h-4 w-4 shrink-0 transition-transform", open && "rotate-180")}
         />
@@ -103,6 +106,7 @@ function TopItem({
   openId: string | null;
   setOpenId: (id: string | null) => void;
 }) {
+  const ml = useMenuLabel();
   const hasSub = (item.subItems?.length ?? 0) > 0;
   const open = openId === item.id;
 
@@ -118,7 +122,7 @@ function TopItem({
           containsActive(item, pathname) && "text-sidebar-foreground"
         )}
       >
-        <span className="truncate">{item.label}</span>
+        <span className="truncate">{ml(item.label)}</span>
         <ChevronDown
           className={cn("h-4 w-4 shrink-0 transition-transform", open && "rotate-180")}
         />
@@ -138,6 +142,7 @@ export function Sidebar({ brand }: { brand: string }) {
   const modules = useModuleStore((s) => s.modules);
   const { pathname } = useLocation();
   const menu = useMemo(() => buildMenu(modules), [modules]);
+  const { t } = useTranslation("layout");
 
   // Accordion: which top-level menu is expanded. Auto-open the branch that
   // contains the current route (legacy auto-expands active ancestors).
@@ -156,7 +161,7 @@ export function Sidebar({ brand }: { brand: string }) {
         <ul className="space-y-1">
           {menu.length === 0 ? (
             <li className="px-3 py-2 text-sm text-sidebar-foreground/50">
-              No modules available
+              {t("noModulesAvailable")}
             </li>
           ) : (
             menu.map((m) => (

@@ -1,0 +1,15 @@
+export const dashboard = {
+  greetingMorning: "सुप्रभात",
+  greetingAfternoon: "नमस्कार",
+  greetingEvening: "शुभ संध्या",
+  greetingNight: "शुभ रात्रि",
+  greetingDefault: "नमस्ते!",
+  defaultUserName: "उपयोगकर्ता",
+  leadWiseTitle: "लीड-वार सारांश",
+  leadWiseSubtitle: "सभी लीड्स में स्थिति वितरण",
+  lenderWiseTitle: "लेंडर-वार सारांश",
+  lenderWiseSubtitle: "लेंडर सबमिशन में परिणाम",
+  metricsCount: "{{count}} मेट्रिक्स",
+  noSummaryForPeriod: "इस अवधि के लिए कोई सारांश नहीं।",
+  share: "हिस्सा",
+} as const;

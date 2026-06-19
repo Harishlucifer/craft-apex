@@ -1,0 +1,15 @@
+export const dashboard = {
+  greetingMorning: "Good Morning",
+  greetingAfternoon: "Good Afternoon",
+  greetingEvening: "Good Evening",
+  greetingNight: "Good Night",
+  greetingDefault: "Hello!",
+  defaultUserName: "User",
+  leadWiseTitle: "Lead wise summary",
+  leadWiseSubtitle: "Status distribution across all leads",
+  lenderWiseTitle: "Lender wise Summary",
+  lenderWiseSubtitle: "Outcomes across lender submissions",
+  metricsCount: "{{count}} metrics",
+  noSummaryForPeriod: "No summary for this period.",
+  share: "Share",
+} as const;

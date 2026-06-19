@@ -17,6 +17,7 @@ import {
 import { useAuthStore } from "@craft-apex/auth";
 import { useModuleStore, type ModuleNode } from "@craft-apex/layout";
 import { toast } from "@craft-apex/ui";
+import { LanguageSwitcher, useTranslation } from "@craft-apex/i18n";
 import { env } from "@/env";
 import { useLogin } from "./login.api";
 
@@ -25,13 +26,6 @@ const NAVY = "#1E2A6B";
 const NAVY_DEEP = "#141C4A";
 const GREEN = "#5FDD98";
 const BLUE = "#4C7DF0";
-
-// Legacy Yup: email + password both required.
-const schema = z.object({
-  email: z.string().min(1, "Please Enter Your Email"),
-  password: z.string().min(1, "Please Enter Your Password"),
-});
-type FormValues = z.infer<typeof schema>;
 
 /** The logo mark — recreated as its block grid. */
 function BrandMark({ cell = 14, gap = 5 }: { cell?: number; gap?: number }) {
@@ -68,6 +62,13 @@ export default function LoginPage() {
   const { mutateAsync, isPending } = useLogin();
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
+  const { t } = useTranslation("login");
+
+  const schema = z.object({
+    email: z.string().min(1, t("pleaseEnterEmail")),
+    password: z.string().min(1, t("pleaseEnterPassword")),
+  });
+  type FormValues = z.infer<typeof schema>;
 
   const {
     register,
@@ -80,11 +81,11 @@ export default function LoginPage() {
       const res = await mutateAsync(values);
 
       if (res.sessionConflict) {
-        toast.error("An active session already exists for this account.");
+        toast.error(t("sessionConflict"));
         return;
       }
       if (!res.user?.access_token) {
-        toast.error(res.message ?? "Login failed");
+        toast.error(res.message ?? t("loginFailed"));
         return;
       }
 
@@ -100,12 +101,12 @@ export default function LoginPage() {
         : (from ?? res.user.default_route ?? "/dashboard");
       navigate(target, { replace: true });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Login failed");
+      toast.error(e instanceof Error ? e.message : t("loginFailed"));
     }
   };
 
   const inputClass =
-    "w-full rounded-xl border border-slate-200 bg-slate-50/60 py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-[#4C7DF0] focus:bg-white focus:ring-4 focus:ring-[#4C7DF0]/15";
+    "w-full rounded-xl border border-slate-200 bg-slate-50/60 py-3 ps-11 pe-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-[#4C7DF0] focus:bg-white focus:ring-4 focus:ring-[#4C7DF0]/15";
 
   return (
     <div className="flex min-h-screen bg-white">
@@ -118,15 +119,15 @@ export default function LoginPage() {
       >
         <div className="pointer-events-none absolute inset-0">
           <div
-            className="absolute -left-32 -top-32 h-[30rem] w-[30rem] rounded-full blur-[120px]"
+            className="absolute -start-32 -top-32 h-[30rem] w-[30rem] rounded-full blur-[120px]"
             style={{ backgroundColor: `${BLUE}55` }}
           />
           <div
-            className="absolute -bottom-40 right-0 h-[28rem] w-[28rem] rounded-full blur-[120px]"
+            className="absolute -bottom-40 end-0 h-[28rem] w-[28rem] rounded-full blur-[120px]"
             style={{ backgroundColor: `${GREEN}40` }}
           />
           <div
-            className="absolute left-1/3 top-1/2 h-72 w-72 rounded-full blur-[110px]"
+            className="absolute start-1/3 top-1/2 h-72 w-72 rounded-full blur-[110px]"
             style={{ backgroundColor: `${BLUE}33` }}
           />
           <div
@@ -148,18 +149,17 @@ export default function LoginPage() {
 
         <div className="relative max-w-md">
           <h2 className="text-4xl font-semibold leading-tight tracking-tight text-white">
-            The platform that runs your lending operations.
+            {t("tagline")}
           </h2>
           <p className="mt-4 text-base leading-relaxed text-slate-300/80">
-            Originations, underwriting, disbursement and collections — one
-            unified workspace for your team.
+            {t("subTagline")}
           </p>
 
           <div className="mt-10 space-y-4">
             {[
-              { icon: Zap, text: "Faster lead-to-disbursement cycles" },
-              { icon: LineChart, text: "Real-time portfolio visibility" },
-              { icon: ShieldCheck, text: "Bank-grade security & access control" },
+              { icon: Zap, text: t("feature1") },
+              { icon: LineChart, text: t("feature2") },
+              { icon: ShieldCheck, text: t("feature3") },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-3">
                 <span
@@ -175,7 +175,7 @@ export default function LoginPage() {
         </div>
 
         <p className="relative text-xs text-slate-400/70">
-          © {new Date().getFullYear()} {env.brandName}. All rights reserved.
+          © {new Date().getFullYear()} {env.brandName}. {t("copyright")}
         </p>
       </div>
 
@@ -184,13 +184,18 @@ export default function LoginPage() {
         {/* soft brand wash */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div
-            className="absolute -right-24 -top-24 h-72 w-72 rounded-full blur-[110px]"
+            className="absolute -end-24 -top-24 h-72 w-72 rounded-full blur-[110px]"
             style={{ backgroundColor: `${BLUE}14` }}
           />
           <div
-            className="absolute -bottom-24 -left-10 h-72 w-72 rounded-full blur-[110px]"
+            className="absolute -bottom-24 -start-10 h-72 w-72 rounded-full blur-[110px]"
             style={{ backgroundColor: `${GREEN}14` }}
           />
+        </div>
+
+        {/* Language switcher — top-right of the form pane */}
+        <div className="absolute end-4 top-4 z-10">
+          <LanguageSwitcher variant="compact" />
         </div>
 
         <div className="relative mx-auto w-full max-w-md">
@@ -216,15 +221,15 @@ export default function LoginPage() {
                   style={{ backgroundColor: `${GREEN}1f`, color: "#0f7a4d" }}
                 >
                   <ShieldCheck className="h-3 w-3" />
-                  Secure
+                  {t("secure")}
                 </span>
               </div>
 
               <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-                Welcome back
+                {t("welcomeBack")}
               </h1>
               <p className="mt-1.5 text-sm text-slate-500">
-                Sign in to continue to your workspace.
+                {t("signInToContinue")}
               </p>
 
               <form
@@ -236,14 +241,14 @@ export default function LoginPage() {
                     htmlFor="email"
                     className="mb-2 block text-xs font-medium uppercase tracking-wider text-slate-500"
                   >
-                    Email
+                    {t("emailLabel")}
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Mail className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <input
                       id="email"
                       autoComplete="username"
-                      placeholder="you@company.com"
+                      placeholder={t("emailPlaceholder")}
                       className={inputClass}
                       {...register("email")}
                     />
@@ -261,36 +266,34 @@ export default function LoginPage() {
                       htmlFor="password"
                       className="block text-xs font-medium uppercase tracking-wider text-slate-500"
                     >
-                      Password
+                      {t("passwordLabel")}
                     </label>
                     <button
                       type="button"
-                      onClick={() =>
-                        toast.message("Password reset isn’t configured yet.")
-                      }
+                      onClick={() => toast.message(t("forgotNotConfigured"))}
                       className="text-xs font-medium transition hover:opacity-80"
                       style={{ color: BLUE }}
                     >
-                      Forgot?
+                      {t("forgot")}
                     </button>
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Lock className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <input
                       id="password"
                       type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
-                      placeholder="••••••••"
-                      className={`${inputClass} pr-11`}
+                      placeholder={t("passwordPlaceholder")}
+                      className={`${inputClass} pe-11`}
                       {...register("password")}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
                       aria-label={
-                        showPassword ? "Hide password" : "Show password"
+                        showPassword ? t("hidePassword") : t("showPassword")
                       }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-600"
+                      className="absolute end-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-600"
                     >
                       {showPassword ? (
                         <Eye className="h-4 w-4" />
@@ -314,7 +317,7 @@ export default function LoginPage() {
                     className="h-4 w-4 rounded border-slate-300"
                     style={{ accentColor: BLUE }}
                   />
-                  Keep me signed in
+                  {t("rememberMe")}
                 </label>
 
                 <button
@@ -329,16 +332,16 @@ export default function LoginPage() {
                   {isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:rotate-180" />
                   )}
-                  {isPending ? "Signing in…" : "Sign in"}
+                  {isPending ? t("signingIn") : t("signIn")}
                 </button>
               </form>
             </div>
           </div>
 
           <p className="mt-6 text-center text-xs text-slate-400">
-            Protected area · authorized personnel only
+            {t("protectedArea")}
           </p>
         </div>
       </div>

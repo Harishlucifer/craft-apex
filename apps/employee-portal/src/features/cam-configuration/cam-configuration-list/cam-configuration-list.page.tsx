@@ -8,6 +8,7 @@ import {
   TableHead,
   TableRow,
 } from "@craft-apex/ui";
+import { useTranslation } from "@craft-apex/i18n";
 import {
   DataTableShell,
   TABLE_HEADER_ROW_CLASS,
@@ -20,6 +21,8 @@ import type { CamConfigRow } from "./cam-configuration-list.types";
 
 export default function CamConfigListPage() {
   const { data = [], isFetching } = useCamConfigList();
+  const { t: ts } = useTranslation("settings");
+  const { t: tc } = useTranslation("common");
   const list = useClientList<CamConfigRow>(data, (r, q) =>
     [r.title, r.type, r.product_code, r.loan_type_name, r.template_name].some(
       (v) => String(v ?? "").toLowerCase().includes(q)
@@ -30,18 +33,18 @@ export default function CamConfigListPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="relative w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
             value={list.search}
             onChange={(e) => list.setSearch(e.target.value)}
-            placeholder="Search by title, type, product, loan type…"
-            className="h-10 rounded-full bg-white pl-9"
+            placeholder={ts("camConfig.searchPlaceholder")}
+            className="h-10 rounded-full bg-white ps-9"
           />
         </div>
         <PermissionGate action="add">
           <Button asChild>
             <Link to="/settings/cam-configuration/create">
-              <Plus className="h-4 w-4" /> Add CAM Configuration
+              <Plus className="h-4 w-4" /> {ts("camConfig.addButton")}
             </Link>
           </Button>
         </PermissionGate>
@@ -51,7 +54,7 @@ export default function CamConfigListPage() {
         columnCount={9}
         loading={isFetching && data.length === 0}
         isEmpty={!isFetching && list.total === 0}
-        emptyTitle="No CAM configurations found"
+        emptyTitle={ts("camConfig.emptyTitle")}
         pagination={{
           page: list.page,
           totalPages: list.totalPages,
@@ -62,16 +65,16 @@ export default function CamConfigListPage() {
         }}
         header={
           <TableRow className={TABLE_HEADER_ROW_CLASS}>
-            <TableHead className={TABLE_HEAD_CLASS}>S.No</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Title</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Type</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Product Code</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Rule</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Loan Type</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Sequence</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Template</TableHead>
-            <TableHead className={`${TABLE_HEAD_CLASS} text-right`}>
-              Action
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("serialNo")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("camConfig.colTitle")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{tc("type")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("camConfig.colProductCode")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("camConfig.colRule")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("camConfig.colLoanType")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("camConfig.colSequence")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("camConfig.colTemplate")}</TableHead>
+            <TableHead className={`${TABLE_HEAD_CLASS} text-end`}>
+              {tc("action")}
             </TableHead>
           </TableRow>
         }
@@ -95,13 +98,13 @@ export default function CamConfigListPage() {
             <TableCell>{r.loan_type_name ?? "—"}</TableCell>
             <TableCell className="text-xs">{r.sequence ?? "—"}</TableCell>
             <TableCell>{r.template_name ?? "—"}</TableCell>
-            <TableCell className="text-right">
+            <TableCell className="text-end">
               <PermissionGate action="edit">
                 <Button asChild size="sm" variant="ghost" className="gap-1.5">
                   <Link
                     to={`/settings/cam-configuration/create/${String(r.cam_config_id ?? "")}`}
                   >
-                    <Pencil className="h-3.5 w-3.5" /> Edit
+                    <Pencil className="h-3.5 w-3.5" /> {tc("edit")}
                   </Link>
                 </Button>
               </PermissionGate>

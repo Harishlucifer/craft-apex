@@ -1,0 +1,15 @@
+export const dashboard = {
+  greetingMorning: "காலை வணக்கம்",
+  greetingAfternoon: "மதிய வணக்கம்",
+  greetingEvening: "மாலை வணக்கம்",
+  greetingNight: "இனிய இரவு",
+  greetingDefault: "வணக்கம்!",
+  defaultUserName: "பயனர்",
+  leadWiseTitle: "லீட் வாரியான சுருக்கம்",
+  leadWiseSubtitle: "அனைத்து லீடுகளிலும் நிலை விநியோகம்",
+  lenderWiseTitle: "லெண்டர் வாரியான சுருக்கம்",
+  lenderWiseSubtitle: "லெண்டர் சமர்ப்பிப்புகளில் முடிவுகள்",
+  metricsCount: "{{count}} மெட்ரிக்குகள்",
+  noSummaryForPeriod: "இந்தக் காலத்திற்கான சுருக்கம் இல்லை.",
+  share: "பங்கு",
+} as const;

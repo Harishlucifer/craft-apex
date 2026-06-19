@@ -9,6 +9,7 @@ import {
   TableHead,
   TableRow,
 } from "@craft-apex/ui";
+import { useTranslation } from "@craft-apex/i18n";
 import {
   DataTableShell,
   TABLE_HEADER_ROW_CLASS,
@@ -21,6 +22,8 @@ import type { VerificationTypeRow } from "./verification-type-list.types";
 
 export default function VerificationTypeListPage() {
   const { data = [], isFetching } = useVerificationTypeList();
+  const { t: ts } = useTranslation("settings");
+  const { t: tc } = useTranslation("common");
   const list = useClientList<VerificationTypeRow>(data, (r, q) =>
     [r.verification_type, r.employment_type].some((v) =>
       String(v ?? "").toLowerCase().includes(q)
@@ -31,18 +34,18 @@ export default function VerificationTypeListPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="relative w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
             value={list.search}
             onChange={(e) => list.setSearch(e.target.value)}
-            placeholder="Search by verification or employment type…"
-            className="h-10 rounded-full bg-white pl-9"
+            placeholder={ts("verificationType.searchPlaceholder")}
+            className="h-10 rounded-full bg-white ps-9"
           />
         </div>
         <PermissionGate action="add">
           <Button asChild>
             <Link to="/settings/verification/add-verification-type">
-              <Plus className="h-4 w-4" /> Add Verification Type
+              <Plus className="h-4 w-4" /> {ts("verificationType.addButton")}
             </Link>
           </Button>
         </PermissionGate>
@@ -52,7 +55,7 @@ export default function VerificationTypeListPage() {
         columnCount={5}
         loading={isFetching && data.length === 0}
         isEmpty={!isFetching && list.total === 0}
-        emptyTitle="No verification types found"
+        emptyTitle={ts("verificationType.emptyTitle")}
         pagination={{
           page: list.page,
           totalPages: list.totalPages,
@@ -63,12 +66,12 @@ export default function VerificationTypeListPage() {
         }}
         header={
           <TableRow className={TABLE_HEADER_ROW_CLASS}>
-            <TableHead className={TABLE_HEAD_CLASS}>S.No</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Verification Type</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Employment Type</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Status</TableHead>
-            <TableHead className={`${TABLE_HEAD_CLASS} text-right`}>
-              Action
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("serialNo")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("verificationType.colVerificationType")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("verificationType.colEmploymentType")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{tc("status")}</TableHead>
+            <TableHead className={`${TABLE_HEAD_CLASS} text-end`}>
+              {tc("action")}
             </TableHead>
           </TableRow>
         }
@@ -87,16 +90,16 @@ export default function VerificationTypeListPage() {
             <TableCell>{r.employment_type ?? "—"}</TableCell>
             <TableCell>
               <Badge variant={r.status === 1 ? "success" : "destructive"}>
-                {r.status === 1 ? "Active" : "Inactive"}
+                {r.status === 1 ? tc("active") : tc("inactive")}
               </Badge>
             </TableCell>
-            <TableCell className="text-right">
+            <TableCell className="text-end">
               <PermissionGate action="edit">
                 <Button asChild size="sm" variant="ghost" className="gap-1.5">
                   <Link
                     to={`/settings/verification/add-verification-type/${String(r.category_id ?? "")}`}
                   >
-                    <Pencil className="h-3.5 w-3.5" /> Edit
+                    <Pencil className="h-3.5 w-3.5" /> {tc("edit")}
                   </Link>
                 </Button>
               </PermissionGate>

@@ -19,32 +19,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@craft-apex/ui";
+import { LanguageSwitcher, useTranslation } from "@craft-apex/i18n";
 
 const BRAND = "#1E2A6B";
 
 interface SearchType {
   label: string;
   value: string;
-}
-
-// Legacy SearchOption.handlePlaceholder — exact mapping by lookup key.
-function placeholderFor(key: string): string {
-  switch (key) {
-    case "LEAD":
-      return "Lead Id / Name / Mobile...";
-    case "EMPLOYEE":
-      return "Employee Id / Name/ Mobile...";
-    case "PARTNER":
-      return "Partner Code / Name / Mobile";
-    case "LENDER":
-      return "Lender Apply Id / Lender CRM Id";
-    case "CUSTOMER":
-      return "PAN / AADHAAR";
-    case "VERIFICATION":
-      return "Verification Id / Name...";
-    default:
-      return "search by..";
-  }
 }
 
 // Legacy Header.formatDate — dd-MM-yyyy, raw string fallback.
@@ -115,12 +96,33 @@ export function Header({ brand }: { brand: string }) {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const { t } = useTranslation("layout");
 
   const searchTypes = useSearchTypes();
   const [searchBy, setSearchBy] = useState("");
   const [keyword, setKeyword] = useState("");
   const businessDate = readBusinessDate();
   const { isFs, toggle } = useFullscreen();
+
+  // Legacy SearchOption.handlePlaceholder — exact mapping by lookup key.
+  const placeholderFor = (key: string): string => {
+    switch (key) {
+      case "LEAD":
+        return t("searchPlaceholderLead");
+      case "EMPLOYEE":
+        return t("searchPlaceholderEmployee");
+      case "PARTNER":
+        return t("searchPlaceholderPartner");
+      case "LENDER":
+        return t("searchPlaceholderLender");
+      case "CUSTOMER":
+        return t("searchPlaceholderCustomer");
+      case "VERIFICATION":
+        return t("searchPlaceholderVerification");
+      default:
+        return t("searchPlaceholderDefault");
+    }
+  };
 
   const onLogout = () => {
     logout();
@@ -145,16 +147,16 @@ export function Header({ brand }: { brand: string }) {
               setSearchBy(e.target.value);
               setKeyword("");
             }}
-            className="h-9 w-full appearance-none truncate rounded-md border border-slate-200 bg-slate-100 pl-3 pr-7 text-sm text-slate-700 outline-none focus:border-slate-300"
+            className="h-9 w-full appearance-none truncate rounded-md border border-slate-200 bg-slate-100 ps-3 pe-7 text-sm text-slate-700 outline-none focus:border-slate-300"
           >
-            <option value="">Search by</option>
-            {searchTypes.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
+            <option value="">{t("searchBy")}</option>
+            {searchTypes.map((st) => (
+              <option key={st.value} value={st.value}>
+                {st.label}
               </option>
             ))}
           </select>
-          <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <ChevronDown className="pointer-events-none absolute end-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         </div>
         <input
           type="text"
@@ -169,18 +171,22 @@ export function Header({ brand }: { brand: string }) {
       {/* Right cluster */}
       <div className="flex shrink-0 items-center gap-1.5">
         {businessDate && (
-          <div className="mr-2 hidden flex-col items-end leading-tight sm:flex">
-            <span className="text-[11px] text-slate-400">Business Date</span>
+          <div className="me-2 hidden flex-col items-end leading-tight sm:flex">
+            <span className="text-[11px] text-slate-400">
+              {t("businessDate")}
+            </span>
             <span className="text-sm font-semibold text-slate-800">
               {businessDate}
             </span>
           </div>
         )}
 
+        <LanguageSwitcher variant="compact" />
+
         <button
           type="button"
           onClick={toggle}
-          aria-label={isFs ? "Exit fullscreen" : "Enter fullscreen"}
+          aria-label={isFs ? t("exitFullscreen") : t("enterFullscreen")}
           className="flex h-9 w-9 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
         >
           {isFs ? (
@@ -192,7 +198,7 @@ export function Header({ brand }: { brand: string }) {
 
         <button
           type="button"
-          aria-label="Notifications"
+          aria-label={t("notifications")}
           className="flex h-9 w-9 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
         >
           <Bell className="h-[18px] w-[18px]" />
@@ -209,7 +215,7 @@ export function Header({ brand }: { brand: string }) {
               </span>
               <span className="hidden max-w-[12rem] flex-col items-start leading-tight sm:flex">
                 <span className="truncate text-sm font-medium text-slate-900">
-                  {user?.name ?? user?.email ?? "Account"}
+                  {user?.name ?? user?.email ?? t("account")}
                 </span>
                 {user?.user_type ? (
                   <span className="truncate text-xs text-slate-500">
@@ -221,13 +227,15 @@ export function Header({ brand }: { brand: string }) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>{user?.email ?? "Signed in"}</DropdownMenuLabel>
+            <DropdownMenuLabel>
+              {user?.email ?? t("signedIn")}
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => navigate("/profile")}>
-              <User className="h-4 w-4" /> Profile
+              <User className="h-4 w-4" /> {t("profile")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onLogout}>
-              <LogOut className="h-4 w-4" /> Logout
+              <LogOut className="h-4 w-4" /> {t("logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Badge, TableCell, TableHead, TableRow } from "@craft-apex/ui";
+import { useTranslation } from "@craft-apex/i18n";
 import {
   DataTableShell,
   TABLE_HEADER_ROW_CLASS,
@@ -21,6 +22,7 @@ const fmtDate = (v?: string) =>
 export default function LoginQPage() {
   const [page, setPage] = useState(1);
   const { data, isFetching } = useLoginQ(page);
+  const { t } = useTranslation("application");
 
   const rows = data?.data ?? [];
   const total = data?.pagination?.total ?? 0;
@@ -31,7 +33,7 @@ export default function LoginQPage() {
       columnCount={7}
       loading={isFetching && rows.length === 0}
       isEmpty={!isFetching && rows.length === 0}
-      emptyTitle="No applications in the login queue"
+      emptyTitle={t("loginQ.emptyTitle")}
       pagination={{
         page,
         totalPages,
@@ -41,13 +43,13 @@ export default function LoginQPage() {
       }}
       header={
         <TableRow className={TABLE_HEADER_ROW_CLASS}>
-          <TableHead className={TABLE_HEAD_CLASS}>Lead ID</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Loan Details</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Applicant</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Source</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Pending</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Status</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Created</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("loginQ.colLeadId")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("loginQ.colLoanDetails")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("loginQ.colApplicant")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("loginQ.colSource")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("loginQ.colPending")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("loginQ.colStatus")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("loginQ.colCreated")}</TableHead>
         </TableRow>
       }
     >
@@ -57,7 +59,7 @@ export default function LoginQPage() {
             <div className="font-medium">{r.code ?? "-"}</div>
             {r.loan_code && (
               <div className="text-xs text-muted-foreground">
-                Loan Code: {r.loan_code}
+                {t("loginQ.loanCode")}: {r.loan_code}
               </div>
             )}
           </TableCell>

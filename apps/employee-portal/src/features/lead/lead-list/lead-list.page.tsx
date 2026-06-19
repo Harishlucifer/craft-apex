@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Badge, TableCell, TableHead, TableRow } from "@craft-apex/ui";
+import { useTranslation } from "@craft-apex/i18n";
 import {
   DataTableShell,
   TABLE_HEADER_ROW_CLASS,
@@ -33,6 +34,7 @@ export default function LeadListPage() {
   const { pathname } = useLocation();
   const scope = scopeFromPath(pathname);
   const [page, setPage] = useState(1);
+  const { t } = useTranslation("lead");
 
   const { data, isFetching } = useLeadList(page, scope);
   const rows = data?.data ?? [];
@@ -44,7 +46,7 @@ export default function LeadListPage() {
       columnCount={7}
       loading={isFetching && rows.length === 0}
       isEmpty={!isFetching && rows.length === 0}
-      emptyTitle="No leads found"
+      emptyTitle={t("list.emptyTitle")}
       pagination={{
         page,
         totalPages,
@@ -54,13 +56,13 @@ export default function LeadListPage() {
       }}
       header={
         <TableRow className={TABLE_HEADER_ROW_CLASS}>
-          <TableHead className={TABLE_HEAD_CLASS}>Lead Ref. No.</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Branch</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Applicant</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Product</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Loan Amount</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Status</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Initiated</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("list.colLeadRefNo")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("list.colBranch")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("list.colApplicant")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("list.colProduct")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("list.colLoanAmount")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("list.colStatus")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("list.colInitiated")}</TableHead>
         </TableRow>
       }
     >

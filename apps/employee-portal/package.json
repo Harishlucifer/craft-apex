@@ -13,6 +13,7 @@
   "dependencies": {
     "@craft-apex/api": "*",
     "@craft-apex/auth": "*",
+    "@craft-apex/i18n": "*",
     "@craft-apex/layout": "*",
     "@craft-apex/ui": "*",
     "@hookform/resolvers": "^3.9.0",

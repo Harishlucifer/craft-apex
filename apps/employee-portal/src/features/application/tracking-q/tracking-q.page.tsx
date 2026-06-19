@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { TableCell, TableHead, TableRow } from "@craft-apex/ui";
+import { useTranslation } from "@craft-apex/i18n";
 import {
   DataTableShell,
   TABLE_HEADER_ROW_CLASS,
@@ -23,6 +24,7 @@ const participant = (p?: TrackingParticipant) =>
 export default function TrackingQPage() {
   const [page, setPage] = useState(1);
   const { data, isFetching } = useTrackingQ(page);
+  const { t } = useTranslation("application");
 
   const rows = data?.data ?? [];
   const total = data?.pagination?.total ?? 0;
@@ -33,7 +35,7 @@ export default function TrackingQPage() {
       columnCount={7}
       loading={isFetching && rows.length === 0}
       isEmpty={!isFetching && rows.length === 0}
-      emptyTitle="No applications in the tracking queue"
+      emptyTitle={t("trackingQ.emptyTitle")}
       pagination={{
         page,
         totalPages,
@@ -43,13 +45,13 @@ export default function TrackingQPage() {
       }}
       header={
         <TableRow className={TABLE_HEADER_ROW_CLASS}>
-          <TableHead className={TABLE_HEAD_CLASS}>Lender</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Lead ID</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Loan Type</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Applicant</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Sourced By</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Processed By</TableHead>
-          <TableHead className={TABLE_HEAD_CLASS}>Lender Login</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("colLender")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("colLeadId")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("colLoanType")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("colApplicant")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("colSourcedBy")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("colProcessedBy")}</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>{t("colLenderLogin")}</TableHead>
         </TableRow>
       }
     >

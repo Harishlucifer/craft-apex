@@ -17,6 +17,7 @@
   "peerDependencies": {
     "@craft-apex/api": "*",
     "@craft-apex/auth": "*",
+    "@craft-apex/i18n": "*",
     "@craft-apex/ui": "*",
     "lucide-react": "^0.439.0",
     "react": "^18.2.0",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@craft-apex/api": "*",
     "@craft-apex/auth": "*",
+    "@craft-apex/i18n": "*",
     "@craft-apex/typescript-config": "*",
     "@craft-apex/ui": "*",
     "@types/react": "^18.3.5",

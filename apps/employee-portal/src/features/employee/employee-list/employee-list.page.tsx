@@ -9,6 +9,7 @@ import {
   TableHead,
   TableRow,
 } from "@craft-apex/ui";
+import { useTranslation } from "@craft-apex/i18n";
 import {
   DataTableShell,
   TABLE_HEADER_ROW_CLASS,
@@ -22,6 +23,8 @@ const PAGE_SIZE = 10; // legacy groupSize
 export default function EmployeeListPage() {
   const [page, setPage] = useState(1);
   const { data, isFetching } = useEmployeeList(page);
+  const { t: ts } = useTranslation("settings");
+  const { t: tc } = useTranslation("common");
   const rows = data?.data ?? [];
   const total = data?.pagination?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -32,7 +35,7 @@ export default function EmployeeListPage() {
         <PermissionGate action="add">
           <Button asChild>
             <Link to="/settings/employee/create">
-              <Plus className="h-4 w-4" /> Add Employee
+              <Plus className="h-4 w-4" /> {ts("employee.addButton")}
             </Link>
           </Button>
         </PermissionGate>
@@ -41,7 +44,7 @@ export default function EmployeeListPage() {
         columnCount={9}
         loading={isFetching && rows.length === 0}
         isEmpty={!isFetching && rows.length === 0}
-        emptyTitle="No employees found"
+        emptyTitle={ts("employee.emptyTitle")}
         pagination={{
           page,
           totalPages,
@@ -51,16 +54,16 @@ export default function EmployeeListPage() {
         }}
         header={
           <TableRow className={TABLE_HEADER_ROW_CLASS}>
-            <TableHead className={TABLE_HEAD_CLASS}>Employee ID</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Employee Code</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Username</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Email</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Mobile</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Role</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Reports To</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Status</TableHead>
-            <TableHead className={`${TABLE_HEAD_CLASS} text-right`}>
-              Action
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("employee.colEmployeeId")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("employee.colEmployeeCode")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("employee.colUsername")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{tc("email")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{tc("mobile")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{tc("role")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("employee.colReportsTo")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{tc("status")}</TableHead>
+            <TableHead className={`${TABLE_HEAD_CLASS} text-end`}>
+              {tc("action")}
             </TableHead>
           </TableRow>
         }
@@ -88,14 +91,14 @@ export default function EmployeeListPage() {
             </TableCell>
             <TableCell>
               <Badge variant={r.status === 1 ? "success" : "destructive"}>
-                {r.status === 1 ? "Active" : "Inactive"}
+                {r.status === 1 ? tc("active") : tc("inactive")}
               </Badge>
             </TableCell>
-            <TableCell className="text-right">
+            <TableCell className="text-end">
               <PermissionGate action="edit">
                 <Button asChild size="sm" variant="ghost" className="gap-1.5">
                   <Link to={`/settings/employee/create/${String(r.employee_id ?? "")}`}>
-                    <Pencil className="h-3.5 w-3.5" /> Edit
+                    <Pencil className="h-3.5 w-3.5" /> {tc("edit")}
                   </Link>
                 </Button>
               </PermissionGate>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@craft-apex/ui";
+import { useMenuLabel } from "@craft-apex/i18n";
 import { buildMenu, type MenuItem } from "../menu";
 import { useModuleStore } from "../module-store";
 import { resolveIcon } from "../utils/icon-map";
@@ -46,6 +47,7 @@ function PanelItem({
   pathname: string;
   onNavigate: () => void;
 }) {
+  const ml = useMenuLabel();
   const hasChildren = item.isChildItem && (item.childItems?.length ?? 0) > 0;
   const [open, setOpen] = useState(() =>
     hasChildren ? containsActive(item, pathname) : false
@@ -77,7 +79,7 @@ function PanelItem({
         {({ isActive }) => (
           <>
             <Bullet active={isActive && isLink(item.link)} />
-            <span className="truncate">{item.label}</span>
+            <span className="truncate">{ml(item.label)}</span>
           </>
         )}
       </NavLink>
@@ -93,16 +95,16 @@ function PanelItem({
         className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
       >
         <span className="h-0.5 w-2.5 shrink-0 rounded bg-slate-300" />
-        <span className="flex-1 truncate text-left">{item.label}</span>
+        <span className="flex-1 truncate text-start">{ml(item.label)}</span>
         <ChevronDown
           className={cn(
             "h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform",
-            !open && "-rotate-90"
+            !open && "-rotate-90 rtl:rotate-90"
           )}
         />
       </button>
       {open && (
-        <div className="mb-1 mt-0.5 space-y-0.5 pl-4">
+        <div className="mb-1 mt-0.5 space-y-0.5 ps-4">
           {item.childItems!.map((c) => (
             <NavLink
               key={c.id}
@@ -122,7 +124,7 @@ function PanelItem({
               {({ isActive }) => (
                 <>
                   <Bullet active={isActive && isLink(c.link)} />
-                  <span className="truncate">{c.label}</span>
+                  <span className="truncate">{ml(c.label)}</span>
                 </>
               )}
             </NavLink>
@@ -138,6 +140,7 @@ export function DualSidebar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const menu = useMemo(() => buildMenu(modules), [modules]);
+  const ml = useMenuLabel();
 
   // Hover-driven flyout: opens on rail hover, closes on click / pointer-out.
   const [openId, setOpenId] = useState<string | null>(null);
@@ -184,13 +187,14 @@ export function DualSidebar() {
         {menu.map((m) => {
           const Icon = resolveIcon({ icon: m.icon, label: m.label });
           const active = containsActive(m, pathname);
+          const label = ml(m.label);
           return (
             <button
               key={m.id}
               type="button"
               onMouseEnter={() => onRailEnter(m)}
               onClick={() => onRailClick(m)}
-              title={m.label}
+              title={label}
               className={cn(
                 "flex w-[58px] flex-col items-center gap-1 rounded-xl px-1 py-2.5 text-[10px] font-medium leading-tight transition-colors",
                 active
@@ -201,7 +205,7 @@ export function DualSidebar() {
               style={active ? { color: ACTIVE_FG } : undefined}
             >
               <Icon className="h-[22px] w-[22px] shrink-0" />
-              <span className="line-clamp-2 text-center">{m.label}</span>
+              <span className="line-clamp-2 text-center">{label}</span>
             </button>
           );
         })}
@@ -210,7 +214,7 @@ export function DualSidebar() {
       {/* Flyout panel — overlay, levels 2 & 3 (does not reflow content) */}
       {hasPanel && open && (
         <div
-          className="absolute left-[68px] top-0 z-30 flex h-full w-64 flex-col overflow-y-auto border-r border-slate-200 bg-white shadow-2xl"
+          className="absolute start-[68px] top-0 z-30 flex h-full w-64 flex-col overflow-y-auto border-e border-slate-200 bg-white shadow-2xl"
           onMouseEnter={cancelClose}
           onMouseLeave={scheduleClose}
         >

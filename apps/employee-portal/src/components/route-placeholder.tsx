@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { ArrowLeft, Construction } from "lucide-react";
 import { Button } from "@craft-apex/ui";
+import { useTranslation } from "@craft-apex/i18n";
 
 interface Props {
   title: string;
@@ -22,6 +23,8 @@ export function RoutePlaceholder({
   legacyNotes,
 }: Props) {
   const { pathname } = useLocation();
+  const { t } = useTranslation("pages");
+  const { t: tc } = useTranslation("common");
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 py-10">
@@ -32,7 +35,7 @@ export function RoutePlaceholder({
         {backTo && (
           <Button asChild variant="outline" size="sm">
             <Link to={backTo}>
-              <ArrowLeft className="h-4 w-4" /> Back
+              <ArrowLeft className="h-4 w-4 rtl:rotate-180" /> {tc("back")}
             </Link>
           </Button>
         )}
@@ -41,20 +44,19 @@ export function RoutePlaceholder({
       <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="flex items-center gap-3 text-slate-700">
           <Construction className="h-6 w-6 text-amber-500" />
-          <p className="text-sm font-medium">
-            This page is not ported yet.
-          </p>
+          <p className="text-sm font-medium">{t("placeholder.notPorted")}</p>
         </div>
 
         <p className="text-sm text-slate-500">
-          {description ??
-            "The legacy screen for this route exists, but the full UI hasn't landed in the new portal yet."}
+          {description ?? t("placeholder.defaultDescription")}
         </p>
 
         {legacyNotes && legacyNotes.length > 0 && (
           <div className="space-y-2 rounded-md border border-slate-100 bg-slate-50/40 p-4 text-xs text-slate-600">
-            <p className="font-semibold text-slate-700">Legacy parity notes</p>
-            <ul className="list-disc space-y-1 pl-5">
+            <p className="font-semibold text-slate-700">
+              {t("placeholder.legacyParityNotes")}
+            </p>
+            <ul className="list-disc space-y-1 ps-5">
               {legacyNotes.map((n) => (
                 <li key={n}>{n}</li>
               ))}

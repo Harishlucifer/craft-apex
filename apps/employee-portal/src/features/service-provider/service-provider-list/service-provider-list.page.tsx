@@ -13,6 +13,7 @@ import {
   TableHead,
   TableRow,
 } from "@craft-apex/ui";
+import { useTranslation } from "@craft-apex/i18n";
 import {
   DataTableShell,
   TABLE_HEADER_ROW_CLASS,
@@ -26,6 +27,8 @@ import { ServiceProviderForm } from "../service-provider-form/service-provider-f
 
 export default function ServiceProviderListPage() {
   const { data = [], isFetching } = useServiceProviderList();
+  const { t: ts } = useTranslation("settings");
+  const { t: tc } = useTranslation("common");
   const qc = useQueryClient();
   const list = useClientList<ServiceProviderRow>(data, (r, q) =>
     [r.name, r.type, r.provider_type].some((v) =>
@@ -49,16 +52,16 @@ export default function ServiceProviderListPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="relative w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
             value={list.search}
             onChange={(e) => list.setSearch(e.target.value)}
-            placeholder="Search by name, type…"
-            className="h-10 rounded-full bg-white pl-9"
+            placeholder={ts("serviceProvider.searchPlaceholder")}
+            className="h-10 rounded-full bg-white ps-9"
           />
         </div>
         <Button onClick={() => setEditing(null)}>
-          <Plus className="h-4 w-4" /> Add Service Provider
+          <Plus className="h-4 w-4" /> {ts("serviceProvider.addButton")}
         </Button>
       </div>
 
@@ -66,7 +69,7 @@ export default function ServiceProviderListPage() {
         columnCount={6}
         loading={isFetching && data.length === 0}
         isEmpty={!isFetching && list.total === 0}
-        emptyTitle="No service providers found"
+        emptyTitle={ts("serviceProvider.emptyTitle")}
         pagination={{
           page: list.page,
           totalPages: list.totalPages,
@@ -77,13 +80,13 @@ export default function ServiceProviderListPage() {
         }}
         header={
           <TableRow className={TABLE_HEADER_ROW_CLASS}>
-            <TableHead className={TABLE_HEAD_CLASS}>S.No</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Name</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Type</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Credentials</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Status</TableHead>
-            <TableHead className={`${TABLE_HEAD_CLASS} text-right`}>
-              Action
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("serialNo")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{tc("name")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{tc("type")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("serviceProvider.colCredentials")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{tc("status")}</TableHead>
+            <TableHead className={`${TABLE_HEAD_CLASS} text-end`}>
+              {tc("action")}
             </TableHead>
           </TableRow>
         }
@@ -96,21 +99,23 @@ export default function ServiceProviderListPage() {
             <TableCell className="font-medium">{r.name ?? "—"}</TableCell>
             <TableCell>{r.type ?? "—"}</TableCell>
             <TableCell className="font-mono text-xs text-slate-500">
-              {r.credentials ? Object.keys(r.credentials).length + " keys" : "—"}
+              {r.credentials
+                ? Object.keys(r.credentials).length + ts("serviceProvider.credentialKeysSuffix")
+                : "—"}
             </TableCell>
             <TableCell>
               <Badge variant={r.status === 1 ? "success" : "destructive"}>
-                {r.status === 1 ? "Active" : "Inactive"}
+                {r.status === 1 ? tc("active") : tc("inactive")}
               </Badge>
             </TableCell>
-            <TableCell className="text-right">
+            <TableCell className="text-end">
               <Button
                 size="sm"
                 variant="ghost"
                 className="gap-1.5"
                 onClick={() => setEditing(r)}
               >
-                <Pencil className="h-3.5 w-3.5" /> Edit
+                <Pencil className="h-3.5 w-3.5" /> {tc("edit")}
               </Button>
             </TableCell>
           </TableRow>
@@ -121,7 +126,9 @@ export default function ServiceProviderListPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editing ? "Edit Service Provider" : "Add Service Provider"}
+              {editing
+                ? ts("serviceProvider.editButton")
+                : ts("serviceProvider.addButton")}
             </DialogTitle>
           </DialogHeader>
           {open && (

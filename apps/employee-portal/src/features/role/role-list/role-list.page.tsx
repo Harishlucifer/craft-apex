@@ -16,6 +16,7 @@ import {
   TableHead,
   TableRow,
 } from "@craft-apex/ui";
+import { useTranslation } from "@craft-apex/i18n";
 import {
   DataTableShell,
   TABLE_HEADER_ROW_CLASS,
@@ -39,6 +40,8 @@ export default function RoleListPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const { t: ts } = useTranslation("settings");
+  const { t: tc } = useTranslation("common");
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -75,18 +78,18 @@ export default function RoleListPage() {
       <div className="grid gap-3 sm:grid-cols-3">
         <SummaryCard
           icon={<ShieldCheck className="h-4 w-4" />}
-          label="Total roles"
+          label={ts("role.totalRoles")}
           value={String(roles.length)}
         />
         <SummaryCard
           icon={<Users className="h-4 w-4" />}
-          label="Active"
+          label={ts("role.active")}
           value={String(activeCount)}
           accent="#10B981"
         />
         <SummaryCard
           icon={<Users className="h-4 w-4" />}
-          label="Inactive"
+          label={ts("role.inactive")}
           value={String(roles.length - activeCount)}
           accent="#EF4444"
         />
@@ -95,12 +98,12 @@ export default function RoleListPage() {
       {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="relative w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
-            placeholder="Search by name, code, user type…"
+            placeholder={ts("role.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-10 rounded-full bg-white pl-9"
+            className="h-10 rounded-full bg-white ps-9"
           />
         </div>
         {canAdd && (
@@ -110,7 +113,7 @@ export default function RoleListPage() {
             style={{ background: `linear-gradient(135deg, ${NAVY}, ${BLUE})` }}
           >
             <Link to="/settings/role/create">
-              <Plus className="h-4 w-4" /> Add Role
+              <Plus className="h-4 w-4" /> {ts("role.addButton")}
             </Link>
           </Button>
         )}
@@ -121,8 +124,8 @@ export default function RoleListPage() {
         loading={isFetching && roles.length === 0}
         isEmpty={!isFetching && filtered.length === 0}
         emptyIcon={<ShieldCheck className="h-8 w-8 text-slate-300" />}
-        emptyTitle="No roles found"
-        emptyDescription="Try a different search or add a new role."
+        emptyTitle={ts("role.emptyTitle")}
+        emptyDescription={ts("role.emptyDescription")}
         pagination={{
           page,
           totalPages,
@@ -133,15 +136,15 @@ export default function RoleListPage() {
         }}
         header={
           <TableRow className={TABLE_HEADER_ROW_CLASS}>
-            <TableHead className={TABLE_HEAD_CLASS}>Role ID</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>User Type</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Code</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Name</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Description</TableHead>
-            <TableHead className={TABLE_HEAD_CLASS}>Status</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("role.colRoleId")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("role.colUserType")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{tc("code")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{tc("name")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{ts("description")}</TableHead>
+            <TableHead className={TABLE_HEAD_CLASS}>{tc("status")}</TableHead>
             {showAction && (
-              <TableHead className={`${TABLE_HEAD_CLASS} text-right`}>
-                Action
+              <TableHead className={`${TABLE_HEAD_CLASS} text-end`}>
+                {tc("action")}
               </TableHead>
             )}
           </TableRow>
@@ -173,7 +176,7 @@ export default function RoleListPage() {
               <StatusPill active={r.status === 1} />
             </TableCell>
             {showAction && (
-              <TableCell className="text-right">
+              <TableCell className="text-end">
                 <Button
                   asChild
                   size="sm"
@@ -182,10 +185,10 @@ export default function RoleListPage() {
                 >
                   <Link
                     to={`/settings/role/create/${String(r.id)}#${r.userType ?? ""}`}
-                    title="View & edit"
+                    title={ts("role.viewAndEdit")}
                   >
                     <Pencil className="h-3.5 w-3.5" />
-                    Edit
+                    {tc("edit")}
                   </Link>
                 </Button>
               </TableCell>
@@ -227,6 +230,7 @@ function SummaryCard({
 }
 
 function StatusPill({ active }: { active: boolean }) {
+  const { t: tc } = useTranslation("common");
   return (
     <span
       className={
@@ -242,7 +246,7 @@ function StatusPill({ active }: { active: boolean }) {
             : "h-1.5 w-1.5 rounded-full bg-rose-500"
         }
       />
-      {active ? "Active" : "Inactive"}
+      {active ? tc("active") : tc("inactive")}
     </span>
   );
 }

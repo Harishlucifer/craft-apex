@@ -1,0 +1,15 @@
+export const dashboard = {
+  greetingMorning: "صباح الخير",
+  greetingAfternoon: "مساء الخير",
+  greetingEvening: "مساء الخير",
+  greetingNight: "تصبح على خير",
+  greetingDefault: "مرحبًا!",
+  defaultUserName: "المستخدم",
+  leadWiseTitle: "ملخّص حسب العميل المحتمل",
+  leadWiseSubtitle: "توزيع الحالات عبر جميع العملاء المحتملين",
+  lenderWiseTitle: "ملخّص حسب المُقرض",
+  lenderWiseSubtitle: "النتائج عبر طلبات المُقرضين",
+  metricsCount: "{{count}} مقياس",
+  noSummaryForPeriod: "لا يوجد ملخّص لهذه الفترة.",
+  share: "النسبة",
+} as const;

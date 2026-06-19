@@ -1,0 +1,38 @@
+// Tamil menu labels keyed off the English label returned by the backend.
+// Add entries as new menu labels appear in the backend response.
+export const menu = {
+  // Top-level
+  "Dashboard": "டாஷ்போர்டு",
+  "Lead Management": "லீட் மேலாண்மை",
+  "LOS": "கடன் தோற்றுவாய்",
+  "LMS": "கடன் மேலாண்மை",
+  "Collection": "வசூல்",
+  "Finance": "நிதி",
+  "Operations": "செயல்பாடுகள்",
+  "Reports": "அறிக்கைகள்",
+  "Settings": "அமைப்புகள்",
+  "Verification": "சரிபார்ப்பு",
+  "Partner": "பார்ட்னர்",
+  "Sales": "விற்பனை",
+  "Marketing": "சந்தைப்படுத்தல்",
+  "Workflow": "பணிஓட்டம்",
+  "Channel": "சேனல்",
+  "Enquiry": "விசாரணை",
+  // Common children
+  "Lead List": "லீட் பட்டியல்",
+  "Login Queue": "உள்நுழைவு வரிசை",
+  "Tracking Queue": "கண்காணிப்பு வரிசை",
+  "Disbursed Queue": "வழங்கப்பட்ட வரிசை",
+  "Rejected Queue": "நிராகரிக்கப்பட்ட வரிசை",
+  "Employee": "ஊழியர்",
+  "Module": "தொகுதி",
+  "Lender": "லெண்டர்",
+  "Loan Type": "கடன் வகை",
+  "Territory Management": "பகுதி மேலாண்மை",
+  "Service Provider": "சேவை வழங்குநர்",
+  "Document Checklist": "ஆவண சரிபார்ப்புப் பட்டியல்",
+  "CAM Configuration": "CAM கட்டமைப்பு",
+  "Rule": "விதி",
+  "Notification Template": "அறிவிப்பு டெம்ப்ளேட்",
+  "Parameter": "அளவுரு",
+} as const;

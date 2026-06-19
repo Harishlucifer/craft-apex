@@ -1,0 +1,38 @@
+// Hindi menu labels keyed off the English label returned by the backend.
+// Add entries as new menu labels appear in the backend response.
+export const menu = {
+  // Top-level
+  "Dashboard": "डैशबोर्ड",
+  "Lead Management": "लीड प्रबंधन",
+  "LOS": "ऋण आरंभीकरण",
+  "LMS": "ऋण प्रबंधन",
+  "Collection": "संग्रहण",
+  "Finance": "वित्त",
+  "Operations": "संचालन",
+  "Reports": "रिपोर्ट्स",
+  "Settings": "सेटिंग्स",
+  "Verification": "सत्यापन",
+  "Partner": "पार्टनर",
+  "Sales": "बिक्री",
+  "Marketing": "मार्केटिंग",
+  "Workflow": "वर्कफ़्लो",
+  "Channel": "चैनल",
+  "Enquiry": "पूछताछ",
+  // Common children
+  "Lead List": "लीड सूची",
+  "Login Queue": "लॉगिन क्यू",
+  "Tracking Queue": "ट्रैकिंग क्यू",
+  "Disbursed Queue": "संवितरित क्यू",
+  "Rejected Queue": "अस्वीकृत क्यू",
+  "Employee": "कर्मचारी",
+  "Module": "मॉड्यूल",
+  "Lender": "लेंडर",
+  "Loan Type": "ऋण प्रकार",
+  "Territory Management": "क्षेत्र प्रबंधन",
+  "Service Provider": "सेवा प्रदाता",
+  "Document Checklist": "दस्तावेज़ चेकलिस्ट",
+  "CAM Configuration": "CAM कॉन्फ़िगरेशन",
+  "Rule": "नियम",
+  "Notification Template": "सूचना टेम्पलेट",
+  "Parameter": "पैरामीटर",
+} as const;

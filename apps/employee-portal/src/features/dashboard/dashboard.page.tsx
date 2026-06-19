@@ -4,6 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 import { useAuthStore } from "@craft-apex/auth";
 import { useModule } from "@craft-apex/layout";
 import { STORAGE_KEYS } from "@craft-apex/api";
+import { useTranslation } from "@craft-apex/i18n";
 import { useDashboard } from "./dashboard.api";
 import { DateRangePicker } from "./date-range-picker";
 import type { SummaryWidget } from "./dashboard.types";
@@ -13,13 +14,13 @@ const BLUE = "#4C7DF0";
 const GREEN = "#5FDD98";
 
 // Legacy DashboardFilter.getGreetings — exact hour thresholds.
-function greeting(): string {
+function greetingKey(): string {
   const h = new Date().getHours();
-  if (h >= 4 && h < 12) return "Good Morning";
-  if (h >= 12 && h < 17) return "Good Afternoon";
-  if (h >= 17 && h < 20) return "Good Evening";
-  if (h >= 20 && h < 24) return "Good Night";
-  return "Hello!";
+  if (h >= 4 && h < 12) return "greetingMorning";
+  if (h >= 12 && h < 17) return "greetingAfternoon";
+  if (h >= 17 && h < 20) return "greetingEvening";
+  if (h >= 20 && h < 24) return "greetingNight";
+  return "greetingDefault";
 }
 
 // Legacy index.js dateFormatter — yyyy-MM-dd.
@@ -44,6 +45,7 @@ function FeatureTile({
   rowSpan: number;
   onClick: (w: SummaryWidget) => void;
 }) {
+  const { t } = useTranslation("dashboard");
   const clickable = Boolean(w.route && w.count !== 0);
   const pct = pctOf(w.percentage);
   return (
@@ -110,7 +112,7 @@ function FeatureTile({
 
       <div className="relative">
         <div className="flex items-center justify-between text-[11px] text-white/70">
-          <span>Share</span>
+          <span>{t("share")}</span>
           <span className="font-semibold text-white">
             {pctLabel(w.percentage)}
           </span>
@@ -187,6 +189,8 @@ function SummarySection({
   loading: boolean;
   onCardClick: (w: SummaryWidget) => void;
 }) {
+  const { t } = useTranslation("dashboard");
+  const { t: tc } = useTranslation("common");
   const [feature, ...rest] = items;
   // 4-col grid, feature occupies 1 col → 3 cols remain for the rest.
   // Feature spans the full height of those rows.
@@ -196,21 +200,21 @@ function SummarySection({
       <div className="mb-3 flex items-baseline justify-between">
         <h3 className="text-2xl font-bold tracking-tight text-slate-900">
           {title}
-          <span className="ml-2 text-sm font-normal text-slate-400">
+          <span className="ms-2 text-sm font-normal text-slate-400">
             {subtitle}
           </span>
         </h3>
         {items.length > 0 && (
           <span className="text-xs font-medium text-slate-400">
-            {items.length} metrics
+            {t("metricsCount", { count: items.length })}
           </span>
         )}
       </div>
 
       {loading && items.length === 0 ? (
-        <p className="text-sm text-slate-400">Loading…</p>
+        <p className="text-sm text-slate-400">{tc("loading")}</p>
       ) : items.length === 0 ? (
-        <p className="text-sm text-slate-400">No summary for this period.</p>
+        <p className="text-sm text-slate-400">{t("noSummaryForPeriod")}</p>
       ) : (
         <div className="grid auto-rows-[1fr] grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {feature && (
@@ -248,9 +252,10 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const resolved = useModule();
+  const { t } = useTranslation("dashboard");
 
   const userName =
-    (user?.username as string) ?? user?.name ?? user?.email ?? "User";
+    (user?.username as string) ?? user?.name ?? user?.email ?? t("defaultUserName");
 
   // Legacy DashboardFilter: default = [today - lead_visibility(or 90), today];
   // minDate only when lead_visibility is set; maxDate = today.
@@ -313,7 +318,7 @@ export default function DashboardPage() {
       {/* Slim greeting bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3.5">
         <div>
-          <span className="text-lg text-slate-400">{greeting()}, </span>
+          <span className="text-lg text-slate-400">{t(greetingKey())}, </span>
           <span className="text-lg font-bold tracking-tight text-slate-900">
             {userName}
           </span>
@@ -328,8 +333,8 @@ export default function DashboardPage() {
 
       {/* Lead wise summary (legacy Widgets — result.lead) */}
       <SummarySection
-        title="Lead wise summary"
-        subtitle="Status distribution across all leads"
+        title={t("leadWiseTitle")}
+        subtitle={t("leadWiseSubtitle")}
         items={lead}
         loading={isFetching}
         onCardClick={onCardClick}
@@ -341,8 +346,8 @@ export default function DashboardPage() {
       )}
       {lender.length > 0 && (
         <SummarySection
-          title="Lender wise Summary"
-          subtitle="Outcomes across lender submissions"
+          title={t("lenderWiseTitle")}
+          subtitle={t("lenderWiseSubtitle")}
           items={lender}
           loading={isFetching}
           onCardClick={onCardClick}

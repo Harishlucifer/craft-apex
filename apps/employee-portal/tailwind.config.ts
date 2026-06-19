@@ -8,5 +8,6 @@ export default {
     "./src/**/*.{ts,tsx}",
     "../../packages/ui/src/**/*.{ts,tsx}",
     "../../packages/layout/src/**/*.{ts,tsx}",
+    "../../packages/i18n/src/**/*.{ts,tsx}",
   ],
 } satisfies Config;
