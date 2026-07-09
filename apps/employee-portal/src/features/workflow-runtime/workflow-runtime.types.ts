@@ -19,6 +19,11 @@ export const WorkflowType = {
   BcPartnerOnboarding: "BC_PARTNER_ONBOARDING",
   LeadCreation: "LEAD_CREATION",
   CarBuyingJourney: "CAR_BUYING_JOURNEY",
+  /**
+   * Drives the Employee create/edit step list (see employee-form.page.tsx).
+   * Must match the workflow_type configured server-side via /settings/workflow.
+   */
+  EmployeeCreation: "EMPLOYEE_CREATION",
 } as const;
 
 export type WorkflowTypeValue =
