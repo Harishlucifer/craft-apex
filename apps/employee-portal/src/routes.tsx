@@ -49,6 +49,7 @@ import TargetPlanFormPage from "@/features/target-mgmt/target-plan-form/target-p
 import UserLoginReportPage from "@/features/reports/user-login-report/user-login-report.page";
 import WorkflowListPage from "@/features/workflow/workflow-list/workflow-list.page";
 import WorkflowFormPage from "@/features/workflow/workflow-form/workflow-form.page";
+import WorkflowComponentListPage from "@/features/workflow/workflow-component-list/workflow-component-list.page";
 import FieldMasterFormPage from "@/features/field-master/field-master-form/field-master-form.page";
 import JourneyMasterListPage from "@/features/journey-master/journey-master-list/journey-master-list.page";
 import CampaignListPage from "@/features/marketing/campaign-list/campaign-list.page";
@@ -311,6 +312,7 @@ export const router = createBrowserRouter([
       { path: "/settings/workflow", element: <WorkflowListPage /> },
       { path: "/settings/workflow/create", element: <WorkflowFormPage /> },
       { path: "/settings/workflow/create/:id", element: <WorkflowFormPage /> },
+      { path: "/settings/workflow/component", element: <WorkflowComponentListPage /> },
       { path: "/field-list", element: <FieldMasterListPage /> },
       { path: "/component-list", element: <FieldMasterListPage /> },
       { path: "/field/create", element: <FieldMasterFormPage /> },
