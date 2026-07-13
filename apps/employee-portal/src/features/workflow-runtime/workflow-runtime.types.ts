@@ -24,6 +24,11 @@ export const WorkflowType = {
    * Must match the workflow_type configured server-side via /settings/workflow.
    */
   EmployeeCreation: "EMPLOYEE_CREATION",
+  /**
+   * Drives the Role create/edit step list (see role-form.page.tsx).
+   * Must match the workflow_type configured server-side via /settings/workflow.
+   */
+  RoleCreation: "ROLE_CREATION",
 } as const;
 
 export type WorkflowTypeValue =
