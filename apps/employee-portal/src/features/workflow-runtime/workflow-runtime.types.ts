@@ -75,7 +75,8 @@ export interface WorkflowBuildResponse {
   status?: number;
   last_active_stage_id?: string | number;
   last_active_step_id?: string | number;
-  stages: WorkflowStageDef[];
+  /** `null` when no workflow is configured yet for this (type, source). */
+  stages: WorkflowStageDef[] | null;
   /** Loose typing for the source object the workflow walks over. */
   source?: unknown;
 }

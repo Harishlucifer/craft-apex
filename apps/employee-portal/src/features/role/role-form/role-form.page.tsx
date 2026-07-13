@@ -43,7 +43,7 @@ export default function RoleFormPage() {
       buildWorkflow({ workflowType: WorkflowType.RoleCreation, sourceId: id }),
   });
   const steps: WorkflowStepDef[] = useMemo(
-    () => workflow?.stages.flatMap((s) => s.steps) ?? [],
+    () => workflow?.stages?.flatMap((s) => s.steps) ?? [],
     [workflow]
   );
   const activeStepDef = steps[activeStep];
