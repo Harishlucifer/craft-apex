@@ -51,11 +51,22 @@ function canFetch(
 
 /**
  * Determine if a fieldType should attempt to load options at all.
- * Mirrors legacy `processFieldLogic` — dropdown-shaped + text-auto-complete.
+ * Legacy `processFieldLogic` (and craft-ux's own copy) only recognizes
+ * dropdown-shaped + text-auto-complete here — checkbox-group/radio never
+ * got async source.api support there either, only static `options`. This
+ * port extends the check to every fieldType FieldInput actually renders
+ * options for (checkbox-group, radio, dropdown-multi-select included), so a
+ * backend-driven multi-select (e.g. Loan Type's Apply Capacity/Employment
+ * Type) doesn't have to hardcode its option list as static JSON.
  */
 function isOptionField(fieldType?: string): boolean {
   if (!fieldType) return false;
-  return fieldType.includes("dropdown") || fieldType === "text-auto-complete";
+  return (
+    fieldType.includes("dropdown") ||
+    fieldType === "text-auto-complete" ||
+    fieldType === "checkbox-group" ||
+    fieldType === "radio"
+  );
 }
 
 export interface AsyncFieldOptions {

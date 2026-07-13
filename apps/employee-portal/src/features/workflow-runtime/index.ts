@@ -3,6 +3,12 @@ export { OnboardingPage } from "./onboarding-page";
 export { JourneyPicker } from "./journey-picker";
 export { FormBuilderRenderer } from "./form-builder-renderer";
 export {
+  UiComponentLoader,
+  registerStepComponent,
+  getStepComponent,
+  type StepComponentProps,
+} from "./step-component-registry";
+export {
   useAsyncFieldOptions,
   buildNestedFormPayload,
 } from "./form-builder-options";

@@ -2,26 +2,18 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Check } from "lucide-react";
-import { Button, Label, toast } from "@craft-apex/ui";
+import { Button, toast } from "@craft-apex/ui";
 import { useRoleDetail, useRoleFormLookups, useSaveRole } from "./role-form.api";
 import type { RoleData } from "./role-form.types";
-import { AccessRights } from "./access-rights";
+import type { RoleStepContext } from "./role-form.steps";
 import {
   buildNestedFormPayload,
   buildWorkflow,
-  FormBuilderRenderer,
+  UiComponentLoader,
   WorkflowType,
-  type FormDefinition,
   type WorkflowStepDef,
 } from "@/features/workflow-runtime";
-
-// `ui_component` codes the /settings/workflow admin screen must assign to
-// this workflow's steps. FORM_BUILDER renders the basic-details fields
-// below; ACCESS_RIGHTS maps straight onto the existing AccessRights
-// component (menu/permission tree) — that UI stays hand-rolled since it
-// isn't expressible as a flat form_builder JSON.
-const FORM_BUILDER_UI = "FORM_BUILDER";
-const ACCESS_RIGHTS_UI = "ACCESS_RIGHTS";
+import type { FormBuilderStepContext } from "@/features/workflow-runtime/steps/form-builder-step";
 
 export default function RoleFormPage() {
   const navigate = useNavigate();
@@ -73,16 +65,6 @@ export default function RoleFormPage() {
   }, [fetchedRole]);
 
   const save = useSaveRole();
-
-  const formBuilderStep = useMemo(
-    () => steps.find((s) => s.ui_component === FORM_BUILDER_UI),
-    [steps]
-  );
-  const formJson = (
-    formBuilderStep?.configuration as
-      | { form_builder?: FormDefinition }
-      | undefined
-  )?.form_builder;
 
   const [formValues, setFormValues] = useState<Record<string, unknown>>({});
 
@@ -159,6 +141,21 @@ export default function RoleFormPage() {
   const canEnterLaterSteps = Boolean(role);
   const heading = routeId ? "Edit Role" : "Add Role";
 
+  // Union of everything any of this page's registered steps might need —
+  // whichever step is active reads only the keys its own adapter expects.
+  const stepContext: FormBuilderStepContext & RoleStepContext = {
+    onSubmit: submitFormBuilderStep,
+    submitting: save.isPending,
+    cancelHref: "/settings/role",
+    role,
+    onRoleChange: setRole,
+    onSave: submitAccessRightsStep,
+    saving: save.isPending,
+    partnerCategories,
+    partnerCategory,
+    onPartnerCategoryChange: setPartnerCategory,
+  };
+
   return (
     <div className="mx-auto max-w-5xl space-y-5">
       <div className="flex items-center justify-between">
@@ -195,70 +192,14 @@ export default function RoleFormPage() {
             }}
           />
 
-          {activeStepDef?.ui_component === FORM_BUILDER_UI && (
-            <div className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              {formJson ? (
-                <FormBuilderRenderer
-                  formJson={formJson}
-                  value={formValues}
-                  onChange={setFormValues}
-                />
-              ) : (
-                <p className="text-sm text-slate-500">
-                  This step has no form_builder configuration.
-                </p>
-              )}
-              <div className="flex items-center justify-between border-t border-slate-100 pt-4">
-                <Button asChild type="button" variant="outline">
-                  <Link to="/settings/role">Cancel</Link>
-                </Button>
-                <Button
-                  type="button"
-                  onClick={submitFormBuilderStep}
-                  disabled={save.isPending}
-                >
-                  {save.isPending ? "Saving…" : "Save & Next"}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {activeStepDef?.ui_component === ACCESS_RIGHTS_UI && role && (
-            <div className="space-y-4">
-              {role.user_type === "CHANNEL" && partnerCategories.length > 0 && (
-                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4">
-                  <Label className="text-sm">Partner Category</Label>
-                  <NativeSelect
-                    value={partnerCategory}
-                    onChange={(v) => setPartnerCategory(v)}
-                    options={partnerCategories.map((p) => ({
-                      value: p.lu_key,
-                      label: p.lu_value ?? p.lu_name,
-                    }))}
-                    placeholder="Select"
-                  />
-                </div>
-              )}
-              <AccessRights
-                role={role}
-                onChange={setRole}
-                onBack={() => setActiveStep(activeStep - 1)}
-                onSave={submitAccessRightsStep}
-                saving={save.isPending}
-              />
-            </div>
-          )}
-
-          {activeStepDef &&
-            ![FORM_BUILDER_UI, ACCESS_RIGHTS_UI].includes(
-              activeStepDef.ui_component ?? ""
-            ) && (
-              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/30 p-8 text-center text-sm text-slate-500">
-                This step (&quot;{activeStepDef.name}&quot;) isn&apos;t wired
-                up yet — unrecognized ui_component &quot;
-                {activeStepDef.ui_component ?? "none"}&quot;.
-              </div>
-            )}
+          <UiComponentLoader
+            step={activeStepDef}
+            value={formValues}
+            onChange={setFormValues}
+            onNext={() => setActiveStep(activeStep + 1)}
+            onBack={() => setActiveStep(activeStep - 1)}
+            context={stepContext}
+          />
         </>
       )}
     </div>
@@ -308,32 +249,5 @@ function Stepper({
         );
       })}
     </div>
-  );
-}
-
-function NativeSelect({
-  value,
-  onChange,
-  options,
-  placeholder,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  options: Array<{ label: string; value: string }>;
-  placeholder?: string;
-}) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm text-slate-800 outline-none focus:border-[#4C7DF0] focus:ring-2 focus:ring-[#4C7DF0]/20"
-    >
-      {placeholder && <option value="">{placeholder}</option>}
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
   );
 }

@@ -5,28 +5,15 @@ import { ArrowLeft, Check } from "lucide-react";
 import { Button, toast } from "@craft-apex/ui";
 import { useEmployeeDetail, useSaveEmployee } from "./employee-form.api";
 import type { EmployeeSavePayload } from "./employee-form.types";
-import EmployeeAddressStep from "./employee-address.step";
-import EmployeeTerritoryMapStep from "./employee-territory-map.step";
-import EmployeeAllocationStep from "./employee-allocation.step";
+import type { EmployeeStepContext } from "./employee-form.steps";
 import {
   buildNestedFormPayload,
   buildWorkflow,
-  FormBuilderRenderer,
+  UiComponentLoader,
   WorkflowType,
-  type FormDefinition,
   type WorkflowStepDef,
 } from "@/features/workflow-runtime";
-
-// `ui_component` codes the /settings/workflow admin screen must assign to
-// this workflow's steps. FORM_BUILDER is the only one with a structured
-// renderer; the other three map straight onto the existing step components
-// below (unchanged behavior — only the step list/order/labels are
-// workflow-driven, per the "don't touch the shared WorkflowRuntime engine"
-// decision — see the plan for full context).
-const ADDRESS_UI = "EMPLOYEE_ADDRESS";
-const TERRITORY_UI = "TERRITORY_LOAN_MAP";
-const ALLOCATION_UI = "EMPLOYEE_ALLOCATION";
-const FORM_BUILDER_UI = "FORM_BUILDER";
+import type { FormBuilderStepContext } from "@/features/workflow-runtime/steps/form-builder-step";
 
 export default function EmployeeFormPage() {
   const navigate = useNavigate();
@@ -59,34 +46,6 @@ export default function EmployeeFormPage() {
   // `source.api` config, which the backend's form_builder JSON should point
   // at the same endpoints employee-form.api.ts used to call directly
   // (see the plan's step-4 backend prerequisite for the exact endpoint list).
-
-  const formBuilderStep = useMemo(
-    () => steps.find((s) => s.ui_component === FORM_BUILDER_UI),
-    [steps]
-  );
-
-  // Lock Employee Code once the record exists — FormFieldDef.disabled is a
-  // static boolean (no "disabled on edit" concept in the schema), so patch
-  // it in locally rather than requiring the backend config to know about it.
-  const formJson = useMemo<FormDefinition | undefined>(() => {
-    const base = (
-      formBuilderStep?.configuration as { form_builder?: FormDefinition } | undefined
-    )?.form_builder;
-    if (!base) return undefined;
-    if (!id) return base;
-    const lockCode = (f: FormDefinition["fields"]) =>
-      f?.map((field) =>
-        field.name === "employee_code" ? { ...field, disabled: true } : field
-      );
-    return {
-      ...base,
-      fields: lockCode(base.fields),
-      sections: base.sections?.map((section) => ({
-        ...section,
-        fields: lockCode(section.fields) ?? section.fields,
-      })),
-    };
-  }, [formBuilderStep, id]);
 
   const [formValues, setFormValues] = useState<Record<string, unknown>>({});
 
@@ -181,7 +140,7 @@ export default function EmployeeFormPage() {
       }
       toast.success(`Employee ${id ? "updated" : "saved"} successfully`);
       // Advance to step 2 instead of navigating away (legacy stepper parity).
-      setActiveStep(1);
+      setActiveStep(activeStep + 1);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save failed");
     }
@@ -190,6 +149,24 @@ export default function EmployeeFormPage() {
   // Steps 2–4 need a saved employee id. Block forward navigation if not set.
   const stepEmployeeId = id ?? "";
   const canEnterLaterSteps = Boolean(stepEmployeeId);
+
+  // Union of everything any of this page's registered steps might need —
+  // whichever step is active reads only the keys its own adapter expects.
+  const stepContext: FormBuilderStepContext & EmployeeStepContext = {
+    onSubmit: submitFormBuilderStep,
+    submitting: save.isPending,
+    submitLabel: id ? "Save & Next" : "Create & Next",
+    cancelHref: "/settings/employee",
+    lockField: "employee_code",
+    lockWhen: id,
+    employeeId: stepEmployeeId,
+    employeeName: detail?.name,
+    employee: {
+      username: detail?.name,
+      id: detail?.user_id ?? detail?.employee_id,
+    },
+    onAllocationSave: () => navigate("/settings/employee"),
+  };
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
@@ -229,77 +206,14 @@ export default function EmployeeFormPage() {
             }}
           />
 
-          {activeStepDef?.ui_component === ADDRESS_UI && (
-            <EmployeeAddressStep
-              employeeId={stepEmployeeId}
-              onBack={() => setActiveStep(activeStep - 1)}
-              onNext={() => setActiveStep(activeStep + 1)}
-            />
-          )}
-
-          {activeStepDef?.ui_component === TERRITORY_UI && (
-            <EmployeeTerritoryMapStep
-              employeeId={stepEmployeeId}
-              employeeName={detail?.name}
-              onBack={() => setActiveStep(activeStep - 1)}
-              onNext={() => setActiveStep(activeStep + 1)}
-            />
-          )}
-
-          {activeStepDef?.ui_component === ALLOCATION_UI && (
-            <EmployeeAllocationStep
-              employeeId={stepEmployeeId}
-              employee={{
-                username: detail?.name,
-                id: detail?.user_id ?? detail?.employee_id,
-              }}
-              onBack={() => setActiveStep(activeStep - 1)}
-              onSave={() => navigate("/settings/employee")}
-            />
-          )}
-
-          {activeStepDef?.ui_component === FORM_BUILDER_UI && (
-            <div className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              {formJson ? (
-                <FormBuilderRenderer
-                  formJson={formJson}
-                  value={formValues}
-                  onChange={setFormValues}
-                />
-              ) : (
-                <p className="text-sm text-slate-500">
-                  This step has no form_builder configuration.
-                </p>
-              )}
-              <div className="flex items-center justify-between border-t border-slate-100 pt-4">
-                <Button asChild type="button" variant="outline">
-                  <Link to="/settings/employee">Cancel</Link>
-                </Button>
-                <Button
-                  type="button"
-                  onClick={submitFormBuilderStep}
-                  disabled={save.isPending}
-                >
-                  {save.isPending
-                    ? "Saving…"
-                    : id
-                      ? "Save & Next"
-                      : "Create & Next"}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {activeStepDef &&
-            ![ADDRESS_UI, TERRITORY_UI, ALLOCATION_UI, FORM_BUILDER_UI].includes(
-              activeStepDef.ui_component ?? ""
-            ) && (
-              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/30 p-8 text-center text-sm text-slate-500">
-                This step (&quot;{activeStepDef.name}&quot;) isn&apos;t wired
-                up yet — unrecognized ui_component &quot;
-                {activeStepDef.ui_component ?? "none"}&quot;.
-              </div>
-            )}
+          <UiComponentLoader
+            step={activeStepDef}
+            value={formValues}
+            onChange={setFormValues}
+            onNext={() => setActiveStep(activeStep + 1)}
+            onBack={() => setActiveStep(activeStep - 1)}
+            context={stepContext}
+          />
         </>
       )}
     </div>
