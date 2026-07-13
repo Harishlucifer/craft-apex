@@ -9,6 +9,7 @@ import EmployeeAddressStep from "./employee-address.step";
 import EmployeeTerritoryMapStep from "./employee-territory-map.step";
 import EmployeeAllocationStep from "./employee-allocation.step";
 import {
+  buildNestedFormPayload,
   buildWorkflow,
   FormBuilderRenderer,
   WorkflowType,
@@ -75,7 +76,7 @@ export default function EmployeeFormPage() {
     if (!id) return base;
     const lockCode = (f: FormDefinition["fields"]) =>
       f?.map((field) =>
-        field.name === "employeeCode" ? { ...field, disabled: true } : field
+        field.name === "employee_code" ? { ...field, disabled: true } : field
       );
     return {
       ...base,
@@ -89,23 +90,26 @@ export default function EmployeeFormPage() {
 
   const [formValues, setFormValues] = useState<Record<string, unknown>>({});
 
+  // Keys mirror the form_builder field `name`s, which in turn mirror
+  // EmployeeSavePayload's JSON structure exactly (e.g. "user_role.role_id",
+  // not an alias like "role") — see buildNestedFormPayload below.
   useEffect(() => {
     setFormValues({
-      employeeCode: detail?.employee_code ?? "",
-      username: detail?.name ?? "",
+      employee_code: detail?.employee_code ?? "",
+      name: detail?.name ?? "",
       email: detail?.email ?? "",
       designation: detail?.designation ?? "",
       mobile: detail?.mobile ?? "",
-      role:
+      "user_role.role_id":
         detail?.user_role?.role_id != null
           ? String(detail.user_role.role_id)
           : "",
-      hierarchy: detail?.hierarchy_level ?? "",
-      reportsTo:
+      hierarchy_level: detail?.hierarchy_level ?? "",
+      "supervisor_user.user_id":
         detail?.supervisor_user?.user_id != null
           ? String(detail.supervisor_user.user_id)
           : "",
-      office:
+      "office_detail.office_id":
         detail?.office_detail?.office_id != null
           ? String(detail.office_detail.office_id)
           : "",
@@ -116,43 +120,45 @@ export default function EmployeeFormPage() {
   }, [detail]);
 
   const submitFormBuilderStep = async () => {
-    if (!id && (!formValues.password || !formValues.confirmPassword)) {
+    const password = formValues.password ? String(formValues.password) : "";
+    const confirmPassword = formValues.confirmPassword
+      ? String(formValues.confirmPassword)
+      : "";
+    if (!id && (!password || !confirmPassword)) {
       toast.error("Password and confirmation are required");
       return;
     }
-    if (
-      formValues.password &&
-      formValues.password !== formValues.confirmPassword
-    ) {
+    if (password && password !== confirmPassword) {
       toast.error("Passwords must match");
       return;
     }
+
+    // Field `name`s already mirror the payload's JSON path, so the nested
+    // shape falls out of the flat formValues automatically.
+    const { password: _pw, confirmPassword: _cpw, ...fields } = formValues;
+    const nested = buildNestedFormPayload(fields) as Partial<EmployeeSavePayload>;
+
     const payload: EmployeeSavePayload = {
+      ...nested,
+      employee_code: String(nested.employee_code ?? ""),
+      mobile: String(nested.mobile ?? ""),
+      email: String(nested.email ?? ""),
+      name: String(nested.name ?? ""),
+      status: Number(nested.status ?? 1),
+      user_role: { role_id: String(nested.user_role?.role_id ?? "") },
+      supervisor_user: nested.supervisor_user?.user_id
+        ? { user_id: String(nested.supervisor_user.user_id) }
+        : undefined,
+      office_detail: nested.office_detail?.office_id
+        ? { office_id: String(nested.office_detail.office_id) }
+        : undefined,
+      ...(password ? { password } : {}),
       ...(detail?.employee_id
         ? { employee_id: detail.employee_id }
         : id
           ? { employee_id: id }
           : {}),
       ...(detail?.user_id ? { user_id: detail.user_id } : {}),
-      employee_code: String(formValues.employeeCode ?? ""),
-      mobile: String(formValues.mobile ?? ""),
-      email: String(formValues.email ?? ""),
-      name: String(formValues.username ?? ""),
-      designation: formValues.designation
-        ? String(formValues.designation)
-        : undefined,
-      ...(formValues.password ? { password: String(formValues.password) } : {}),
-      hierarchy_level: formValues.hierarchy
-        ? String(formValues.hierarchy)
-        : undefined,
-      user_role: { role_id: String(formValues.role ?? "") },
-      ...(formValues.reportsTo
-        ? { supervisor_user: { user_id: String(formValues.reportsTo) } }
-        : {}),
-      ...(formValues.office
-        ? { office_detail: { office_id: String(formValues.office) } }
-        : {}),
-      status: Number(formValues.status ?? 1),
       // Preserve nested arrays from detail (territory map / allocation / address)
       // so saves don't drop step-2/3/4 state.
       territory_loan_map: detail?.territory_loan_map,

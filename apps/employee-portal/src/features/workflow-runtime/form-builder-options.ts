@@ -138,3 +138,35 @@ export function useAsyncFieldOptions(
     blocked: Boolean(apiUrl) && !fetchable,
   };
 }
+
+/**
+ * Build a nested payload from a form_builder step's flat `value` object.
+ *
+ * A `FormFieldDef.name` is meant to be the exact dotted path into the
+ * backend's expected JSON (e.g. `"user_role.role_id"`, not an arbitrary
+ * alias like `"role"`) — so submitting a step never needs per-field
+ * remapping code downstream. Mirrors `setNestedValue` from craft-ux's
+ * DynamicForm submit path (packages/craft-ux/src/utils/utils.ts), minus its
+ * `field[index]` array-path support, which no current form_builder step
+ * needs.
+ */
+export function buildNestedFormPayload(
+  values: Record<string, unknown>
+): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const [path, value] of Object.entries(values)) {
+    const keys = path.split(".");
+    let cursor = result;
+    keys.forEach((key, i) => {
+      if (i === keys.length - 1) {
+        cursor[key] = value;
+      } else {
+        if (typeof cursor[key] !== "object" || cursor[key] === null) {
+          cursor[key] = {};
+        }
+        cursor = cursor[key];
+      }
+    });
+  }
+  return result;
+}
