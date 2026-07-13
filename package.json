@@ -9,8 +9,12 @@
   "scripts": {
     "dev": "turbo run dev",
     "dev:employee": "turbo run dev --filter=@craft-apex/employee-portal",
+    "dev:partner": "turbo run dev --filter=@craft-apex/partner-portal",
+    "dev:consumer": "turbo run dev --filter=@craft-apex/consumer-portal",
     "build": "turbo run build",
     "build:employee": "turbo run build --filter=@craft-apex/employee-portal",
+    "build:partner": "turbo run build --filter=@craft-apex/partner-portal",
+    "build:consumer": "turbo run build --filter=@craft-apex/consumer-portal",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\""

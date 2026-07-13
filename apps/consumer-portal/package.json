@@ -1,5 +1,5 @@
 {
-  "name": "@craft-apex/employee-portal",
+  "name": "@craft-apex/consumer-portal",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,30 +8,22 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "lint": "echo \"employee-portal: no lint configured yet\""
+    "lint": "echo \"consumer-portal: no lint configured yet\""
   },
   "dependencies": {
     "@craft-apex/api": "*",
     "@craft-apex/auth": "*",
     "@craft-apex/i18n": "*",
-    "@craft-apex/layout": "*",
     "@craft-apex/shared": "*",
     "@craft-apex/ui": "*",
     "@hookform/resolvers": "^3.9.0",
-    "@livekit/components-react": "^2.9.21",
-    "@livekit/components-styles": "^1.2.0",
-    "@react-google-maps/api": "^2.20.8",
     "@tanstack/react-query": "^5.51.0",
     "axios": "^1.7.7",
-    "jspdf": "^4.2.1",
-    "livekit-client": "^2.19.0",
     "lucide-react": "^0.439.0",
-    "path-to-regexp": "^6.3.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.0",
     "react-router-dom": "^6.26.1",
-    "recharts": "^3.8.1",
     "zod": "^3.23.8",
     "zustand": "^4.5.5"
   },

@@ -9,7 +9,6 @@
       "@craft-apex/api": ["../../packages/api/src/index.ts"],
       "@craft-apex/auth": ["../../packages/auth/src/index.ts"],
       "@craft-apex/i18n": ["../../packages/i18n/src/index.ts"],
-      "@craft-apex/layout": ["../../packages/layout/src/index.ts"],
       "@craft-apex/shared": ["../../packages/shared/src/index.ts"]
     }
   },

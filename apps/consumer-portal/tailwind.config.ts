@@ -7,7 +7,6 @@ export default {
     "./index.html",
     "./src/**/*.{ts,tsx}",
     "../../packages/ui/src/**/*.{ts,tsx}",
-    "../../packages/layout/src/**/*.{ts,tsx}",
     "../../packages/i18n/src/**/*.{ts,tsx}",
     "../../packages/shared/src/**/*.{ts,tsx}",
   ],

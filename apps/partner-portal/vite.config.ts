@@ -22,5 +22,5 @@ export default defineConfig({
       "@craft-apex/shared": pkg("shared/src/index.ts"),
     },
   },
-  server: { port: 3000 },
+  server: { port: 3001 },
 });
