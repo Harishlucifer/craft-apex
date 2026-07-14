@@ -18,6 +18,7 @@ export default defineConfig({
       "@craft-apex/api": pkg("api/src/index.ts"),
       "@craft-apex/auth": pkg("auth/src/index.ts"),
       "@craft-apex/i18n": pkg("i18n/src/index.ts"),
+      "@craft-apex/craft-ux": pkg("craft-ux/src/index.ts"),
       "@craft-apex/layout": pkg("layout/src/index.ts"),
       "@craft-apex/shared": pkg("shared/src/index.ts"),
     },

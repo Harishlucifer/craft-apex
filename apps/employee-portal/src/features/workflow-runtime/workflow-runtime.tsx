@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, RotateCcw, XCircle } from "lucide-react";
 import { Badge, Button, Label, toast } from "@craft-apex/ui";
 import {
@@ -10,7 +10,7 @@ import {
   useExecuteWorkflow,
 } from "./workflow-runtime.api";
 import { JourneyPicker } from "./journey-picker";
-import { StepRenderer } from "./step-renderer";
+import { StepRenderer, type StepRendererHandle } from "./step-renderer";
 import type {
   JourneyType,
   WorkflowBuildResponse,
@@ -53,6 +53,7 @@ export function WorkflowRuntime({
   );
   const [stepData, setStepData] = useState<Record<string, unknown>>({});
   const [pickerOpen, setPickerOpen] = useState(false);
+  const stepRendererRef = useRef<StepRendererHandle>(null);
 
   // Load on mount / sourceId change.
   useEffect(() => {
@@ -150,8 +151,21 @@ export function WorkflowRuntime({
     let finalSourceId = workflow.source_id ?? sourceId;
 
     if (!reject && hasStepSaveEndpoint(workflowType)) {
+      // For DYNAMIC_FORM (craft-ux) steps, this triggers the form's internal
+      // submit/validation and resolves the nested payload it builds; other
+      // step renderers are plain controlled components and resolve
+      // immediately with the current `stepData`. `null` means the step
+      // blocked submission (e.g. required-field validation failed).
+      const payload = await stepRendererRef.current?.getPayload();
+      if (payload === null) {
+        toast.error("Please complete the required fields before continuing.");
+        return;
+      }
       try {
-        const saved = await saveStepData({ workflowType, data: stepData });
+        const saved = await saveStepData({
+          workflowType,
+          data: payload ?? stepData,
+        });
         if (saved.sourceId != null) {
           finalSourceId = saved.sourceId;
         }
@@ -351,6 +365,7 @@ export function WorkflowRuntime({
                 </div>
 
                 <StepRenderer
+                  ref={stepRendererRef}
                   step={currentStep}
                   value={stepData}
                   onChange={setStepData}
