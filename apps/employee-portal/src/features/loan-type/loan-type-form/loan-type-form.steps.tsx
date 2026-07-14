@@ -1,4 +1,4 @@
-import { registerStepComponent, type StepComponentProps } from "@/features/workflow-runtime";
+import { registerStepComponent, type StepComponentProps } from "@craft-apex/workflow-runtime";
 import { Button } from "@craft-apex/ui";
 import { SubLoanTypesPanel } from "./sub-loan-types-panel";
 import type { SubLoanRow } from "./loan-type-form.types";

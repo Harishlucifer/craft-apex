@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { getApiClient } from "@craft-apex/api";
 import type { FormFieldDef, FormFieldOption } from "./form-builder.types";
 
 /**
@@ -118,7 +118,7 @@ export function useAsyncFieldOptions(
     enabled: fetchable && resolvedUrl !== "",
     staleTime: alwaysRefresh ? 0 : 5 * 60_000,
     queryFn: async () => {
-      const body = await api.get<unknown, ResponseEnvelope>(resolvedUrl);
+      const body = await getApiClient().get<unknown, ResponseEnvelope>(resolvedUrl);
       const raw =
         (body as ResponseEnvelope)?.result ??
         (body as ResponseEnvelope)?.data ??

@@ -1,4 +1,4 @@
-import { registerStepComponent, type StepComponentProps } from "@/features/workflow-runtime";
+import { registerStepComponent, type StepComponentProps } from "@craft-apex/workflow-runtime";
 import { Label } from "@craft-apex/ui";
 import { AccessRights } from "./access-rights";
 import { NativeSelect } from "./native-select";

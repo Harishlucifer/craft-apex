@@ -1,4 +1,4 @@
-import { registerStepComponent, type StepComponentProps } from "@/features/workflow-runtime";
+import { registerStepComponent, type StepComponentProps } from "@craft-apex/workflow-runtime";
 import EmployeeAddressStep from "./employee-address.step";
 import EmployeeTerritoryMapStep from "./employee-territory-map.step";
 import EmployeeAllocationStep from "./employee-allocation.step";

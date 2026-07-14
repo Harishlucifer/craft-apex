@@ -81,7 +81,7 @@ import ModuleFormPage from "@/features/module/module-form/module-form.page";
 import JourneyMasterFormPage from "@/features/journey-master/journey-master-form/journey-master-form.page";
 import CamConfigFormPage from "@/features/cam-configuration/cam-configuration-form/cam-configuration-form.page";
 import ServiceRequestTypePage from "@/features/service-request-type/service-request-type.page";
-import { OnboardingPage } from "@/features/workflow-runtime";
+import { OnboardingPage } from "@craft-apex/workflow-runtime";
 import PincodeEligibilityPage from "@/features/utility/pincode-eligibility/pincode-eligibility.page";
 import CampaignAudiencePage from "@/features/marketing/campaign-audience/campaign-audience.page";
 import BusinessCardPage from "@/features/utility/business-card/business-card.page";

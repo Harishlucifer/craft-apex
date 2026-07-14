@@ -88,7 +88,9 @@ export function StageModal({ open, initial, rules, onCancel, onSubmit }: Props) 
 
   const submit = handleSubmit((v) => {
     onSubmit({
-      ...(initial?.id ? { id: initial.id } : { id: Date.now(), isNew: true }),
+      ...(initial?.id
+        ? { id: initial.id }
+        : { id: String(Date.now()), isNew: true }),
       sequence: initial?.sequence ?? 1,
       name: v.name,
       description: v.description,

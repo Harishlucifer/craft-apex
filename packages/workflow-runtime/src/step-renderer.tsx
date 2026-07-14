@@ -13,7 +13,7 @@ import {
   DynamicForm,
   Provider as CraftUxProvider,
 } from "@craft-apex/craft-ux";
-import { api } from "@/lib/api";
+import { getApiClient } from "@craft-apex/api";
 import { FormBuilderRenderer } from "./form-builder-renderer";
 import type { FormBuilderStepConfiguration } from "./form-builder.types";
 import { StepType, type WorkflowStepDef } from "./workflow-runtime.types";
@@ -110,7 +110,7 @@ export const StepRenderer = forwardRef<StepRendererHandle, Props>(
 
         {useDynamicForm ? (
           <CraftUxProvider>
-            <AxiosProvider axiosInstance={api}>
+            <AxiosProvider axiosInstance={getApiClient()}>
               <DynamicForm
                 ref={dynamicFormRef}
                 componentName={String(step.id)}

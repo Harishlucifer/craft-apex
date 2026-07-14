@@ -1,7 +1,7 @@
 // Exact shapes from legacy craft-frontend/src/pages/Verification/VerificationTransfer.js.
 // Five endpoints — see *.api.ts for URLs.
 
-import type { FormDefinition } from "@/features/workflow-runtime";
+import type { FormDefinition } from "@craft-apex/workflow-runtime";
 
 export type Id = string | number;
 
