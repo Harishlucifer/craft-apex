@@ -46,7 +46,7 @@ export default function LoginPage() {
         return;
       }
       setSentTo(values.mobile);
-      toast.success("OTP sent");
+      toast.success(res.message ?? "OTP sent");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not send OTP");
     }
@@ -72,8 +72,12 @@ export default function LoginPage() {
   const onResend = async () => {
     if (!sentTo) return;
     try {
-      await send.mutateAsync({ mobile: sentTo, resend: true });
-      toast.success("OTP resent");
+      const res = await send.mutateAsync({ mobile: sentTo, resend: true });
+      if (!res.ok) {
+        toast.error(res.message ?? "Could not resend OTP");
+        return;
+      }
+      toast.success(res.message ?? "OTP resent");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not resend OTP");
     }

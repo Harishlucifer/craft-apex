@@ -34,7 +34,8 @@ export function useSendOtp() {
       };
       const res = await api.post<unknown, LoginResponse>(OTP_URL, body);
       const status = Number(res?.status);
-      return { ok: !(status < 0), message: res?.message };
+      const ok = status === -6 || !(status < 0);
+      return { ok, message: res?.message || res?.error };
     },
   });
 }
@@ -52,7 +53,7 @@ export function useVerifyOtp() {
         otp: String(vars.otp),
       };
       const res = await api.post<unknown, LoginResponse>(OTP_URL, body);
-      return { user: unwrapUser(res), message: res?.message };
+      return { user: unwrapUser(res), message: res?.message || res?.error };
     },
   });
 }

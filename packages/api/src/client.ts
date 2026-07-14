@@ -127,11 +127,19 @@ export function createApiClient(opts: ApiClientOptions): AxiosInstance {
         opts.onSessionExpired();
         return Promise.reject(error);
       }
-
       if (status === 401 && isAuthEndpoint) {
         tokenStore.clear();
         opts.onSessionExpired();
       }
+
+      const responseData = error.response?.data as any;
+      if (responseData) {
+        const serverMessage = responseData.error || responseData.message;
+        if (serverMessage && typeof serverMessage === "string") {
+          error.message = serverMessage;
+        }
+      }
+
       return Promise.reject(error);
     }
   );

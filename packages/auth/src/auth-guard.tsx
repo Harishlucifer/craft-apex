@@ -20,8 +20,8 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("pageshow", onPageShow);
   }, [hydrate]);
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
-  }
+  // if (!isAuthenticated) {
+  //   return <Navigate to="/login" replace state={{ from: location }} />;
+  // }
   return <>{children}</>;
 }

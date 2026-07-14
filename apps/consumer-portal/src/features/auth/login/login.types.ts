@@ -28,6 +28,7 @@ export interface LoginResponse {
   status?: string | number | boolean;
   http_status?: number;
   message?: string;
+  error?: string;
 }
 
 export interface OtpSendResult {
