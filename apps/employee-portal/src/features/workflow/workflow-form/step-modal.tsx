@@ -173,7 +173,9 @@ export function StepModal({
 
   const submit = handleSubmit((v) => {
     onSubmit({
-      ...(initial?.id ? { id: initial.id } : { id: Date.now() }),
+      ...(initial?.id
+        ? { id: initial.id }
+        : { id: String(Date.now()), isNew: true }),
       stage_id: initial?.stage_id ?? stageId,
       workflow_id: initial?.workflow_id,
       field_master_id: v.field_master_id || null,

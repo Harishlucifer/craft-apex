@@ -35,6 +35,34 @@ import {
 import { StageModal } from "./stage-modal";
 import { StepModal } from "./step-modal";
 
+/**
+ * Stage/step `id`s for rows added in this editing session are local-only
+ * temp values (see stage-modal.tsx / step-modal.tsx) used to track/reorder
+ * them before they're saved — the backend expects `id` to be its own
+ * string, or absent entirely so it can assign one. Sending the temp value
+ * as if it were a real id (previously a client-generated integer) confused
+ * the backend. Strip `id` for any `isNew` row, and `stage_id` for any new
+ * step (it would just be pointing at its stage's own temp id) — the
+ * step's placement is already conveyed by nesting it under its stage in
+ * this payload.
+ */
+function sanitizeStagesForSave(stages: WorkflowStage[]): WorkflowStage[] {
+  return stages.map((stage) => {
+    const { isNew: _stageIsNew, id: stageId, ...restStage } = stage;
+    return {
+      ...restStage,
+      ...(stage.isNew ? {} : { id: stageId }),
+      steps: stage.steps.map((step) => {
+        const { isNew: _stepIsNew, id: stepId, stage_id, ...restStep } = step;
+        return {
+          ...restStep,
+          ...(step.isNew ? {} : { id: stepId, stage_id }),
+        };
+      }),
+    };
+  });
+}
+
 const schema = z.object({
   name: z
     .string()
@@ -248,7 +276,7 @@ export default function WorkflowFormPage() {
         ? JSON.parse(values.workflowConfig)
         : {},
       status: Number(values.status),
-      stages,
+      stages: sanitizeStagesForSave(stages),
     };
     try {
       await save.mutateAsync(payload);

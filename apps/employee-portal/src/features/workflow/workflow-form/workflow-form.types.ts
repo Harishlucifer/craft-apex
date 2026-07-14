@@ -27,8 +27,13 @@ export const STEP_TYPES = [
 ] as const;
 
 export interface WorkflowStep {
-  /** Numeric Date.now() ids for new rows; backend ids for existing rows. */
+  /** String Date.now()-based temp id for new rows (local editing only —
+   * stripped before save, see sanitizeStagesForSave); real backend id
+   * (also a string) for existing rows. */
   id?: string | number;
+  /** True for a row created in this editing session that hasn't been
+   * saved yet — its `id`/`stage_id` are local-only temp values. */
+  isNew?: boolean;
   stage_id?: string | number;
   workflow_id?: string | number;
   field_master_id?: string | number | null;
@@ -49,7 +54,12 @@ export interface WorkflowStep {
 }
 
 export interface WorkflowStage {
+  /** String Date.now()-based temp id for new rows (local editing only —
+   * stripped before save, see sanitizeStagesForSave); real backend id
+   * (also a string) for existing rows. */
   id?: string | number;
+  /** True for a row created in this editing session that hasn't been
+   * saved yet — its `id` is a local-only temp value. */
   isNew?: boolean;
   sequence?: number;
   name: string;
