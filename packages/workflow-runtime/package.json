@@ -1,0 +1,40 @@
+{
+  "name": "@craft-apex/workflow-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "echo \"workflow-runtime: no lint\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "lucide-react": "^0.439.0"
+  },
+  "peerDependencies": {
+    "@craft-apex/api": "*",
+    "@craft-apex/craft-ux": "*",
+    "@craft-apex/ui": "*",
+    "@tanstack/react-query": "^5.51.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.1"
+  },
+  "devDependencies": {
+    "@craft-apex/api": "*",
+    "@craft-apex/craft-ux": "*",
+    "@craft-apex/typescript-config": "*",
+    "@craft-apex/ui": "*",
+    "@tanstack/react-query": "^5.51.0",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.1",
+    "typescript": "^5.5.4"
+  }
+}

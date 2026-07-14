@@ -16,7 +16,7 @@ import {
 import {
   FormBuilderRenderer,
   type FormDefinition,
-} from "@/features/workflow-runtime";
+} from "@craft-apex/workflow-runtime";
 import {
   fetchVerificationList,
   useUserInfo,

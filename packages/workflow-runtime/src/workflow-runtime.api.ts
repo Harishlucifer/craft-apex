@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { getApiClient } from "@craft-apex/api";
 import type {
   JourneyType,
   WorkflowBuildResponse,
@@ -23,7 +23,7 @@ export async function buildWorkflow(
   };
   if (input.sourceId != null) payload.source_id = input.sourceId;
   if (input.data) payload.data = input.data;
-  const body = await api.post<unknown, any>(BUILD_URL, payload);
+  const body = await getApiClient().post<unknown, any>(BUILD_URL, payload);
   const data = body?.data ?? body;
   return (data ?? null) as WorkflowBuildResponse | null;
 }
@@ -44,7 +44,7 @@ export async function executeWorkflow(
     source_id: input.sourceId,
   };
   if (input.reject) payload.reject = true;
-  const body = await api.post<unknown, any>(EXECUTE_URL, payload);
+  const body = await getApiClient().post<unknown, any>(EXECUTE_URL, payload);
   const data = body?.data ?? body;
   return (data ?? null) as WorkflowBuildResponse | null;
 }
@@ -73,7 +73,7 @@ export function useJourneyTypes(workflowType: string, partnerType?: string) {
       const qs = partnerType
         ? `?workflow_type=${encodeURIComponent(workflowType)}&partner_type=${encodeURIComponent(partnerType)}`
         : `?workflow_type=${encodeURIComponent(workflowType)}`;
-      const body = await api.get<unknown, any>(`${JOURNEY_GROUP_URL}${qs}`);
+      const body = await getApiClient().get<unknown, any>(`${JOURNEY_GROUP_URL}${qs}`);
       const data = body?.data ?? body?.result ?? body;
       return (data ?? {}) as Record<string, JourneyType[]>;
     },
@@ -94,7 +94,7 @@ export function usePartnerDetail(id: string | undefined) {
     queryKey: ["partner-detail", id ?? ""],
     enabled: Boolean(id),
     queryFn: async (): Promise<PartnerDetail | null> => {
-      const body = await api.get<unknown, any>(
+      const body = await getApiClient().get<unknown, any>(
         `${PARTNER_BASE}/${encodeURIComponent(id!)}`
       );
       return (body ?? null) as PartnerDetail | null;
@@ -105,7 +105,7 @@ export function usePartnerDetail(id: string | undefined) {
 export function useSavePartner() {
   return useMutation({
     mutationFn: async (partnerData: PartnerDetail) =>
-      api.post<unknown, any>(`${PARTNER_BASE}/create`, partnerData),
+      getApiClient().post<unknown, any>(`${PARTNER_BASE}/create`, partnerData),
   });
 }
 
@@ -163,7 +163,7 @@ export async function saveStepData(
       `No save endpoint configured for workflow_type=${input.workflowType}`
     );
   }
-  const body = await api.post<unknown, any>(url, input.data);
+  const body = await getApiClient().post<unknown, any>(url, input.data);
   if (body && body.status != null && body.status < 1) {
     const message = body.message ?? "Save failed";
     throw new Error(String(message));

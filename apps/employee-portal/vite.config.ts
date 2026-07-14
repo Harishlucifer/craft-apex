@@ -20,6 +20,7 @@ export default defineConfig({
       "@craft-apex/i18n": pkg("i18n/src/index.ts"),
       "@craft-apex/craft-ux": pkg("craft-ux/src/index.ts"),
       "@craft-apex/layout": pkg("layout/src/index.ts"),
+      "@craft-apex/workflow-runtime": pkg("workflow-runtime/src/index.ts"),
       "@craft-apex/shared": pkg("shared/src/index.ts"),
     },
   },

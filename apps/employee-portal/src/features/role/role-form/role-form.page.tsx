@@ -11,9 +11,9 @@ import {
   buildWorkflow,
   UiComponentLoader,
   WorkflowType,
+  type FormBuilderStepContext,
   type WorkflowStepDef,
-} from "@/features/workflow-runtime";
-import type { FormBuilderStepContext } from "@/features/workflow-runtime/steps/form-builder-step";
+} from "@craft-apex/workflow-runtime";
 
 export default function RoleFormPage() {
   const navigate = useNavigate();
