@@ -8,7 +8,9 @@ From-scratch rewrite of the legacy lending portals as a Turborepo monorepo.
 
 ```
 apps/
-  employee-portal/      # SPA (Vite) — first portal being migrated
+  employee-portal/      # :3000  X-Platform EMPLOYEE_PORTAL  (back-office)
+  partner-portal/       # :3001  X-Platform PARTNER_PORTAL   (channel partners / DSA)
+  consumer-portal/      # :3002  X-Platform CUSTOMER_PORTAL  (borrower self-service)
 packages/
   typescript-config/    # shared tsconfig presets
   tailwind-config/      # shared Tailwind preset
@@ -16,14 +18,21 @@ packages/
   api/                  # axios client (401-refresh, json-bigint, tenant headers) + react-query
   auth/                 # session store + route guard
   layout/               # dynamic module system + app shell (sidebar/header)
+  i18n/                 # i18next setup + en/hi/ta/ar resources
+  shared/               # cross-portal building blocks (DataTableShell, useClientList)
 ```
+
+Employee and partner portals share the backend-driven module system (sidebar, permissions
+and the `X-Module` header all come from the module tree returned at login). The consumer
+portal does **not** — customers have no role and no module tree, so it uses its own shell
+and OTP-by-mobile login.
 
 ## Develop
 
 ```bash
 npm install
 cp apps/employee-portal/.env.example apps/employee-portal/.env   # set VITE_API_ENDPOINT
-npm run dev:employee
+npm run dev:employee      # or dev:partner / dev:consumer
 ```
 
 ## Migration status

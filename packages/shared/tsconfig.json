@@ -1,0 +1,12 @@
+{
+  "extends": "@craft-apex/typescript-config/react-library.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@craft-apex/ui": ["../ui/src/index.ts"],
+      "@craft-apex/i18n": ["../i18n/src/index.ts"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}
