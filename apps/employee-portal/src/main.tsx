@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import "@craft-apex/ui/globals.css";
 import { initI18n } from "@craft-apex/i18n";
 import { App } from "@/app";
+import "@/features/workflow-runtime/register-all-steps";
 
 initI18n();
 

@@ -1,6 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Cog, Sparkles, ListChecks } from "lucide-react";
 import { Badge, Label } from "@craft-apex/ui";
+import {
+  AxiosProvider,
+  DynamicForm,
+  Provider as CraftUxProvider,
+} from "@craft-apex/craft-ux";
+import { api } from "@/lib/api";
 import { FormBuilderRenderer } from "./form-builder-renderer";
 import type { FormBuilderStepConfiguration } from "./form-builder.types";
 import { StepType, type WorkflowStepDef } from "./workflow-runtime.types";
@@ -12,60 +25,122 @@ interface Props {
   onChange: (next: Record<string, unknown>) => void;
 }
 
+/** Imperative handle so the parent can pull a step's final payload on submit
+ * without every renderer needing to be a live-controlled `value`/`onChange`
+ * component (DYNAMIC_FORM's craft-ux engine owns its own Redux state and
+ * only exposes data via an internal-submit callback — see below). */
+export interface StepRendererHandle {
+  /** Resolves the payload to save, or `null` if the step blocked submission
+   * (e.g. required-field validation failed). Steps that are plain
+   * controlled components (FormBuilderRenderer/JsonFallback) resolve
+   * immediately with the current `value`. */
+  getPayload: () => Promise<Record<string, unknown> | null>;
+}
+
 /**
  * Step renderer.
  *
- * When `step.ui_component === "FORM_BUILDER"` and the step ships a
- * `configuration.form_builder` definition, render the structured form
- * (matches legacy <DynamicForm formJson={…}/> behavior — see
- * craft-frontend/src/Components/Common/StepComponentLoader.js, case "FORM_BUILDER").
+ * `ui_component` values:
+ * - "FORM_BUILDER": this app's own structured renderer (FormBuilderRenderer)
+ *   — flat fields only, no repeatable rows / autoFill / requestAction.
+ * - "DYNAMIC_FORM": the real @craft-apex/craft-ux engine (matches legacy
+ *   <DynamicForm formJson={…}/> — see
+ *   craft-frontend/src/Components/Common/StepComponentLoader.js, case
+ *   "FORM_BUILDER") — use this when a step's form_builder JSON needs
+ *   repeatable sections (`[{index}]`), nested array paths (`[0]`), autoFill,
+ *   or requestAction (e.g. the Lead Creation shareholder/co-applicant step).
  *
  * Other ui_component values map to ~200 specialized step screens in legacy
  * (LEAD_VERIFICATION, BASIC_DETAILS, BANK_DETAILS, PROPERTY_DETAILS, etc.).
  * Those each need their own port; for now they fall back to a raw-JSON editor
  * so the workflow stays round-trippable.
  */
-export function StepRenderer({ step, value, onChange }: Props) {
-  const formBuilder = useMemo<
-    FormBuilderStepConfiguration["form_builder"] | undefined
-  >(() => {
-    const config = step.configuration as FormBuilderStepConfiguration | null;
-    return config?.form_builder;
-  }, [step]);
+export const StepRenderer = forwardRef<StepRendererHandle, Props>(
+  function StepRenderer({ step, value, onChange }, ref) {
+    const formBuilder = useMemo<
+      FormBuilderStepConfiguration["form_builder"] | undefined
+    >(() => {
+      const config = step.configuration as FormBuilderStepConfiguration | null;
+      return config?.form_builder;
+    }, [step]);
 
-  const useStructured =
-    step.ui_component === "FORM_BUILDER" && formBuilder != null;
+    const useStructured =
+      step.ui_component === "FORM_BUILDER" && formBuilder != null;
+    const useDynamicForm =
+      step.ui_component === "DYNAMIC_FORM" && formBuilder != null;
 
-  return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-3">
-        <StepTypeBadge step={step} />
-        {step.code && (
-          <span className="font-mono text-xs text-slate-500">{step.code}</span>
+    const dynamicFormRef = useRef<{ submitFormExternally: () => void } | null>(
+      null
+    );
+    const resolvePayload = useRef<
+      ((v: Record<string, unknown> | null) => void) | null
+    >(null);
+
+    useImperativeHandle(
+      ref,
+      (): StepRendererHandle => ({
+        getPayload: async () => {
+          if (!useDynamicForm) return value;
+          return new Promise((resolve) => {
+            resolvePayload.current = resolve;
+            dynamicFormRef.current?.submitFormExternally();
+          });
+        },
+      }),
+      [useDynamicForm, value]
+    );
+
+    return (
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <StepTypeBadge step={step} />
+          {step.code && (
+            <span className="font-mono text-xs text-slate-500">{step.code}</span>
+          )}
+          {step.display_mode && (
+            <Badge variant="secondary">{step.display_mode}</Badge>
+          )}
+        </div>
+
+        {step.description && (
+          <p className="text-sm text-slate-600">{step.description}</p>
         )}
-        {step.display_mode && (
-          <Badge variant="secondary">{step.display_mode}</Badge>
+
+        <ComponentMeta step={step} />
+
+        {useDynamicForm ? (
+          <CraftUxProvider>
+            <AxiosProvider axiosInstance={api}>
+              <DynamicForm
+                ref={dynamicFormRef}
+                componentName={String(step.id)}
+                formJson={formBuilder as any}
+                existingObject={value}
+                onSubmitSuccess={(result: {
+                  data: Record<string, unknown> | null;
+                  isValidForm: boolean;
+                }) => {
+                  resolvePayload.current?.(
+                    result.isValidForm ? result.data : null
+                  );
+                  resolvePayload.current = null;
+                }}
+              />
+            </AxiosProvider>
+          </CraftUxProvider>
+        ) : useStructured ? (
+          <FormBuilderRenderer
+            formJson={formBuilder!}
+            value={value}
+            onChange={onChange}
+          />
+        ) : (
+          <JsonFallback step={step} value={value} onChange={onChange} />
         )}
       </div>
-
-      {step.description && (
-        <p className="text-sm text-slate-600">{step.description}</p>
-      )}
-
-      <ComponentMeta step={step} />
-
-      {useStructured ? (
-        <FormBuilderRenderer
-          formJson={formBuilder!}
-          value={value}
-          onChange={onChange}
-        />
-      ) : (
-        <JsonFallback step={step} value={value} onChange={onChange} />
-      )}
-    </div>
-  );
-}
+    );
+  }
+);
 
 interface FallbackProps {
   step: WorkflowStepDef;

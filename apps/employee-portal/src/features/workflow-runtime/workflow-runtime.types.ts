@@ -19,6 +19,21 @@ export const WorkflowType = {
   BcPartnerOnboarding: "BC_PARTNER_ONBOARDING",
   LeadCreation: "LEAD_CREATION",
   CarBuyingJourney: "CAR_BUYING_JOURNEY",
+  /**
+   * Drives the Employee create/edit step list (see employee-form.page.tsx).
+   * Must match the workflow_type configured server-side via /settings/workflow.
+   */
+  EmployeeCreation: "EMPLOYEE_CREATION",
+  /**
+   * Drives the Role create/edit step list (see role-form.page.tsx).
+   * Must match the workflow_type configured server-side via /settings/workflow.
+   */
+  RoleCreation: "ROLE_CREATION",
+  /**
+   * Drives the Loan Type create/edit step list (see loan-type-form.page.tsx).
+   * Must match the workflow_type configured server-side via /settings/workflow.
+   */
+  LoanTypeCreation: "LOAN_TYPE_CREATION",
 } as const;
 
 export type WorkflowTypeValue =
@@ -65,7 +80,8 @@ export interface WorkflowBuildResponse {
   status?: number;
   last_active_stage_id?: string | number;
   last_active_step_id?: string | number;
-  stages: WorkflowStageDef[];
+  /** `null` when no workflow is configured yet for this (type, source). */
+  stages: WorkflowStageDef[] | null;
   /** Loose typing for the source object the workflow walks over. */
   source?: unknown;
 }
