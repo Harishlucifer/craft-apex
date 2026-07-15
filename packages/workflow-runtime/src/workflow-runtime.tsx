@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, RotateCcw, XCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronRight, RotateCcw, XCircle } from "lucide-react";
 import { Badge, Button, Label, toast, cn } from "@craft-apex/ui";
 import {
   buildWorkflow,
@@ -293,168 +293,165 @@ export function WorkflowRuntime({
 
       {/* Horizontal Stages Navigation */}
       <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
-        <nav className="flex flex-wrap border-b border-slate-200 bg-slate-50" aria-label="Stages">
+        <nav className="flex flex-wrap items-center gap-y-3 px-6 py-4 bg-white border-b border-slate-200" aria-label="Stages">
           {stages.map((stage, si) => {
             const stageActive = String(stage.id) === String(currentStage?.id);
             const stageDone = si < stageIndex;
+            const isLast = si === stages.length - 1;
             return (
-              <button
-                key={String(stage.id)}
-                type="button"
-                onClick={() => {
-                  setActiveStageId(stage.id);
-                  setActiveStepId(stage.steps[0]?.id ?? null);
-                }}
-                className={cn(
-                  "flex-1 min-w-[130px] text-center py-2.5 px-4 text-sm font-bold border-r border-slate-200 last:border-r-0 transition-all",
-                  stageActive
-                    ? "bg-[#1E2A6B] text-white"
-                    : stageDone
-                      ? "bg-[#1E2A6B]/10 text-[#1E2A6B] hover:bg-[#1E2A6B]/15"
-                      : "text-slate-600 hover:bg-slate-100/60"
-                )}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  {stageDone ? (
-                    <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                  ) : (
-                    <span className={cn(
-                      "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold",
-                      stageActive ? "bg-white text-[#1E2A6B]" : "bg-slate-200 text-slate-600"
-                    )}>
-                      {si + 1}
-                    </span>
-                  )}
-                  <span className="truncate">{stage.name}</span>
-                </div>
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Content body: Accordion Stack of Steps */}
-        <div className="p-6 bg-white space-y-4">
-          {currentStage?.steps.map((step, index) => {
-            const active = String(step.id) === String(currentStep?.id);
-            const stepIndexInStage = currentStage.steps.findIndex(
-              (s) => String(s.id) === String(currentStep?.id)
-            );
-            const stepDone = index < stepIndexInStage;
-
-            return (
-              <div
-                key={String(step.id)}
-                className={cn(
-                  "rounded-lg transition-all",
-                  active ? "border border-slate-200 shadow-sm overflow-hidden" : ""
-                )}
-              >
-                {/* Step Header Row */}
+              <div key={String(stage.id)} className="flex items-center">
                 <button
                   type="button"
-                  onClick={() => setActiveStepId(step.id)}
-                  className={cn(
-                    "flex w-full items-center gap-3 py-3 px-4 text-left text-sm font-semibold transition-all",
-                    active
-                      ? "bg-[#1E2A6B]/5 text-slate-800 border-b border-slate-100"
-                      : "text-slate-600 hover:bg-slate-50 rounded-lg"
-                  )}
+                  onClick={() => {
+                    setActiveStageId(stage.id);
+                    setActiveStepId(stage.steps[0]?.id ?? null);
+                  }}
+                  className="flex items-center gap-2.5 text-left focus:outline-none transition-all group"
                 >
-                  <span
-                    className={cn(
-                      "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all",
-                      stepDone
-                        ? "bg-[#1E2A6B] text-white"
-                        : active
-                          ? "bg-[#1E2A6B] text-white"
-                          : "border border-slate-300 text-slate-500 bg-white"
-                    )}
-                  >
-                    {stepDone ? <Check className="h-3.5 w-3.5" /> : index + 1}
+                  <span className={cn(
+                    "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all duration-200",
+                    stageActive
+                      ? "bg-[#1E2A6B] text-white ring-4 ring-[#1E2A6B]/15 scale-105"
+                      : stageDone
+                        ? "bg-emerald-500 text-white"
+                        : "bg-slate-100 text-slate-400 group-hover:bg-slate-200/80 group-hover:text-slate-600"
+                  )}>
+                    {si + 1}
                   </span>
-                  <span className="text-sm font-medium">{step.name}</span>
+                  <span className={cn(
+                    "text-sm transition-colors duration-200",
+                    stageActive
+                      ? "text-slate-900 font-bold"
+                      : stageDone
+                        ? "text-slate-700 font-semibold"
+                        : "text-slate-400 font-medium group-hover:text-slate-600"
+                  )}>
+                    {stage.name}
+                  </span>
                 </button>
-
-                {active && (
-                  <div className="bg-white">
-                    <div className="p-6">
-                      <StepRenderer
-                        ref={stepRendererRef}
-                        step={step}
-                        value={stepData}
-                        onChange={setStepData}
-                        onNext={goNextLocal}
-                        onBack={goPrev}
-                        context={{
-                          workflow,
-                          sourceId,
-                          onboardingId:
-                            (workflow?.source as any)?.application?.onboarding_id ??
-                            (workflow?.source as any)?.onboarding_id ??
-                            sourceId,
-                          workflowType,
-                        }}
-                      />
-                    </div>
-
-                    {/* Stepper Buttons inside the card footer */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={goPrev}
-                          disabled={stageIndex === 0 && stepIndex === 0}
-                          className="text-slate-600 hover:text-slate-800 border-slate-200"
-                        >
-                          <ArrowLeft className="h-4 w-4" /> Back
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={goNextLocal}
-                          disabled={
-                            stageIndex === stages.length - 1 &&
-                            stepIndex === (currentStage?.steps.length ?? 0) - 1
-                          }
-                          className="text-slate-600 hover:text-slate-800 border-slate-200"
-                        >
-                          Skip <ArrowRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => advance(true)}
-                          disabled={execute.isPending}
-                          className="text-rose-600 border-rose-200 hover:bg-rose-50"
-                        >
-                          <XCircle className="h-4 w-4" /> Reject
-                        </Button>
-                        <Button
-                          type="button"
-                          onClick={() => advance(false)}
-                          disabled={execute.isPending}
-                          className="bg-[#1E2A6B] text-white hover:bg-[#1E2A6B]/90"
-                        >
-                          <RotateCcw className="h-4 w-4" />{" "}
-                          {execute.isPending ? "Submitting…" : "Submit & Next"}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                {!isLast && (
+                  <ChevronRight className="h-4 w-4 text-slate-300 mx-4 shrink-0" />
                 )}
               </div>
             );
           })}
+        </nav>
 
-          {(!currentStage || currentStage.steps.length === 0) && (
-            <div className="py-12 text-center text-slate-400 text-sm">
+        {/* Horizontal Steps Stepper - Premium Pill style */}
+        {currentStage && currentStage.steps.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 bg-slate-50/20 px-6 py-4" aria-label="Steps Stepper">
+            {currentStage.steps.map((step, index) => {
+              const active = String(step.id) === String(currentStep?.id);
+              const stepIndexInStage = currentStage.steps.findIndex(
+                (s) => String(s.id) === String(currentStep?.id)
+              );
+              const stepDone = index < stepIndexInStage;
+
+              return (
+                <button
+                  key={String(step.id)}
+                  type="button"
+                  onClick={() => setActiveStepId(step.id)}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-full border transition-all duration-200 focus:outline-none shrink-0",
+                    active
+                      ? "bg-[#1E2A6B] text-white border-[#1E2A6B] shadow-sm shadow-[#1E2A6B]/20"
+                      : stepDone
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100/50"
+                        : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50 hover:text-slate-700"
+                  )}
+                >
+                  {stepDone ? (
+                    <Check className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                  ) : active ? (
+                    <span className="h-2 w-2 rounded-full bg-white animate-pulse shrink-0" />
+                  ) : (
+                    <span className="h-2 w-2 rounded-full bg-slate-300 shrink-0" />
+                  )}
+                  <span className="truncate">{step.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Content body: Single Active Step workspace */}
+        {currentStep ? (
+          <div className="bg-white">
+            <div className="p-6">
+              <StepRenderer
+                ref={stepRendererRef}
+                step={currentStep}
+                value={stepData}
+                onChange={setStepData}
+                onNext={goNextLocal}
+                onBack={goPrev}
+                context={{
+                  workflow,
+                  sourceId,
+                  onboardingId:
+                    (workflow?.source as any)?.application?.onboarding_id ??
+                    (workflow?.source as any)?.onboarding_id ??
+                    sourceId,
+                  workflowType,
+                }}
+              />
+            </div>
+
+            {/* Stepper Buttons inside the card footer */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={goPrev}
+                  disabled={stageIndex === 0 && stepIndex === 0}
+                  className="text-slate-600 hover:text-slate-800 border-slate-200"
+                >
+                  <ArrowLeft className="h-4 w-4" /> Back
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={goNextLocal}
+                  disabled={
+                    stageIndex === stages.length - 1 &&
+                    stepIndex === (currentStage?.steps.length ?? 0) - 1
+                  }
+                  className="text-slate-600 hover:text-slate-800 border-slate-200"
+                >
+                  Skip <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => advance(true)}
+                  disabled={execute.isPending}
+                  className="text-rose-600 border-rose-200 hover:bg-rose-50"
+                >
+                  <XCircle className="h-4 w-4" /> Reject
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => advance(false)}
+                  disabled={execute.isPending}
+                  className="bg-[#1E2A6B] text-white hover:bg-[#1E2A6B]/90"
+                >
+                  <RotateCcw className="h-4 w-4" />{" "}
+                  {execute.isPending ? "Submitting…" : "Submit & Next"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          (!currentStage || currentStage.steps.length === 0) && (
+            <div className="py-12 text-center text-slate-400 text-sm bg-white">
               No active steps. This stage is empty or completed.
             </div>
-          )}
-        </div>
+          )
+        )}
       </div>
 
       <JourneyPicker
