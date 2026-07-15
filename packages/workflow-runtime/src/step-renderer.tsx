@@ -98,22 +98,6 @@ export const StepRenderer = forwardRef<StepRendererHandle, Props>(
 
     return (
       <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <StepTypeBadge step={step} />
-          {step.code && (
-            <span className="font-mono text-xs text-slate-500">{step.code}</span>
-          )}
-          {step.display_mode && (
-            <Badge variant="secondary">{step.display_mode}</Badge>
-          )}
-        </div>
-
-        {step.description && (
-          <p className="text-sm text-slate-600">{step.description}</p>
-        )}
-
-        <ComponentMeta step={step} />
-
         {Component ? (
           <Component
             step={step}

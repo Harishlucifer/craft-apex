@@ -44,7 +44,7 @@ function FormBuilderStep({ step, value, onChange, context }: StepComponentProps)
   }, [base, ctx.lockField, ctx.lockWhen]);
 
   return (
-    <div className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="space-y-5">
       {formJson ? (
         <FormBuilderRenderer formJson={formJson} value={value} onChange={onChange} />
       ) : (
@@ -52,22 +52,24 @@ function FormBuilderStep({ step, value, onChange, context }: StepComponentProps)
           This step has no form_builder configuration.
         </p>
       )}
-      <div className="flex items-center justify-between border-t border-slate-100 pt-4">
-        {ctx.cancelHref ? (
-          <Button asChild type="button" variant="outline">
-            <Link to={ctx.cancelHref}>Cancel</Link>
+      {ctx.onSubmit && (
+        <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+          {ctx.cancelHref ? (
+            <Button asChild type="button" variant="outline">
+              <Link to={ctx.cancelHref}>Cancel</Link>
+            </Button>
+          ) : (
+            <span />
+          )}
+          <Button
+            type="button"
+            onClick={() => ctx.onSubmit?.()}
+            disabled={ctx.submitting}
+          >
+            {ctx.submitting ? "Saving…" : (ctx.submitLabel ?? "Save & Next")}
           </Button>
-        ) : (
-          <span />
-        )}
-        <Button
-          type="button"
-          onClick={() => ctx.onSubmit?.()}
-          disabled={ctx.submitting}
-        >
-          {ctx.submitting ? "Saving…" : (ctx.submitLabel ?? "Save & Next")}
-        </Button>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
