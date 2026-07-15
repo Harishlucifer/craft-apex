@@ -35,6 +35,7 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<MobileValues>({ resolver: zodResolver(mobileSchema) });
 
@@ -42,13 +43,19 @@ export default function LoginPage() {
     try {
       const res = await send.mutateAsync({ mobile: values.mobile });
       if (!res.ok) {
-        toast.error(res.message ?? "Could not send OTP");
+        setError("mobile", {
+          type: "manual",
+          message: res.message ?? "Invalid credentials",
+        });
         return;
       }
       setSentTo(values.mobile);
       toast.success("OTP sent");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not send OTP");
+      setError("mobile", {
+        type: "manual",
+        message: e instanceof Error ? e.message : "Invalid credentials",
+      });
     }
   });
 
