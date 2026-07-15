@@ -14,6 +14,7 @@ import {
   Provider as CraftUxProvider,
 } from "@craft-apex/craft-ux";
 import { getApiClient } from "@craft-apex/api";
+import { getStepComponent } from "./step-component-registry";
 import { FormBuilderRenderer } from "./form-builder-renderer";
 import type { FormBuilderStepConfiguration } from "./form-builder.types";
 import { StepType, type WorkflowStepDef } from "./workflow-runtime.types";
@@ -23,6 +24,9 @@ interface Props {
   /** Step output (sent into executeWorkflow / saved per step). */
   value: Record<string, unknown>;
   onChange: (next: Record<string, unknown>) => void;
+  onNext?: () => void;
+  onBack?: () => void;
+  context?: Record<string, any>;
 }
 
 /** Imperative handle so the parent can pull a step's final payload on submit
@@ -56,7 +60,7 @@ export interface StepRendererHandle {
  * so the workflow stays round-trippable.
  */
 export const StepRenderer = forwardRef<StepRendererHandle, Props>(
-  function StepRenderer({ step, value, onChange }, ref) {
+  function StepRenderer({ step, value, onChange, onNext, onBack, context }, ref) {
     const formBuilder = useMemo<
       FormBuilderStepConfiguration["form_builder"] | undefined
     >(() => {
@@ -90,6 +94,8 @@ export const StepRenderer = forwardRef<StepRendererHandle, Props>(
       [useDynamicForm, value]
     );
 
+    const Component = getStepComponent(step.ui_component);
+
     return (
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-3">
@@ -108,7 +114,16 @@ export const StepRenderer = forwardRef<StepRendererHandle, Props>(
 
         <ComponentMeta step={step} />
 
-        {useDynamicForm ? (
+        {Component ? (
+          <Component
+            step={step}
+            value={value}
+            onChange={onChange}
+            onNext={onNext ?? (() => {})}
+            onBack={onBack ?? (() => {})}
+            context={context}
+          />
+        ) : useDynamicForm ? (
           <CraftUxProvider>
             <AxiosProvider axiosInstance={getApiClient()}>
               <DynamicForm

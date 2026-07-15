@@ -369,6 +369,14 @@ export function WorkflowRuntime({
                   step={currentStep}
                   value={stepData}
                   onChange={setStepData}
+                  onNext={goNextLocal}
+                  onBack={goPrev}
+                  context={{
+                    workflow,
+                    sourceId,
+                    onboardingId: (workflow?.source as any)?.application?.onboarding_id ?? (workflow?.source as any)?.onboarding_id ?? sourceId,
+                    workflowType,
+                  }}
                 />
 
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
