@@ -49,5 +49,15 @@ export interface FormattedAddressPayload {
 
 export interface EmployeeAddressSavePayload {
   employee_id: string | number;
+  // Backend validates the full EmployeeParams struct on every save (create
+  // and update share one endpoint/validator) — mobile/email/name/status are
+  // unconditionally required, and user_id is required once employee_id is
+  // set. Must be carried forward from the employee's own detail record or
+  // this call 400s even though we're only touching the address.
+  user_id?: string | number;
+  mobile: string;
+  email: string;
+  name: string;
+  status: number;
   user_address: UserAddress;
 }

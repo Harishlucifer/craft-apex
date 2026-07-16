@@ -22,6 +22,7 @@ import {
   useEmployeeAddressDetail,
   useSaveEmployeeAddress,
 } from "./employee-address.api";
+import { useEmployeeDetail } from "./employee-form.api";
 import type { PincodeRow } from "./employee-address.types";
 
 interface Props {
@@ -114,6 +115,9 @@ export default function EmployeeAddressStep({
   onNext,
 }: Props) {
   const { data: detail } = useEmployeeAddressDetail(employeeId);
+  // Backend's /alpha/v1/employee validates the full EmployeeParams struct on
+  // every save, so the address-only submit below must carry these forward.
+  const { data: employeeDetail } = useEmployeeDetail(employeeId);
   const save = useSaveEmployeeAddress();
 
   const defaults: FormValues = useMemo(
@@ -173,6 +177,11 @@ export default function EmployeeAddressStep({
     try {
       await save.mutateAsync({
         employee_id: employeeId,
+        ...(employeeDetail?.user_id ? { user_id: employeeDetail.user_id } : {}),
+        mobile: employeeDetail?.mobile ?? "",
+        email: employeeDetail?.email ?? "",
+        name: employeeDetail?.name ?? "",
+        status: employeeDetail?.status ?? 1,
         user_address: {
           ...(values.user_address_id
             ? { user_address_id: values.user_address_id }
