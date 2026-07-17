@@ -14,8 +14,9 @@ export interface AudienceFilter {
 export function useCampaignAudience(filter: AudienceFilter) {
   const qs: string[] = [];
   if (filter.campaignId) qs.push(`campaign_id=${encodeURIComponent(filter.campaignId)}`);
-  if (filter.fromDate) qs.push(`fromDate=${encodeURIComponent(filter.fromDate)}`);
-  if (filter.toDate) qs.push(`toDate=${encodeURIComponent(filter.toDate)}`);
+  // Backend reads `from`/`to` (created_at range) and `status` — controller.go GetCampaignAudiencesList.
+  if (filter.fromDate) qs.push(`from=${encodeURIComponent(filter.fromDate)}`);
+  if (filter.toDate) qs.push(`to=${encodeURIComponent(filter.toDate)}`);
   if (filter.status) qs.push(`status=${encodeURIComponent(filter.status)}`);
   const url = qs.length > 0 ? `${URL}?${qs.join("&")}` : URL;
 

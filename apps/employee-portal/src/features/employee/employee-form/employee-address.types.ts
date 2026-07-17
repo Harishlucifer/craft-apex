@@ -28,6 +28,8 @@ export interface UserAddress {
 export interface PincodeRow {
   id: string | number;
   area: string;
+  latitude?: string | number;
+  longitude?: string | number;
   cityId?: string | number;
   stateId?: string | number;
   countryId?: string | number;

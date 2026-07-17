@@ -20,5 +20,5 @@ export default defineConfig({
       "@craft-apex/layout": pkg("layout/src/index.ts"),
     },
   },
-  server: { port: 3000 },
+  server: { port: 3002 },
 });

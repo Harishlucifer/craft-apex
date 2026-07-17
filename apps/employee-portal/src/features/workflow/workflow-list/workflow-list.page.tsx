@@ -1,6 +1,8 @@
 import { PermissionGate } from "@craft-apex/layout";
 import { Link } from "react-router-dom";
 import { Pencil, Plus, Search } from "lucide-react";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Badge,
   Button,
@@ -8,6 +10,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  toast,
 } from "@craft-apex/ui";
 import {
   DataTableShell,
@@ -16,6 +19,7 @@ import {
   TABLE_ROW_CLASS,
 } from "@/components/data-table-shell";
 import { useClientList } from "@/components/use-client-list";
+import { api } from "@/lib/api";
 import { useWorkflowList } from "./workflow-list.api";
 import type { WorkflowRow } from "./workflow-list.types";
 
@@ -29,6 +33,33 @@ export default function WorkflowListPage() {
       String(v ?? "").toLowerCase().includes(q)
     )
   );
+  const queryClient = useQueryClient();
+  const [updatingId, setUpdatingId] = useState<string | number | null>(null);
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async (params: { id: string | number; status: number }) => {
+      const payload = { id: params.id, status: params.status };
+      return api.post<unknown, any>("/alpha/v1/workflow", payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workflow-list"] });
+      toast.success("Status updated successfully");
+      setUpdatingId(null);
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Failed to update status");
+      setUpdatingId(null);
+    },
+  });
+
+  const handleStatusChange = (
+    id: string | number | undefined,
+    newStatus: number
+  ) => {
+    if (!id) return;
+    setUpdatingId(id);
+    updateStatusMutation.mutate({ id, status: newStatus });
+  };
 
   return (
     <div className="space-y-4">
@@ -45,7 +76,7 @@ export default function WorkflowListPage() {
         <PermissionGate action="add">
           <Button asChild>
             <Link to="/settings/workflow/create">
-              <Plus className="h-4 w-4" /> Add Workflow
+              <Plus className="h-4 w-4" /> Add New
             </Link>
           </Button>
         </PermissionGate>
@@ -95,9 +126,32 @@ export default function WorkflowListPage() {
               {fmtDate(r.end_date)}
             </TableCell>
             <TableCell>
-              <Badge variant={r.status === 1 ? "success" : "destructive"}>
-                {r.status === 1 ? "Active" : "Inactive"}
-              </Badge>
+              <div className="inline-flex rounded-md border border-slate-300 overflow-hidden text-sm">
+                <button
+                  type="button"
+                  disabled={updatingId === (r.id ?? r.workflow_id)}
+                  onClick={() => handleStatusChange(r.id ?? r.workflow_id, 1)}
+                  className={`px-3 py-1 font-medium transition-colors ${
+                    r.status === 1
+                      ? "bg-blue-600 text-white hover:bg-blue-700"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  } ${updatingId === (r.id ?? r.workflow_id) ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  Active
+                </button>
+                <button
+                  type="button"
+                  disabled={updatingId === (r.id ?? r.workflow_id)}
+                  onClick={() => handleStatusChange(r.id ?? r.workflow_id, -1)}
+                  className={`px-3 py-1 font-medium transition-colors ${
+                    r.status !== 1
+                      ? "bg-red-600 text-white hover:bg-red-700"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  } ${updatingId === (r.id ?? r.workflow_id) ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  Inactive
+                </button>
+              </div>
             </TableCell>
             <TableCell className="text-right">
               <PermissionGate action="edit">

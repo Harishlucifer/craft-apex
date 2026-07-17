@@ -211,7 +211,7 @@ export default function RoleFormPage() {
           <p className="text-xs text-slate-400">
             {step === 0
               ? "Basic role details"
-              : "Map menu access &amp; permissions"}
+              : "Map menu access & permissions"}
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
@@ -345,7 +345,7 @@ export default function RoleFormPage() {
               </Link>
             </Button>
             <Button type="submit" disabled={save.isPending}>
-              {save.isPending ? "Saving…" : "Save &amp; Next"}
+              {save.isPending ? "Saving…" : "Save & Next"}
             </Button>
           </div>
         </form>

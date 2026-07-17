@@ -7,6 +7,9 @@ import {
   ListFilter,
   Megaphone,
   Users,
+  Target,
+  TrendingUp,
+  CalendarDays,
 } from "lucide-react";
 import { useModule } from "@craft-apex/layout";
 import { Badge, Button, Input } from "@craft-apex/ui";
@@ -45,6 +48,9 @@ const DATA_SOURCE_OPTIONS = [
   { value: "EXISTING", label: "Existing" },
 ];
 
+const NAVY = "#1E2A6B";
+const BLUE = "#2563EB";
+
 function statusBadge(status?: number): {
   label: string;
   className: string;
@@ -59,6 +65,27 @@ function statusBadge(status?: number): {
     default:
       return { label: "—", className: "bg-slate-100 text-slate-500" };
   }
+}
+
+/** Audience roll-up for a campaign (status: 2=Engaging, 3=Completed, 4=Converted). */
+function campaignMetrics(c: CampaignSummary) {
+  const a = c.audiences ?? [];
+  const total = a.length;
+  const converted = a.filter((x) => x.status === 4).length;
+  const engaging = a.filter((x) => x.status === 2).length;
+  const rate = total > 0 ? Math.round((converted / total) * 100) : 0;
+  return { total, converted, engaging, rate };
+}
+
+function formatDate(s?: string): string {
+  if (!s) return "";
+  const d = new Date(s);
+  if (Number.isNaN(d.getTime())) return s;
+  return d.toLocaleDateString(undefined, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 export default function CampaignSummaryPage() {
@@ -106,6 +133,23 @@ export default function CampaignSummaryPage() {
       campaigns.reduce((sum, c) => sum + (c.audiences?.length ?? 0), 0),
     [campaigns]
   );
+
+  // Roll-up across the currently filtered campaigns (drives the stat cards).
+  const totals = useMemo(() => {
+    let audiences = 0;
+    let converted = 0;
+    for (const c of filtered) {
+      const a = c.audiences ?? [];
+      audiences += a.length;
+      converted += a.filter((x) => x.status === 4).length;
+    }
+    return {
+      campaigns: filtered.length,
+      audiences,
+      converted,
+      rate: audiences > 0 ? Math.round((converted / audiences) * 100) : 0,
+    };
+  }, [filtered]);
 
   // Active filter chips (skip the implied "all" tab — that's the default).
   const activeFilters: ActiveFilter[] = useMemo(() => {
@@ -232,14 +276,40 @@ export default function CampaignSummaryPage() {
           <p className="font-medium text-slate-600">No campaigns match these filters.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((c) => (
-            <CampaignCard
-              key={String(c.campaign_id ?? c.name)}
-              campaign={c}
-              onClick={() => navigate(`${basePath}/${c.campaign_id}`)}
+        <div className="space-y-5">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <StatCard
+              icon={<Megaphone className="h-5 w-5" />}
+              value={totals.campaigns}
+              label="Campaigns"
+              bg="#4C7DF014"
+              color={BLUE}
             />
-          ))}
+            <StatCard
+              icon={<Users className="h-5 w-5" />}
+              value={totals.audiences}
+              label="Total audiences"
+              bg="#8B5CF61f"
+              color="#7C3AED"
+            />
+            <StatCard
+              icon={<Target className="h-5 w-5" />}
+              value={`${totals.converted} · ${totals.rate}%`}
+              label="Converted"
+              bg="#10B9811f"
+              color="#059669"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {filtered.map((c) => (
+              <CampaignCard
+                key={String(c.campaign_id ?? c.name)}
+                campaign={c}
+                onClick={() => navigate(`${basePath}/${c.campaign_id}`)}
+              />
+            ))}
+          </div>
         </div>
       )}
     </ReportShell>
@@ -278,6 +348,35 @@ function StatusTabs({
   );
 }
 
+function StatCard({
+  icon,
+  value,
+  label,
+  bg,
+  color,
+}: {
+  icon: React.ReactNode;
+  value: React.ReactNode;
+  label: string;
+  bg: string;
+  color: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <span
+        className="flex h-11 w-11 items-center justify-center rounded-xl"
+        style={{ backgroundColor: bg, color }}
+      >
+        {icon}
+      </span>
+      <div>
+        <p className="text-xl font-bold text-slate-900">{value}</p>
+        <p className="text-xs font-medium text-slate-500">{label}</p>
+      </div>
+    </div>
+  );
+}
+
 function CampaignCard({
   campaign,
   onClick,
@@ -286,42 +385,91 @@ function CampaignCard({
   onClick: () => void;
 }) {
   const status = statusBadge(campaign.status);
-  const audienceCount = campaign.audiences?.length ?? 0;
+  const m = campaignMetrics(campaign);
+  const created = formatDate(campaign.created_at ?? campaign.start_date);
+
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex flex-col items-stretch gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[#4C7DF0] hover:shadow-md"
+      className="group flex flex-col items-stretch gap-3 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[#2563EB] hover:shadow-lg"
     >
-      <div className="flex items-start justify-between gap-2">
+      {/* Header */}
+      <div className="flex items-start gap-3">
+        <span
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-sm"
+          style={{ background: `linear-gradient(135deg, ${NAVY}, ${BLUE})` }}
+        >
+          <Megaphone className="h-5 w-5" />
+        </span>
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-sm font-semibold text-slate-900">
             {campaign.name ?? "—"}
           </h3>
           <span className="font-mono text-[11px] text-slate-400">
-            ID: {String(campaign.campaign_id ?? "—")}
+            #{String(campaign.campaign_id ?? "—")}
           </span>
         </div>
-        <Badge className={`text-[10px] uppercase tracking-wide ${status.className}`}>
+        <Badge className={`shrink-0 text-[10px] uppercase tracking-wide ${status.className}`}>
           {status.label}
         </Badge>
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex items-center gap-2 text-sm text-slate-700">
-          <Users className="h-3.5 w-3.5 text-slate-400" />
-          {audienceCount} {audienceCount === 1 ? "audience" : "audiences"}
-        </div>
-        {campaign.data_source && (
-          <Badge variant="outline" className="self-start text-[10px]">
+
+      {/* Metrics */}
+      <div className="grid grid-cols-3 gap-2 rounded-xl bg-slate-50 p-2.5">
+        <Metric icon={<Users className="h-3.5 w-3.5" />} value={m.total} label="Audience" color="#7C3AED" />
+        <Metric icon={<Target className="h-3.5 w-3.5" />} value={m.converted} label="Converted" color="#059669" />
+        <Metric icon={<TrendingUp className="h-3.5 w-3.5" />} value={`${m.rate}%`} label="Rate" color={BLUE} />
+      </div>
+
+      {/* Conversion bar */}
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+        <div
+          className="h-full rounded-full transition-all"
+          style={{
+            width: `${m.rate}%`,
+            background: "linear-gradient(90deg, #10B981, #34D399)",
+          }}
+        />
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between gap-2 text-[11px] text-slate-500">
+        {campaign.data_source ? (
+          <Badge variant="outline" className="text-[10px]">
             {campaign.data_source}
           </Badge>
+        ) : (
+          <span />
+        )}
+        {created && (
+          <span className="inline-flex items-center gap-1">
+            <CalendarDays className="h-3 w-3" /> {created}
+          </span>
         )}
       </div>
-      {campaign.description && (
-        <p className="line-clamp-2 text-xs text-slate-500">
-          {campaign.description}
-        </p>
-      )}
     </button>
+  );
+}
+
+function Metric({
+  icon,
+  value,
+  label,
+  color,
+}: {
+  icon: React.ReactNode;
+  value: React.ReactNode;
+  label: string;
+  color: string;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-0.5">
+      <span style={{ color }}>{icon}</span>
+      <span className="text-sm font-bold text-slate-900">{value}</span>
+      <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
+        {label}
+      </span>
+    </div>
   );
 }

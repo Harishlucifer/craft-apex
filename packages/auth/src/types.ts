@@ -4,6 +4,7 @@ export interface AuthUser {
   email?: string;
   access_token: string;
   refresh_token?: string;
+  change_password?: boolean;
   [key: string]: unknown;
 }
 

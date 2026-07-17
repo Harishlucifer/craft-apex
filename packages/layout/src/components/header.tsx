@@ -129,13 +129,20 @@ export function Header({ brand }: { brand: string }) {
     navigate("/login", { replace: true });
   };
 
-  const initial = (user?.name ?? user?.email ?? "?").charAt(0).toUpperCase();
+  // Backend sends `username` (not always `name`); fall back through both so a
+  // readable display name shows instead of the raw email.
+  const displayName =
+    (user?.name as string | undefined) ||
+    (user?.["username"] as string | undefined) ||
+    (user?.email ? String(user.email).split("@")[0] : undefined) ||
+    t("account");
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4">
       {/* Brand */}
       <div className="flex shrink-0 items-center gap-2.5">
-        <img src="logo.png" alt={brand} className="h-7 w-auto object-contain" />
+        <img src="/logo.png" alt={brand} className="h-7 w-auto object-contain" />
       </div>
 
       {/* Global search — type selector + keyword */}
@@ -214,8 +221,8 @@ export function Header({ brand }: { brand: string }) {
                 {initial}
               </span>
               <span className="hidden max-w-[12rem] flex-col items-start leading-tight sm:flex">
-                <span className="truncate text-sm font-medium text-slate-900">
-                  {user?.name ?? user?.email ?? t("account")}
+                <span className="truncate text-sm font-medium capitalize text-slate-900">
+                  {displayName}
                 </span>
                 {user?.user_type ? (
                   <span className="truncate text-xs text-slate-500">

@@ -155,13 +155,17 @@ export default function EmployeeFormPage() {
           ? { employee_id: id }
           : {}),
       ...(detail?.user_id ? { user_id: detail.user_id } : {}),
-      employee_code: String(values.employeeCode),
-      mobile: String(values.mobile),
-      email: values.email,
-      name: values.username,
-      designation: values.designation,
+      employee_code: values.employeeCode.trim(),
+      mobile: values.mobile.trim(),
+      email: values.email.trim(),
+      name: values.username.trim(),
+      ...(values.designation?.trim()
+        ? { designation: values.designation.trim() }
+        : {}),
       ...(values.password ? { password: values.password } : {}),
-      hierarchy_level: values.hierarchy,
+      ...(values.hierarchy?.trim()
+        ? { hierarchy_level: values.hierarchy.trim() }
+        : {}),
       user_role: { role_id: String(values.role) },
       ...(values.reportsTo
         ? { supervisor_user: { user_id: values.reportsTo } }
@@ -172,10 +176,14 @@ export default function EmployeeFormPage() {
       status: Number(values.status),
       // Preserve nested arrays from detail (territory map / allocation / address)
       // so saves don't drop step-2/3/4 state.
-      territory_loan_map: detail?.territory_loan_map,
-      user_allocation: detail?.user_allocation,
-      user_address: detail?.user_address,
-      data: detail?.data,
+      ...(detail?.territory_loan_map
+        ? { territory_loan_map: detail.territory_loan_map }
+        : {}),
+      ...(detail?.user_allocation
+        ? { user_allocation: detail.user_allocation }
+        : {}),
+      ...(detail?.user_address ? { user_address: detail.user_address } : {}),
+      ...(detail?.data ? { data: detail.data } : {}),
     };
     try {
       const res = await save.mutateAsync(payload);

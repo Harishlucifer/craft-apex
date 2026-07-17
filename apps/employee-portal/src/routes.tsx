@@ -6,8 +6,10 @@ import LoginPage from "@/features/auth/login/login.page";
 import LogoutPage from "@/pages/logout";
 import Dashboard from "@/features/dashboard/dashboard.page";
 import Profile from "@/pages/profile";
+import WorkSchedule from "@/pages/work-schedule";
 import NotFound from "@/pages/not-found";
 import { RoutePlaceholder } from "@/components/route-placeholder";
+import ChangePasswordPage from "@/features/auth/change-password/change-password.page";
 import VerificationQueuePage from "@/features/verification-ops/verification-queue/verification-queue.page";
 import LeadListPage from "@/features/lead/lead-list/lead-list.page";
 import LoginQPage from "@/features/application/login-q/login-q.page";
@@ -53,6 +55,9 @@ import FieldMasterFormPage from "@/features/field-master/field-master-form/field
 import JourneyMasterListPage from "@/features/journey-master/journey-master-list/journey-master-list.page";
 import CampaignListPage from "@/features/marketing/campaign-list/campaign-list.page";
 import CampaignFormPage from "@/features/marketing/campaign-form/campaign-form.page";
+import CampaignUploadPage from "@/features/marketing/campaign-upload/campaign-upload.page";
+import MdDashboardPage from "@/features/reports/md-dashboard/md-dashboard.page";
+import PddTrackerPage from "@/features/reports/pdd-tracker/pdd-tracker.page";
 import MarketingLinksListPage from "@/features/marketing/links-list/links-list.page";
 import MarketingMediaListPage from "@/features/marketing/media-list/media-list.page";
 import MediaFormPage from "@/features/marketing/media-form/media-form.page";
@@ -151,6 +156,7 @@ import CampaignSummaryPage from "@/features/marketing/campaign-summary/campaign-
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
   { path: "/logout", element: <LogoutPage /> },
+  { path: "/change-password", element: <ChangePasswordPage /> },
   {
     element: (
       <AuthGuard>
@@ -160,6 +166,7 @@ export const router = createBrowserRouter([
     children: [
       { path: "/dashboard", element: <Dashboard /> },
       { path: "/profile", element: <Profile /> },
+      { path: "/work-schedule", element: <WorkSchedule /> },
 
       // Lead lists — legacy /lead/list (DynamicLeadList)
       { path: "/lead/list", element: <LeadListPage /> },
@@ -293,6 +300,8 @@ export const router = createBrowserRouter([
 
       // Reports — User Login (legacy /pages/Reports/UserLoginReport)
       { path: "/reports/user-login-report", element: <UserLoginReportPage /> },
+      { path: "/reports/md-dashboard", element: <MdDashboardPage /> },
+      { path: "/reports/pdd-tracker", element: <PddTrackerPage /> },
       // MIS reports — all share the ReportShell scaffold (date filter +
       // dashboard cards + funnel table + CSV export).
       { path: "/reports/mis/pendency-reports", element: <MisPendencyReportPage /> },
@@ -327,6 +336,8 @@ export const router = createBrowserRouter([
       { path: "/marketing/campaign", element: <CampaignListPage /> },
       { path: "/marketing/campaign/create", element: <CampaignFormPage /> },
       { path: "/marketing/campaign/create/:id", element: <CampaignFormPage /> },
+      { path: "/marketing/campaign/upload", element: <CampaignUploadPage /> },
+      { path: "/collection/campaign/upload", element: <CampaignUploadPage /> },
       { path: "/collection/campaign/list", element: <CampaignListPage /> },
       { path: "/marketing/link", element: <MarketingLinksListPage /> },
       { path: "/marketing/media", element: <MarketingMediaListPage /> },

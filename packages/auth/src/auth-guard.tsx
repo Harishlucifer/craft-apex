@@ -20,8 +20,15 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("pageshow", onPageShow);
   }, [hydrate]);
 
+  const user = useAuthStore((s) => s.user);
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
+
+  if (user?.change_password && location.pathname !== "/change-password") {
+    return <Navigate to="/change-password" replace />;
+  }
+
   return <>{children}</>;
 }

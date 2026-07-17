@@ -89,7 +89,10 @@ export default function LoginPage() {
         return;
       }
 
-      setSession(res.user);
+      setSession({
+        ...res.user,
+        change_password: res.change_password,
+      });
       if (Array.isArray(res.module)) {
         setModules(res.module as ModuleNode[]);
       }
