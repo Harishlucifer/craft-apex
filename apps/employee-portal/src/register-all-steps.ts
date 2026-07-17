@@ -17,4 +17,3 @@
 import "@/features/employee/employee-form/employee-form.steps";
 import "@/features/role/role-form/role-form.steps";
 import "@/features/loan-type/loan-type-form/loan-type-form.steps";
-import "@/features/e-sign-document/esign-document.step";

@@ -23,8 +23,8 @@ import {
   User,
   X,
 } from "lucide-react";
-import { api } from "@/lib/api";
-import { registerStepComponent, type StepComponentProps } from "@craft-apex/workflow-runtime";
+import { getApiClient } from "@craft-apex/api";
+import { registerStepComponent, type StepComponentProps } from "../step-component-registry";
 
 // Helper function to format date
 const formattedDateWithTime = (dateString: string | number | Date) => {
@@ -63,6 +63,7 @@ export default function ESignDocumentStep({
   onBack: _onBack,
   context,
 }: StepComponentProps) {
+  const api = getApiClient();
   const [isGenerating, setIsGenerating] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
