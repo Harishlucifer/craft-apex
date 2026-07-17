@@ -1,5 +1,6 @@
 export { WorkflowRuntime } from "./workflow-runtime";
 export { OnboardingPage } from "./onboarding-page";
+export { LenderApply } from "./lender-apply-page";
 export { JourneyPicker } from "./journey-picker";
 export { FormBuilderRenderer } from "./form-builder-renderer";
 // Side-effect import: registers "FORM_BUILDER" in the step registry as soon

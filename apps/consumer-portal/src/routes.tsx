@@ -6,7 +6,7 @@ import LogoutPage from "@/pages/logout";
 import NotFound from "@/pages/not-found";
 import ApplicationListPage from "@/features/application/application-list/application-list.page";
 import ApplicationDetailPage from "@/features/application/application-detail/application-detail.page";
-import ConsumerLenderApply from "@/features/application/consumer-lender-apply/consumer-lender-apply.page";
+import { LenderApply } from "@craft-apex/workflow-runtime";
 import LoanListPage from "@/features/loan/loan-list/loan-list.page";
 import ProfilePage from "@/features/profile/profile.page";
 
@@ -29,7 +29,7 @@ export const router = createBrowserRouter([
       { path: "/", element: <Navigate to="/applications" replace /> },
       { path: "/applications", element: <ApplicationListPage /> },
       { path: "/applications/:id", element: <ApplicationDetailPage /> },
-      { path: "/applications/lender-apply/:id", element: <ConsumerLenderApply /> },
+      { path: "/applications/lender-apply/:id", element: <LenderApply title="Customer Lender Apply" workflowType="LENDER_APPLY" listPath="/applications" /> },
       { path: "/loans", element: <LoanListPage /> },
       { path: "/profile", element: <ProfilePage /> },
       { path: "*", element: <NotFound /> },
