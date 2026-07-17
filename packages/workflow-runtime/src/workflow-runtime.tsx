@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, RotateCcw, XCircle } from "lucide-react";
-import { Badge, Button, Label, toast } from "@craft-apex/ui";
+import { ArrowLeft, ArrowRight, Check, ChevronRight, RotateCcw, XCircle } from "lucide-react";
+import { Badge, Button, Label, toast, cn } from "@craft-apex/ui";
 import {
   buildWorkflow,
   executeWorkflow,
@@ -95,6 +95,17 @@ export function WorkflowRuntime({
       ) ?? currentStage?.steps?.[0],
     [currentStage, activeStepId]
   );
+
+  const sourceName = useMemo(() => {
+    const src = workflow?.source as any;
+    return (
+      src?.application?.name ??
+      src?.application?.applicant_name ??
+      src?.name ??
+      src?.contact_person ??
+      undefined
+    );
+  }, [workflow]);
 
   const stepIndex = currentStage?.steps.findIndex(
     (s) => String(s.id) === String(currentStep?.id)
@@ -240,183 +251,207 @@ export function WorkflowRuntime({
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-sm font-semibold text-slate-700">
-            {title ?? "Workflow"}
-          </h2>
-          <p className="text-xs text-slate-400">
-            type: <span className="font-mono">{workflowType}</span>
-            {workflow.source_id && (
+      {/* Top Header Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 bg-slate-50/60 shadow-sm">
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              {workflowType === "PARTNER_ONBOARDING" ? "Partner ID" : "Lead ID"}
+            </span>
+            <span className="font-mono text-sm font-bold text-slate-800 bg-slate-200/50 px-2 py-0.5 rounded">
+              {workflow.source_id ? String(workflow.source_id) : "N/A"}
+            </span>
+            {sourceName && (
               <>
-                {" "}
-                · source:{" "}
-                <span className="font-mono">{String(workflow.source_id)}</span>
+                <span className="text-slate-300">|</span>
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  Name
+                </span>
+                <span className="text-sm font-semibold text-slate-800">
+                  {sourceName}
+                </span>
               </>
             )}
+          </div>
+          <p className="text-xs text-slate-500">
+            Workflow: <span className="font-medium text-slate-700">{title ?? "Onboarding"}</span>
             {workflow.mode && (
               <>
-                {" "}
-                · mode: <Badge variant="secondary">{workflow.mode}</Badge>
+                {" "}· Mode: <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">{workflow.mode}</Badge>
               </>
             )}
           </p>
         </div>
-        {onClose && (
-          <Button variant="outline" size="sm" onClick={onClose}>
-            <ArrowLeft className="h-4 w-4" /> Back
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {onClose && (
+            <Button variant="outline" size="sm" onClick={onClose} className="text-slate-600 gap-1.5">
+              <ArrowLeft className="h-3.5 w-3.5" /> Back to List
+            </Button>
+          )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-5">
-        <aside className="col-span-12 md:col-span-4">
-          <ol className="space-y-3">
-            {stages.map((stage, si) => {
-              const stageActive =
-                String(stage.id) === String(currentStage?.id);
-              const stageDone = si < stageIndex;
-              return (
-                <li
-                  key={String(stage.id)}
-                  className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
+      {/* Horizontal Stages Navigation */}
+      <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+        <nav className="flex flex-wrap items-center gap-y-3 px-6 py-4 bg-white border-b border-slate-200" aria-label="Stages">
+          {stages.map((stage, si) => {
+            const stageActive = String(stage.id) === String(currentStage?.id);
+            const stageDone = si < stageIndex;
+            const isLast = si === stages.length - 1;
+            return (
+              <div key={String(stage.id)} className="flex items-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveStageId(stage.id);
+                    setActiveStepId(stage.steps[0]?.id ?? null);
+                  }}
+                  className="flex items-center gap-2.5 text-left focus:outline-none transition-all group"
                 >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveStageId(stage.id);
-                      setActiveStepId(stage.steps[0]?.id ?? null);
-                    }}
-                    className="flex w-full items-center gap-2 text-left"
-                  >
-                    <span
-                      className={
-                        stageDone
-                          ? "flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 text-white"
-                          : stageActive
-                            ? "flex h-7 w-7 items-center justify-center rounded-full bg-[#1E2A6B] text-white"
-                            : "flex h-7 w-7 items-center justify-center rounded-full border border-slate-300 text-slate-500"
-                      }
-                    >
-                      {stageDone ? <Check className="h-4 w-4" /> : si + 1}
-                    </span>
-                    <span
-                      className={
-                        stageActive || stageDone
-                          ? "font-semibold text-slate-900"
-                          : "text-slate-600"
-                      }
-                    >
-                      {stage.name}
-                    </span>
-                  </button>
-                  {stageActive && (
-                    <ul className="mt-3 space-y-1 border-l-2 border-slate-100 pl-3">
-                      {stage.steps.map((step) => {
-                        const active =
-                          String(step.id) === String(currentStep?.id);
-                        return (
-                          <li key={String(step.id)}>
-                            <button
-                              type="button"
-                              onClick={() => setActiveStepId(step.id)}
-                              className={
-                                active
-                                  ? "flex w-full items-center gap-2 rounded-md bg-[#4C7DF0]/10 px-2 py-1 text-left text-xs font-medium text-[#4C7DF0]"
-                                  : "flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs text-slate-600 hover:bg-slate-50"
-                              }
-                            >
-                              <span className="font-mono text-[10px] text-slate-400">
-                                {step.step_type}
-                              </span>
-                              {step.name}
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
+                  <span className={cn(
+                    "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all duration-200",
+                    stageActive
+                      ? "bg-[#1E2A6B] text-white ring-4 ring-[#1E2A6B]/15 scale-105"
+                      : stageDone
+                        ? "bg-emerald-500 text-white"
+                        : "bg-slate-100 text-slate-400 group-hover:bg-slate-200/80 group-hover:text-slate-600"
+                  )}>
+                    {si + 1}
+                  </span>
+                  <span className={cn(
+                    "text-sm transition-colors duration-200",
+                    stageActive
+                      ? "text-slate-900 font-bold"
+                      : stageDone
+                        ? "text-slate-700 font-semibold"
+                        : "text-slate-400 font-medium group-hover:text-slate-600"
+                  )}>
+                    {stage.name}
+                  </span>
+                </button>
+                {!isLast && (
+                  <ChevronRight className="h-4 w-4 text-slate-300 mx-4 shrink-0" />
+                )}
+              </div>
+            );
+          })}
+        </nav>
+
+        {/* Horizontal Steps Stepper - Premium Pill style */}
+        {currentStage && currentStage.steps.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 bg-slate-50/20 px-6 py-4" aria-label="Steps Stepper">
+            {currentStage.steps.map((step, index) => {
+              const active = String(step.id) === String(currentStep?.id);
+              const stepIndexInStage = currentStage.steps.findIndex(
+                (s) => String(s.id) === String(currentStep?.id)
+              );
+              const stepDone = index < stepIndexInStage;
+
+              return (
+                <button
+                  key={String(step.id)}
+                  type="button"
+                  onClick={() => setActiveStepId(step.id)}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-full border transition-all duration-200 focus:outline-none shrink-0",
+                    active
+                      ? "bg-[#1E2A6B] text-white border-[#1E2A6B] shadow-sm shadow-[#1E2A6B]/20"
+                      : stepDone
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100/50"
+                        : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50 hover:text-slate-700"
                   )}
-                </li>
+                >
+                  {stepDone ? (
+                    <Check className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                  ) : active ? (
+                    <span className="h-2 w-2 rounded-full bg-white animate-pulse shrink-0" />
+                  ) : (
+                    <span className="h-2 w-2 rounded-full bg-slate-300 shrink-0" />
+                  )}
+                  <span className="truncate">{step.name}</span>
+                </button>
               );
             })}
-          </ol>
-        </aside>
-
-        <main className="col-span-12 space-y-4 md:col-span-8">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            {!currentStep ? (
-              <p className="text-sm text-slate-500">
-                No active step. Workflow is complete or has no steps yet.
-              </p>
-            ) : (
-              <>
-                <div className="mb-4 flex items-center justify-between">
-                  <div>
-                    <h3 className="text-base font-semibold text-slate-900">
-                      {currentStep.name}
-                    </h3>
-                    <p className="text-xs text-slate-400">
-                      Stage:{" "}
-                      <span className="font-medium text-slate-600">
-                        {currentStage?.name}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-
-                <StepRenderer
-                  ref={stepRendererRef}
-                  step={currentStep}
-                  value={stepData}
-                  onChange={setStepData}
-                />
-
-                <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={goPrev}
-                      disabled={stageIndex === 0 && stepIndex === 0}
-                    >
-                      <ArrowLeft className="h-4 w-4" /> Back
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={goNextLocal}
-                      disabled={
-                        stageIndex === stages.length - 1 &&
-                        stepIndex === (currentStage?.steps.length ?? 0) - 1
-                      }
-                    >
-                      Skip <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => advance(true)}
-                      disabled={execute.isPending}
-                      className="text-rose-600"
-                    >
-                      <XCircle className="h-4 w-4" /> Reject
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={() => advance(false)}
-                      disabled={execute.isPending}
-                    >
-                      <RotateCcw className="h-4 w-4" />{" "}
-                      {execute.isPending ? "Submitting…" : "Submit & Next"}
-                    </Button>
-                  </div>
-                </div>
-              </>
-            )}
           </div>
-        </main>
+        )}
+
+        {/* Content body: Single Active Step workspace */}
+        {currentStep ? (
+          <div className="bg-white">
+            <div className="p-6">
+              <StepRenderer
+                ref={stepRendererRef}
+                step={currentStep}
+                value={stepData}
+                onChange={setStepData}
+                onNext={goNextLocal}
+                onBack={goPrev}
+                context={{
+                  workflow,
+                  sourceId,
+                  onboardingId:
+                    (workflow?.source as any)?.application?.onboarding_id ??
+                    (workflow?.source as any)?.onboarding_id ??
+                    sourceId,
+                  workflowType,
+                }}
+              />
+            </div>
+
+            {/* Stepper Buttons inside the card footer */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={goPrev}
+                  disabled={stageIndex === 0 && stepIndex === 0}
+                  className="text-slate-600 hover:text-slate-800 border-slate-200"
+                >
+                  <ArrowLeft className="h-4 w-4" /> Back
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={goNextLocal}
+                  disabled={
+                    stageIndex === stages.length - 1 &&
+                    stepIndex === (currentStage?.steps.length ?? 0) - 1
+                  }
+                  className="text-slate-600 hover:text-slate-800 border-slate-200"
+                >
+                  Skip <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => advance(true)}
+                  disabled={execute.isPending}
+                  className="text-rose-600 border-rose-200 hover:bg-rose-50"
+                >
+                  <XCircle className="h-4 w-4" /> Reject
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => advance(false)}
+                  disabled={execute.isPending}
+                  className="bg-[#1E2A6B] text-white hover:bg-[#1E2A6B]/90"
+                >
+                  <RotateCcw className="h-4 w-4" />{" "}
+                  {execute.isPending ? "Submitting…" : "Submit & Next"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          (!currentStage || currentStage.steps.length === 0) && (
+            <div className="py-12 text-center text-slate-400 text-sm bg-white">
+              No active steps. This stage is empty or completed.
+            </div>
+          )
+        )}
       </div>
 
       <JourneyPicker

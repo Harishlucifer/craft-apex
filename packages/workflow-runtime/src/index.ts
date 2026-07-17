@@ -10,6 +10,7 @@ export { FormBuilderRenderer } from "./form-builder-renderer";
 // wouldn't do this: type-only exports are erased at build time and never
 // trigger the module's `registerStepComponent(...)` call.
 import "./steps/form-builder-step";
+import "./steps/esign-document-step";
 export type { FormBuilderStepContext } from "./steps/form-builder-step";
 export {
   UiComponentLoader,
