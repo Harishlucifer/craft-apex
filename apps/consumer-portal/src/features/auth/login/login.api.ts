@@ -34,7 +34,7 @@ export function useSendOtp() {
       };
       const res = await api.post<unknown, LoginResponse>(OTP_URL, body);
       const status = Number(res?.status);
-      return { ok: !(status < 0), message: res?.message };
+      return { ok: !(status < 0) || status === -6, message: res?.message };
     },
   });
 }
