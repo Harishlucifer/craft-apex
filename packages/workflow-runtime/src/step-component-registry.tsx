@@ -26,6 +26,7 @@ export interface StepComponentProps {
   onNext: () => void;
   onBack: () => void;
   context?: Record<string, any>;
+  lenderData?: any;
 }
 
 const registry: Record<string, ComponentType<StepComponentProps>> = {};
@@ -56,6 +57,7 @@ interface UiComponentLoaderProps {
   onNext: () => void;
   onBack: () => void;
   context?: Record<string, any>;
+  lenderData?: any;
 }
 
 /** Looks up `step.ui_component` in the global registry and renders it,
@@ -70,6 +72,7 @@ export function UiComponentLoader({
   onNext,
   onBack,
   context,
+  lenderData,
 }: UiComponentLoaderProps): ReactNode {
   if (!step) return null;
   const Component = getStepComponent(step.ui_component);
@@ -89,6 +92,7 @@ export function UiComponentLoader({
       onNext={onNext}
       onBack={onBack}
       context={context}
+      lenderData={lenderData}
     />
   );
 }

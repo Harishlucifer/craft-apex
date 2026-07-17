@@ -4,15 +4,17 @@ import { Button } from "./button";
 import { getApiClient } from "@craft-apex/api";
 
 export const FinalOfferSelection = (props: any) => {
+    console.log("finalOfferProps", props)
     const { context } = props;
-    const applicationId = context?.applicationId || props?.value?.application_id;
-    // Extract lender details from application context if available, otherwise from props value
+    const applicationId = context?.applicationId || props?.value?.['application.application_id'];
+    // Extract lender details from the natively passed props.lenderData or context, falling back to applicationLenderApply or props value
     const applicationLenderApply = context?.applicationDetail?.application_lender_apply?.[0];
-    const lenderApplyId = applicationLenderApply?.lender_apply_id || props?.value?.lender_apply_id;
-    const lenderId = applicationLenderApply?.lender_id || props?.value?.lender_id;
+    const lenderApplyId = props?.lenderData?.lender_apply_id || context?.lenderData?.lender_apply_id || applicationLenderApply?.lender_apply_id || props?.value?.lender_apply_id;
+    const lenderId = props?.lenderData?.lender?.lender_id || context?.lenderData?.lender?.lender_id || applicationLenderApply?.lender_id || props?.value?.lender_id;
+    const recentOffer = props?.lenderData?.recent_offer || context?.lenderData?.recent_offer || applicationLenderApply?.recent_offer || props?.value?.recent_offer;
 
-    // We should fallback to a safe 0 or max value
-    const initialAmount = Number(props?.value?.loan_amount || context?.applicationDetail?.loan_amount || 0);
+    // Retrieve initial amount from flattened 'application.loan_amount' or nested 'applicationDetail.application.loan_amount'
+    const initialAmount = Number(recentOffer?.offer_amount || props?.value?.['application.loan_amount'] || context?.applicationDetail?.application?.loan_amount || 0);
 
     const [loanAmount, setLoanAmount] = useState<number>(initialAmount);
     const [data, setData] = useState<any>(null);
@@ -47,13 +49,20 @@ export const FinalOfferSelection = (props: any) => {
 
     // Fetch initial offers on mount if we have an amount
     useEffect(() => {
-        if (initialAmount > 0 && lenderApplyId) {
+        if (initialAmount > 0) {
             fetchOffers(initialAmount);
         }
-    }, [initialAmount, lenderApplyId]);
+    }, [initialAmount]);
 
     const handleSave = async () => {
-        if (selectedOfferIndex === null || !data) return;
+        if (selectedOfferIndex === null || !data) {
+            if (context?.onSubmit) {
+                await context.onSubmit();
+            } else if (props.onNext) {
+                props.onNext();
+            }
+            return;
+        }
 
         setIsSaving(true);
         setError("");
@@ -117,7 +126,14 @@ export const FinalOfferSelection = (props: any) => {
                             <i className="ri-hand-coin-fill text-3xl text-white"></i>
                         </div>
                         <div>
-                            <h4 className="text-2xl font-black mb-1">Loan Offer Selection</h4>
+                            <div className="flex flex-wrap items-center gap-3 mb-1">
+                                <h4 className="text-2xl font-black">Loan Offer Selection</h4>
+                                {recentOffer?.offer_type && (
+                                    <span className="px-2.5 py-1 text-xs font-bold bg-white/20 text-white rounded-lg backdrop-blur-sm border border-white/30 whitespace-nowrap">
+                                        {recentOffer.offer_type.replace(/_/g, ' ')}
+                                    </span>
+                                )}
+                            </div>
                             <p className="text-blue-100 font-medium opacity-90">
                                 Customize your loan amount and select a comfortable EMI plan.
                             </p>
@@ -251,7 +267,7 @@ export const FinalOfferSelection = (props: any) => {
                 <Button
                     type="button"
                     className="bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300"
-                    disabled={selectedOfferIndex === null || isSaving || isFetchingOffers || context?.submitting}
+                    disabled={isSaving || isFetchingOffers || context?.submitting}
                     onClick={handleSave}
                 >
                     {isSaving || context?.submitting ? (

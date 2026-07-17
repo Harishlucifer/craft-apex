@@ -456,12 +456,14 @@ export const KycVerification = (props: any) => {
                 variant="outline"
                 type="button"
                 onClick={() => {
-                    if (context?.cancelHref) {
+                    if (props.onBack) {
+                        props.onBack();
+                    } else if (context?.cancelHref) {
                         window.location.href = context.cancelHref;
                     }
                 }}
             >
-                Cancel
+                Back
             </Button>
             <Button
                 type="button"

@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
 import { Button } from "@craft-apex/ui";
 import { FormBuilderRenderer } from "../form-builder-renderer";
 import type { FormDefinition } from "../form-builder.types";
@@ -20,7 +19,7 @@ export interface FormBuilderStepContext {
   lockWhen?: unknown;
 }
 
-function FormBuilderStep({ step, value, onChange, context }: StepComponentProps) {
+function FormBuilderStep({ step, value, onChange, onBack, context }: StepComponentProps) {
   const ctx = (context ?? {}) as Partial<FormBuilderStepContext>;
   const base = (
     step.configuration as { form_builder?: FormDefinition } | undefined
@@ -53,13 +52,19 @@ function FormBuilderStep({ step, value, onChange, context }: StepComponentProps)
         </p>
       )}
       <div className="flex items-center justify-between border-t border-slate-100 pt-4">
-        {ctx.cancelHref ? (
-          <Button asChild type="button" variant="outline">
-            <Link to={ctx.cancelHref}>Cancel</Link>
-          </Button>
-        ) : (
-          <span />
-        )}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            if (onBack) {
+              onBack();
+            } else if (ctx.cancelHref) {
+              window.location.href = ctx.cancelHref;
+            }
+          }}
+        >
+          Back
+        </Button>
         <Button
           type="button"
           onClick={() => ctx.onSubmit?.()}

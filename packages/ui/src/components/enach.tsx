@@ -70,8 +70,8 @@ export const Enach = (props: any) => {
                 ...prev,
                 bankAccount: `${selectedBank.bankName} - ${selectedBank.accountNumber}`
             }));
-            setCurrentStep(2);
         }
+        setCurrentStep(2);
     };
 
     const handleAuthMethodSelect = (method: any) => {
@@ -79,12 +79,10 @@ export const Enach = (props: any) => {
     };
 
     const handleSetupAutoDebit = async () => {
-        if (selectedAuthMethod && isAuthorized) {
-            if (context?.onSubmit) {
-                await context.onSubmit();
-            } else if (props.onNext) {
-                props.onNext();
-            }
+        if (context?.onSubmit) {
+            await context.onSubmit();
+        } else if (props.onNext) {
+            props.onNext();
         }
     };
 
@@ -324,7 +322,7 @@ export const Enach = (props: any) => {
                 <Button
                     type="button"
                     className="bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300"
-                    disabled={(currentStep === 1 && !selectedBank) || (currentStep === 2 && (!selectedAuthMethod || !isAuthorized)) || context?.submitting}
+                    disabled={context?.submitting}
                     onClick={async () => {
                         if (currentStep === 1) {
                             handleProceedToEnach();

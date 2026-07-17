@@ -19,3 +19,5 @@ export * from "./components/tentative-kfs";
 export * from "./components/field-investigation-rcu";
 export * from "./components/enach";
 export * from "./components/final-offer-selection";
+export * from "./components/penny-drop";
+export * from "./components/kfs-acceptance";
