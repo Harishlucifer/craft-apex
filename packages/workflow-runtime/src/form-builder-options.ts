@@ -166,18 +166,31 @@ export function buildNestedFormPayload(
 ): Record<string, any> {
   const result: Record<string, any> = {};
   for (const [path, value] of Object.entries(values)) {
+    if (!path || typeof path !== "string") continue;
     const keys = path.split(".");
-    let cursor = result;
-    keys.forEach((key, i) => {
-      if (i === keys.length - 1) {
-        cursor[key] = value;
-      } else {
-        if (typeof cursor[key] !== "object" || cursor[key] === null) {
-          cursor[key] = {};
+    keys.reduce((acc, key, index) => {
+      if (key.includes("[")) {
+        const [arrayKey, arrayIndexStr] = key.replace("]", "").split("[") as [string, string];
+        const arrayIndex = parseInt(arrayIndexStr, 10);
+        if (!acc[arrayKey]) acc[arrayKey] = [];
+        if (!acc[arrayKey][arrayIndex]) acc[arrayKey][arrayIndex] = {};
+
+        if (index === keys.length - 1) {
+          acc[arrayKey][arrayIndex] = value;
+          return result;
         }
-        cursor = cursor[key];
+        return acc[arrayKey][arrayIndex];
       }
-    });
+
+      if (index !== keys.length - 1 && (typeof acc[key] !== "object" || acc[key] === null)) {
+        acc[key] = {};
+      }
+
+      if (index === keys.length - 1) {
+        acc[key] = value;
+      }
+      return acc[key];
+    }, result);
   }
   return result;
 }

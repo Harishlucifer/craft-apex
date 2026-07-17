@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { Input, Label } from "@craft-apex/ui";
 import type {
   ConditionalOn,
@@ -35,12 +35,42 @@ export function FormBuilderRenderer({ formJson, value, onChange }: Props) {
     return [{ title: undefined, fields: formJson.fields ?? [] }];
   }, [formJson]);
 
+  // Seed default values on mount
+  useEffect(() => {
+    console.log("FIELDS IN RENDERER:", formJson.fields?.map(f => f.name));
+    let changed = false;
+    const nextValue = { ...value };
+    const allFields = sections.flatMap((s) => s.fields);
+
+    allFields.forEach((field) => {
+      const defVal = field.defaultValue;
+      if (defVal !== undefined && (nextValue[field.name] === undefined || nextValue[field.name] === "")) {
+        if (typeof defVal === "string" && defVal.startsWith("$")) {
+          const sourceKey = defVal.slice(1);
+          if (nextValue[sourceKey] !== undefined && nextValue[sourceKey] !== "") {
+            nextValue[field.name] = nextValue[sourceKey];
+            changed = true;
+          }
+        } else {
+          nextValue[field.name] = defVal;
+          changed = true;
+        }
+      }
+    });
+
+    if (changed) {
+      onChange(nextValue);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formJson]);
+
   const setField = (name: string, next: unknown, fieldDef?: FormFieldDef, option?: FormFieldOption) => {
     let newValues = { ...value, [name]: next };
 
-    // Process autoFill if defined
-    if (fieldDef?.autoFill && Array.isArray(fieldDef.autoFill)) {
-      fieldDef.autoFill.forEach((af: any) => {
+    // Process autoFill definitions
+    const autofills = fieldDef?.autoFill;
+    if (autofills && Array.isArray(autofills)) {
+      autofills.forEach((af: any) => {
         let conditionMet = true;
         if (af.condition) {
           conditionMet = matchesCondition(af.condition, newValues);
@@ -51,6 +81,8 @@ export function FormBuilderRenderer({ formJson, value, onChange }: Props) {
               newValues[mapping.targetField] = (option.item as Record<string, any>)[mapping.sourceField];
             } else if (mapping.type === "value") {
               newValues[mapping.targetField] = newValues[mapping.sourceField];
+            } else if (mapping.type === "constant") {
+              newValues[mapping.targetField] = mapping.sourceValue;
             }
           });
         }
@@ -381,7 +413,11 @@ function FieldInput({
           id={id}
           value={matchedValue}
           disabled={disabled}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value;
+            const matchedOpt = opts.find((o) => String(o.value) === val);
+            onChange(val, matchedOpt);
+          }}
           className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-[13px] text-slate-900 shadow-sm transition-all outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
         >
           <option value="">{placeholder}</option>

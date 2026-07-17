@@ -8,9 +8,11 @@ import {
   saveStepData,
   useBuildWorkflow,
   useExecuteWorkflow,
+  usePartnerDetail,
 } from "./workflow-runtime.api";
 import { JourneyPicker } from "./journey-picker";
 import { StepRenderer, type StepRendererHandle } from "./step-renderer";
+import { flattenObject } from "@craft-apex/craft-ux";
 import type {
   JourneyType,
   WorkflowBuildResponse,
@@ -43,6 +45,11 @@ export function WorkflowRuntime({
 }: Props) {
   const build = useBuildWorkflow();
   const execute = useExecuteWorkflow();
+
+  const isPartnerOnboarding = workflowType === "PARTNER_ONBOARDING";
+  const { data: partnerDetail } = usePartnerDetail(
+    isPartnerOnboarding && sourceId ? String(sourceId) : undefined
+  );
 
   const [workflow, setWorkflow] = useState<WorkflowBuildResponse | null>(null);
   const [activeStageId, setActiveStageId] = useState<string | number | null>(
@@ -124,15 +131,26 @@ export function WorkflowRuntime({
   }, [currentStage]);
 
   // Seed step data from the server-collected `step.data` whenever the active
-  // step changes. Mirrors legacy <DynamicForm existingObject={…}/> behavior.
+  // step changes, and merge it with prepopulated partner data.
   useEffect(() => {
+    let baseData: Record<string, unknown> = {};
     const raw = currentStep?.data;
     if (raw && typeof raw === "object" && !Array.isArray(raw)) {
-      setStepData(raw as Record<string, unknown>);
-    } else {
-      setStepData({});
+      baseData = { ...raw as Record<string, unknown> };
     }
-  }, [currentStep?.id]);
+
+    if (isPartnerOnboarding && partnerDetail) {
+      try {
+        const payloadObj = (partnerDetail as any)?.result ?? (partnerDetail as any)?.data ?? partnerDetail;
+        const flatPartner = flattenObject(payloadObj);
+        baseData = { ...flatPartner, ...baseData };
+      } catch (e) {
+        console.error("Error flattening partner details:", e);
+      }
+    }
+
+    setStepData(baseData);
+  }, [currentStep?.id, partnerDetail, isPartnerOnboarding]);
 
   const goPrev = () => {
     if (!currentStage || stepIndex == null) return;

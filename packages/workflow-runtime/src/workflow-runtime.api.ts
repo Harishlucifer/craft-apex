@@ -4,6 +4,8 @@ import type {
   JourneyType,
   WorkflowBuildResponse,
 } from "./workflow-runtime.types";
+import { buildNestedFormPayload } from "./form-builder-options";
+
 
 const BUILD_URL = "/alpha/v1/workflow/build";
 const EXECUTE_URL = "/alpha/v1/workflow/execution";
@@ -163,7 +165,7 @@ export async function saveStepData(
       `No save endpoint configured for workflow_type=${input.workflowType}`
     );
   }
-  const body = await getApiClient().post<unknown, any>(url, input.data);
+  const body = await getApiClient().post<unknown, any>(url, buildNestedFormPayload(input.data));
   if (body && body.status != null && body.status < 1) {
     const message = body.message ?? "Save failed";
     throw new Error(String(message));

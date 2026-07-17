@@ -51,28 +51,6 @@ function FormBuilderStep({ step, value, onChange, onBack, context }: StepCompone
           This step has no form_builder configuration.
         </p>
       )}
-      <div className="flex items-center justify-between border-t border-slate-100 pt-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => {
-            if (onBack) {
-              onBack();
-            } else if (ctx.cancelHref) {
-              window.location.href = ctx.cancelHref;
-            }
-          }}
-        >
-          Back
-        </Button>
-        <Button
-          type="button"
-          onClick={() => ctx.onSubmit?.()}
-          disabled={ctx.submitting}
-        >
-          {ctx.submitting ? "Saving…" : (ctx.submitLabel ?? "Save & Next")}
-        </Button>
-      </div>
     </div>
   );
 }
