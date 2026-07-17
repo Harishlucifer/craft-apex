@@ -1,6 +1,7 @@
+import { registerStepComponent } from "../step-component-registry";
 import React, { useState } from "react";
-import { Card, CardContent } from "./card";
-import { Button } from "./button";
+import { Card, CardContent } from "@craft-apex/ui";
+import { Button } from "@craft-apex/ui";
 
 export const AALinkBankDataFetch = (props: any) => {
     const { context } = props;
@@ -245,42 +246,10 @@ export const AALinkBankDataFetch = (props: any) => {
                 </Card>
             )}
 
-            {/* Footer Actions */}
-            <div className="mt-4 flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                <Button
-                    variant="outline"
-                    type="button"
-                    onClick={() => {
-                        if (props.onBack) {
-                            props.onBack();
-                        } else if (context?.cancelHref) {
-                            window.location.href = context.cancelHref;
-                        }
-                    }}
-                >
-                    Back
-                </Button>
-                <Button
-                    type="button"
-                    className="bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300"
-                    disabled={context?.submitting}
-                    onClick={async () => {
-                        if (context?.onSubmit) {
-                            await context.onSubmit();
-                        } else if (props.onNext) {
-                            props.onNext();
-                        }
-                    }}
-                >
-                    {context?.submitting ? (
-                        <i className="ri-loader-4-line animate-spin text-xl"></i>
-                    ) : (
-                        <>{context?.submitLabel || "Save & Next"}</>
-                    )}
-                </Button>
             </div>
-        </div>
     );
 };
 
 export default AALinkBankDataFetch;
+
+registerStepComponent("AA_LINK_BANK_DATA_FETCH", AALinkBankDataFetch);

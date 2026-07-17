@@ -126,6 +126,7 @@ const STEP_SAVE_ENDPOINTS: Record<string, string> = {
   BC_ONBOARDING: "/alpha/v1/collection",
   LEAD_CREATION: "/alpha/v1/application/create",
   VERIFICATION: "/alpha/v1/verification/create",
+  LENDER_APPLY: "/alpha/v1/application/create",
 };
 
 export function hasStepSaveEndpoint(workflowType: string): boolean {

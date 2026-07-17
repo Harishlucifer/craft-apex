@@ -11,6 +11,15 @@ export { FormBuilderRenderer } from "./form-builder-renderer";
 // trigger the module's `registerStepComponent(...)` call.
 import "./steps/form-builder-step";
 import "./steps/esign-document-step";
+import "./steps/kyc-verification-step";
+import "./steps/selfie-verification-step";
+import "./steps/aa-link-bank-data-fetch-step";
+import "./steps/tentative-kfs-step";
+import "./steps/field-investigation-rcu-step";
+import "./steps/consumer-enach-step";
+import "./steps/final-offer-selection-step";
+import "./steps/penny-drop-step";
+import "./steps/kfs-acceptance-step";
 export type { FormBuilderStepContext } from "./steps/form-builder-step";
 export {
   UiComponentLoader,

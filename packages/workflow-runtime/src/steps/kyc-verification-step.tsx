@@ -1,13 +1,14 @@
+import { registerStepComponent } from "../step-component-registry";
 import React, { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Card, CardContent } from "./card";
-import { Button } from "./button";
-import { Input } from "./input";
-import { Label } from "./label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./dialog";
-import { Badge } from "./badge";
-import { toast } from "./sonner";
+import { Card, CardContent } from "@craft-apex/ui";
+import { Button } from "@craft-apex/ui";
+import { Input } from "@craft-apex/ui";
+import { Label } from "@craft-apex/ui";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@craft-apex/ui";
+import { Badge } from "@craft-apex/ui";
+import { toast } from "@craft-apex/ui";
 
 export const KycVerification = (props: any) => {
     const { context } = props;
@@ -450,38 +451,10 @@ export const KycVerification = (props: any) => {
             </CardContent>
         </Card>
         
-        {/* Footer Actions */}
-        <div className="mt-4 flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <Button
-                variant="outline"
-                type="button"
-                onClick={() => {
-                    if (props.onBack) {
-                        props.onBack();
-                    } else if (context?.cancelHref) {
-                        window.location.href = context.cancelHref;
-                    }
-                }}
-            >
-                Back
-            </Button>
-            <Button
-                type="button"
-                className="bg-blue-600 text-white hover:bg-blue-700"
-                disabled={context?.submitting}
-                onClick={async () => {
-                    if (context?.onSubmit) {
-                        await context.onSubmit();
-                    } else if (props.onNext) {
-                        props.onNext();
-                    }
-                }}
-            >
-                {context?.submitLabel || "Save & Next"}
-            </Button>
-        </div>
         </div>
     );
 };
 
 export default KycVerification;
+
+registerStepComponent("KYC_VERIFICATION", KycVerification);

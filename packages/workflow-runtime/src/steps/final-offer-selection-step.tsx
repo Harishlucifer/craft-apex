@@ -1,6 +1,7 @@
+import { registerStepComponent } from "../step-component-registry";
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from "./card";
-import { Button } from "./button";
+import { Card, CardContent } from "@craft-apex/ui";
+import { Button } from "@craft-apex/ui";
 import { getApiClient } from "@craft-apex/api";
 
 export const FinalOfferSelection = (props: any) => {
@@ -248,35 +249,8 @@ export const FinalOfferSelection = (props: any) => {
                 </CardContent>
             </Card>
 
-            {/* Footer Actions */}
-            <div className="mt-4 flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                <Button
-                    variant="outline"
-                    type="button"
-                    onClick={() => {
-                        if (props.onBack) {
-                            props.onBack();
-                        } else if (context?.cancelHref) {
-                            window.location.href = context.cancelHref;
-                        }
-                    }}
-                    disabled={isSaving}
-                >
-                    Back
-                </Button>
-                <Button
-                    type="button"
-                    className="bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300"
-                    disabled={isSaving || isFetchingOffers || context?.submitting}
-                    onClick={handleSave}
-                >
-                    {isSaving || context?.submitting ? (
-                        <i className="ri-loader-4-line animate-spin text-xl"></i>
-                    ) : (
-                        <>{context?.submitLabel || "Save & Next"}</>
-                    )}
-                </Button>
             </div>
-        </div>
     );
 };
+
+registerStepComponent("FINAL_OFFER_SELECTION", FinalOfferSelection);
