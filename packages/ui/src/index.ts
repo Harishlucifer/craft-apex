@@ -12,3 +12,4 @@ export * from "./components/skeleton";
 export * from "./components/sonner";
 export * from "./components/popover";
 export * from "./components/calendar";
+export * from "./components/stepper";

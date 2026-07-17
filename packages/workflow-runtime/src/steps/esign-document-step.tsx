@@ -210,9 +210,12 @@ export default function ESignDocumentStep({
               Document Generation
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6 flex flex-col md:flex-row gap-6 items-stretch">
+          <CardContent className="p-6 flex flex-row gap-6 items-stretch">
             {/* Document Preview Area */}
-            <div className="flex-1 min-h-[450px] relative rounded-xl border border-slate-100 bg-slate-50 flex justify-center items-center overflow-hidden shadow-inner">
+            <div
+              className="flex-1 relative rounded-xl border border-slate-100 bg-slate-50 flex justify-center items-center overflow-hidden shadow-inner"
+              style={{ minHeight: "550px" }}
+            >
               {isGenerating ? (
                 <div className="flex flex-col justify-center items-center gap-3">
                   <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
@@ -236,17 +239,17 @@ export default function ESignDocumentStep({
             </div>
 
             {/* Actions panel */}
-            <div className="w-full md:w-56 flex flex-col gap-3 justify-start shrink-0">
+            <div className="w-56 flex flex-col gap-3 justify-start shrink-0">
               {/* Generate Button */}
               {status === "success" ? (
-                <div className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-sm font-semibold">
-                  <Check className="h-4 w-4" /> Success
+                <div className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-emerald-500 text-white text-sm font-semibold shadow-sm">
+                  <Check className="h-4 w-4 stroke-[3]" /> Success
                 </div>
               ) : (
                 <Button
                   onClick={fetchDocumentPreview}
                   disabled={isGenerating}
-                  className="w-full justify-center transition-all bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+                  className="w-full justify-center transition-all bg-[#1E2A6B] hover:bg-[#1E2A6B]/90 text-white font-medium"
                 >
                   {isGenerating ? (
                     <>
@@ -264,14 +267,14 @@ export default function ESignDocumentStep({
 
               {/* Send to Sign Button */}
               {hasReferenceId ? (
-                <div className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-sm font-semibold">
-                  <CheckCheck className="h-4 w-4" /> Sent for Signing
+                <div className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-emerald-500 text-white text-sm font-semibold shadow-sm">
+                  <Check className="h-4 w-4 stroke-[3]" /> Sent for Signing
                 </div>
               ) : (
                 <Button
                   onClick={handleSendToSign}
                   disabled={!documentUrl || isSending || isGenerating}
-                  className="w-full justify-center font-medium bg-slate-900 hover:bg-slate-800 text-white"
+                  className="w-full justify-center font-medium bg-[#1E2A6B] hover:bg-[#1E2A6B]/90 text-white"
                 >
                   {isSending ? (
                     <>
@@ -285,18 +288,17 @@ export default function ESignDocumentStep({
 
               {/* Download Signed Document */}
               <Button
-                variant="outline"
                 onClick={handleDownloadDocument}
                 disabled={!hasReferenceId || isGenerating || isSending || isDownloading}
-                className="w-full justify-center gap-2 font-medium border-slate-200 hover:bg-slate-50"
+                className="w-full justify-center gap-2 font-medium bg-[#1E2A6B] hover:bg-[#1E2A6B]/90 text-white shadow-sm"
               >
                 {isDownloading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin text-slate-500" /> Downloading...
+                    <Loader2 className="h-4 w-4 animate-spin text-white" /> Downloading...
                   </>
                 ) : (
                   <>
-                    <Download className="h-4 w-4 text-slate-600" /> Download Signed Document
+                    <Download className="h-4 w-4 text-white" /> Download Signed Document
                   </>
                 )}
               </Button>
