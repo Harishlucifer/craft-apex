@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, ChevronRight, RotateCcw, XCircle } from "lucide-react";
-import { Badge, Button, Label, toast, cn } from "@craft-apex/ui";
+import { Badge, Button, Label, toast, cn, Stepper, type StepperStep } from "@craft-apex/ui";
 import {
   buildWorkflow,
   executeWorkflow,
@@ -113,6 +113,15 @@ export function WorkflowRuntime({
   const stageIndex = stages.findIndex(
     (s) => String(s.id) === String(currentStage?.id)
   );
+
+  const stepSteps = useMemo<StepperStep[]>(() => {
+    if (!currentStage) return [];
+    return currentStage.steps.map((step) => ({
+      id: step.id,
+      label: step.name,
+      description: step.description,
+    }));
+  }, [currentStage]);
 
   // Seed step data from the server-collected `step.data` whenever the active
   // step changes. Mirrors legacy <DynamicForm existingObject={…}/> behavior.
@@ -337,41 +346,16 @@ export function WorkflowRuntime({
           })}
         </nav>
 
-        {/* Horizontal Steps Stepper - Premium Pill style */}
+        {/* Horizontal Steps Stepper */}
         {currentStage && currentStage.steps.length > 0 && (
-          <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 bg-slate-50/20 px-6 py-4" aria-label="Steps Stepper">
-            {currentStage.steps.map((step, index) => {
-              const active = String(step.id) === String(currentStep?.id);
-              const stepIndexInStage = currentStage.steps.findIndex(
-                (s) => String(s.id) === String(currentStep?.id)
-              );
-              const stepDone = index < stepIndexInStage;
-
-              return (
-                <button
-                  key={String(step.id)}
-                  type="button"
-                  onClick={() => setActiveStepId(step.id)}
-                  className={cn(
-                    "flex items-center gap-2 px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-full border transition-all duration-200 focus:outline-none shrink-0",
-                    active
-                      ? "bg-[#1E2A6B] text-white border-[#1E2A6B] shadow-sm shadow-[#1E2A6B]/20"
-                      : stepDone
-                        ? "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100/50"
-                        : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50 hover:text-slate-700"
-                  )}
-                >
-                  {stepDone ? (
-                    <Check className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
-                  ) : active ? (
-                    <span className="h-2 w-2 rounded-full bg-white animate-pulse shrink-0" />
-                  ) : (
-                    <span className="h-2 w-2 rounded-full bg-slate-300 shrink-0" />
-                  )}
-                  <span className="truncate">{step.name}</span>
-                </button>
-              );
-            })}
+          <div className="bg-slate-50/20 border-b border-slate-200 px-6 py-4">
+            <Stepper
+              steps={stepSteps}
+              activeStepId={currentStep?.id ?? ""}
+              orientation="horizontal"
+              theme="indigo"
+              onStepClick={(stepId) => setActiveStepId(stepId)}
+            />
           </div>
         )}
 
