@@ -28,6 +28,7 @@ interface Props {
   title?: string;
   /** Optional back link. */
   onClose?: () => void;
+  orientation?: "vertical";
 }
 
 /**
@@ -40,6 +41,7 @@ export function WorkflowRuntime({
   partnerType,
   title,
   onClose,
+  orientation,
 }: Props) {
   const build = useBuildWorkflow();
   const execute = useExecuteWorkflow();
@@ -258,6 +260,86 @@ export function WorkflowRuntime({
     );
   }
 
+  const stepWorkspace = currentStep ? (
+    <div className={cn(
+      "bg-white",
+      orientation === "vertical" ? "border border-slate-200 rounded-xl overflow-hidden shadow-sm mt-4 mb-2 mr-2 w-full max-w-full" : ""
+    )}>
+      <div className={cn(orientation === "vertical" ? "p-4 sm:p-6" : "p-6")}>
+        <StepRenderer
+          ref={stepRendererRef}
+          step={currentStep}
+          value={stepData}
+          onChange={setStepData}
+          onNext={goNextLocal}
+          onBack={goPrev}
+          context={{
+            workflow,
+            sourceId,
+            onboardingId:
+              (workflow?.source as any)?.application?.onboarding_id ??
+              (workflow?.source as any)?.onboarding_id ??
+              sourceId,
+            workflowType,
+          }}
+        />
+      </div>
+
+      {/* Stepper Buttons inside the card footer */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-4 sm:px-6 py-4">
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={goPrev}
+            disabled={stageIndex === 0 && stepIndex === 0}
+            className="text-slate-600 hover:text-slate-800 border-slate-200"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={goNextLocal}
+            disabled={
+              stageIndex === stages.length - 1 &&
+              stepIndex === (currentStage?.steps.length ?? 0) - 1
+            }
+            className="text-slate-600 hover:text-slate-800 border-slate-200"
+          >
+            Skip <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => advance(true)}
+            disabled={execute.isPending}
+            className="text-rose-600 border-rose-200 hover:bg-rose-50"
+          >
+            <XCircle className="h-4 w-4" /> Reject
+          </Button>
+          <Button
+            type="button"
+            onClick={() => advance(false)}
+            disabled={execute.isPending}
+            className="bg-[#1E2A6B] text-white hover:bg-[#1E2A6B]/90"
+          >
+            <RotateCcw className="h-4 w-4" />{" "}
+            {execute.isPending ? "Submitting…" : "Submit & Next"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  ) : (
+    (!currentStage || currentStage.steps.length === 0) && (
+      <div className="py-12 text-center text-slate-400 text-sm bg-white">
+        No active steps. This stage is empty or completed.
+      </div>
+    )
+  );
+
   return (
     <div className="space-y-5">
       {/* Top Header Bar */}
@@ -346,96 +428,29 @@ export function WorkflowRuntime({
           })}
         </nav>
 
-        {/* Horizontal Steps Stepper */}
+        {/* Steps Stepper */}
         {currentStage && currentStage.steps.length > 0 && (
-          <div className="bg-slate-50/20 border-b border-slate-200 px-6 py-4">
+          <div className={cn(
+            orientation === "vertical" ? "p-6" : "bg-slate-50/20 border-b border-slate-200 px-6 py-4"
+          )}>
             <Stepper
               steps={stepSteps}
               activeStepId={currentStep?.id ?? ""}
-              orientation="horizontal"
+              orientation={orientation || "horizontal"}
               theme="indigo"
               onStepClick={(stepId) => setActiveStepId(stepId)}
+              renderContent={(stepId) => {
+                if (orientation === "vertical" && String(stepId) === String(currentStep?.id)) {
+                  return stepWorkspace;
+                }
+                return null;
+              }}
             />
           </div>
         )}
 
-        {/* Content body: Single Active Step workspace */}
-        {currentStep ? (
-          <div className="bg-white">
-            <div className="p-6">
-              <StepRenderer
-                ref={stepRendererRef}
-                step={currentStep}
-                value={stepData}
-                onChange={setStepData}
-                onNext={goNextLocal}
-                onBack={goPrev}
-                context={{
-                  workflow,
-                  sourceId,
-                  onboardingId:
-                    (workflow?.source as any)?.application?.onboarding_id ??
-                    (workflow?.source as any)?.onboarding_id ??
-                    sourceId,
-                  workflowType,
-                }}
-              />
-            </div>
-
-            {/* Stepper Buttons inside the card footer */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={goPrev}
-                  disabled={stageIndex === 0 && stepIndex === 0}
-                  className="text-slate-600 hover:text-slate-800 border-slate-200"
-                >
-                  <ArrowLeft className="h-4 w-4" /> Back
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={goNextLocal}
-                  disabled={
-                    stageIndex === stages.length - 1 &&
-                    stepIndex === (currentStage?.steps.length ?? 0) - 1
-                  }
-                  className="text-slate-600 hover:text-slate-800 border-slate-200"
-                >
-                  Skip <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => advance(true)}
-                  disabled={execute.isPending}
-                  className="text-rose-600 border-rose-200 hover:bg-rose-50"
-                >
-                  <XCircle className="h-4 w-4" /> Reject
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => advance(false)}
-                  disabled={execute.isPending}
-                  className="bg-[#1E2A6B] text-white hover:bg-[#1E2A6B]/90"
-                >
-                  <RotateCcw className="h-4 w-4" />{" "}
-                  {execute.isPending ? "Submitting…" : "Submit & Next"}
-                </Button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          (!currentStage || currentStage.steps.length === 0) && (
-            <div className="py-12 text-center text-slate-400 text-sm bg-white">
-              No active steps. This stage is empty or completed.
-            </div>
-          )
-        )}
+        {/* Content body: Single Active Step workspace (Horizontal only) */}
+        {orientation !== "vertical" && stepWorkspace}
       </div>
 
       <JourneyPicker

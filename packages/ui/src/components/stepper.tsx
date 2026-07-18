@@ -16,6 +16,7 @@ interface StepperProps {
   onStepClick?: (stepId: string | number) => void;
   className?: string;
   theme?: "indigo" | "emerald";
+  renderContent?: (stepId: string | number) => React.ReactNode;
 }
 
 export function Stepper({
@@ -26,6 +27,7 @@ export function Stepper({
   onStepClick,
   className,
   theme = "indigo",
+  renderContent,
 }: StepperProps) {
   const activeIndex = steps.findIndex((s) => String(s.id) === String(activeStepId));
 
@@ -86,8 +88,8 @@ export function Stepper({
                     position: "absolute",
                     left: "13px",
                     top: "28px",
+                    bottom: 0,
                     width: "2px",
-                    height: "24px", // Fills the exact gap of pb-6 (24px)
                     backgroundColor: status === "completed" ? "#10b981" : "#cbd5e1",
                     transition: "background-color 300ms",
                     zIndex: 1,
@@ -111,7 +113,7 @@ export function Stepper({
               </button>
 
               {/* Text content */}
-              <div className="flex flex-col gap-0.5 pt-0.5">
+              <div className="flex flex-col gap-0.5 pt-0.5 flex-1 w-full min-w-0">
                 <span
                   className={cn(
                     "text-xs sm:text-sm transition-colors duration-200",
@@ -134,6 +136,8 @@ export function Stepper({
                     {step.description}
                   </span>
                 )}
+                {/* Render active step content if provided */}
+                {renderContent && renderContent(step.id)}
               </div>
             </div>
           );

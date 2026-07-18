@@ -9,5 +9,6 @@ export default {
     "../../packages/ui/src/**/*.{ts,tsx}",
     "../../packages/i18n/src/**/*.{ts,tsx}",
     "../../packages/shared/src/**/*.{ts,tsx}",
+    "../../packages/workflow-runtime/src/**/*.{ts,tsx}",
   ],
 } satisfies Config;
