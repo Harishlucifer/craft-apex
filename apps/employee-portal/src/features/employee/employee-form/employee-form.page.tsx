@@ -6,7 +6,6 @@ import type { EmployeeSavePayload } from "./employee-form.types";
 import type { EmployeeStepContext } from "./employee-form.steps";
 import {
   buildNestedFormPayload,
-  useSaveStepData,
   WorkflowType,
   type FormBuilderStepContext,
   type MasterController,
@@ -31,14 +30,14 @@ export const employeeMaster: MasterWorkflowPageProps = {
 
 function useEmployeeController({
   id,
-  activeStep,
-  setActiveStep,
+  saveStep,
+  saving,
+  goNext,
   setSavedId,
 }: MasterControllerArgs): MasterController {
   const navigate = useNavigate();
 
   const { data: detail } = useEmployeeDetail(id);
-  const save = useSaveStepData();
 
   // Dropdown options (role/hierarchy/reportsTo/office) are no longer fetched
   // here — FormBuilderRenderer resolves each field's options itself via its
@@ -125,24 +124,18 @@ function useEmployeeController({
       user_address: detail?.user_address,
       data: detail?.data,
     };
-    try {
-      const { sourceId } = await save.mutateAsync({
-        workflowType: WorkflowType.EmployeeCreation,
-        data: payload,
-      });
-      // Legacy `index.js` reads `response?.data?.result?.employee_id` after
-      // create (saveStepData extracts it into sourceId); on edit the existing
-      // id is preserved.
-      const newId = sourceId ?? id;
-      if (newId && newId !== id) {
-        setSavedId(String(newId));
-      }
-      toast.success(`Employee ${id ? "updated" : "saved"} successfully`);
-      // Advance to step 2 instead of navigating away (legacy stepper parity).
-      setActiveStep(activeStep + 1);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Save failed");
+    const res = await saveStep(payload);
+    if (!res) return;
+    // Legacy `index.js` reads `response?.data?.result?.employee_id` after
+    // create (saveStepData extracts it into sourceId); on edit the existing
+    // id is preserved.
+    const newId = res.sourceId ?? id;
+    if (newId && newId !== id) {
+      setSavedId(String(newId));
     }
+    toast.success(`Employee ${id ? "updated" : "saved"} successfully`);
+    // Advance to step 2 instead of navigating away (legacy stepper parity).
+    goNext();
   };
 
   // Steps 2–4 need a saved employee id. Block forward navigation if not set.
@@ -152,7 +145,7 @@ function useEmployeeController({
   // whichever step is active reads only the keys its own adapter expects.
   const stepContext: FormBuilderStepContext & EmployeeStepContext = {
     onSubmit: submitFormBuilderStep,
-    submitting: save.isPending,
+    submitting: saving,
     submitLabel: id ? "Save & Next" : "Create & Next",
     cancelHref: "/settings/employee",
     lockField: "employee_code",

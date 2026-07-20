@@ -6,7 +6,6 @@ import type { RoleData } from "./role-form.types";
 import type { RoleStepContext } from "./role-form.steps";
 import {
   buildNestedFormPayload,
-  useSaveStepData,
   WorkflowType,
   type FormBuilderStepContext,
   type MasterController,
@@ -30,8 +29,9 @@ export const roleMaster: MasterWorkflowPageProps = {
 
 function useRoleController({
   id,
-  activeStep,
-  setActiveStep,
+  saveStep,
+  saving,
+  goNext,
   setSavedId,
 }: MasterControllerArgs): MasterController {
   const navigate = useNavigate();
@@ -62,8 +62,6 @@ function useRoleController({
   useEffect(() => {
     if (fetchedRole) setRole(fetchedRole);
   }, [fetchedRole]);
-
-  const save = useSaveStepData();
 
   const [formValues, setFormValues] = useState<Record<string, unknown>>({});
 
@@ -100,29 +98,23 @@ function useRoleController({
         ? { partner_category: role.partner_category }
         : {}),
     };
-    try {
-      const { result } = await save.mutateAsync({
-        workflowType: WorkflowType.RoleCreation,
-        data,
-      });
-      const saved = result as RoleData;
-      if (role?.partner_category) {
-        saved.partner_category = role.partner_category;
-      }
-      setRole(saved);
-
-      const isNew = !role?.user_role_id;
-      if (isNew && saved.user_role_id != null) {
-        setSavedId(String(saved.user_role_id));
-        navigate(
-          `/settings/role/create/${String(saved.user_role_id)}#${saved.user_type}`,
-          { replace: true },
-        );
-      }
-      setActiveStep(activeStep + 1);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to save role");
+    const res = await saveStep(data);
+    if (!res) return;
+    const saved = res.result as RoleData;
+    if (role?.partner_category) {
+      saved.partner_category = role.partner_category;
     }
+    setRole(saved);
+
+    const isNew = !role?.user_role_id;
+    if (isNew && saved.user_role_id != null) {
+      setSavedId(String(saved.user_role_id));
+      navigate(
+        `/settings/role/create/${String(saved.user_role_id)}#${saved.user_type}`,
+        { replace: true },
+      );
+    }
+    goNext();
   };
 
   const submitAccessRightsStep = async () => {
@@ -130,28 +122,22 @@ function useRoleController({
     const data: RoleData = { ...role };
     // Legacy AccessRights.submitData: blank partner_category for EMPLOYEE.
     if (data.user_type === "EMPLOYEE") data.partner_category = null;
-    try {
-      await save.mutateAsync({
-        workflowType: WorkflowType.RoleCreation,
-        data,
-      });
-      toast.success("Role Access Rights saved successfully");
-      navigate("/settings/role");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to save");
-    }
+    const res = await saveStep(data);
+    if (!res) return;
+    toast.success("Role Access Rights saved successfully");
+    navigate("/settings/role");
   };
 
   // Union of everything any of this page's registered steps might need —
   // whichever step is active reads only the keys its own adapter expects.
   const stepContext: FormBuilderStepContext & RoleStepContext = {
     onSubmit: submitFormBuilderStep,
-    submitting: save.isPending,
+    submitting: saving,
     cancelHref: "/settings/role",
     role,
     onRoleChange: setRole,
     onSave: submitAccessRightsStep,
-    saving: save.isPending,
+    saving,
     partnerCategories,
     partnerCategory,
     onPartnerCategoryChange: setPartnerCategory,

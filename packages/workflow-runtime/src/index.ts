@@ -7,6 +7,7 @@ export {
   type UseMasterController,
   type MasterWorkflowPageProps,
 } from "./master-workflow-page";
+export { useStepNavigation, useStepSave } from "./use-step-flow";
 export { JourneyPicker } from "./journey-picker";
 export { FormBuilderRenderer } from "./form-builder-renderer";
 // Side-effect import: registers "FORM_BUILDER" in the step registry as soon

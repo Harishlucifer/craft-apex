@@ -1,21 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, RotateCcw, XCircle } from "lucide-react";
 import { Badge, Button, Label, toast } from "@craft-apex/ui";
 import {
   buildWorkflow,
   executeWorkflow,
   hasStepSaveEndpoint,
-  saveStepData,
   useBuildWorkflow,
   useExecuteWorkflow,
 } from "./workflow-runtime.api";
+import { useStepNavigation, useStepSave } from "./use-step-flow";
 import { JourneyPicker } from "./journey-picker";
 import { StepRenderer, type StepRendererHandle } from "./step-renderer";
 import type {
   JourneyType,
   WorkflowBuildResponse,
   WorkflowStageDef,
-  WorkflowStepDef,
 } from "./workflow-runtime.types";
 
 interface Props {
@@ -43,17 +42,27 @@ export function WorkflowRuntime({
 }: Props) {
   const build = useBuildWorkflow();
   const execute = useExecuteWorkflow();
+  const stepSave = useStepSave(workflowType);
 
   const [workflow, setWorkflow] = useState<WorkflowBuildResponse | null>(null);
-  const [activeStageId, setActiveStageId] = useState<string | number | null>(
-    null
-  );
-  const [activeStepId, setActiveStepId] = useState<string | number | null>(
-    null
-  );
   const [stepData, setStepData] = useState<Record<string, unknown>>({});
   const [pickerOpen, setPickerOpen] = useState(false);
   const stepRendererRef = useRef<StepRendererHandle>(null);
+
+  // Shared step-navigation state machine (also drives the master stepper).
+  const stages: WorkflowStageDef[] = workflow?.stages ?? [];
+  const nav = useStepNavigation(stages);
+  const { currentStage, currentStep, stageIndex, stepIndex } = nav;
+
+  const handleBuildResult = (w: WorkflowBuildResponse | null) => {
+    if (!w) return;
+    setWorkflow(w);
+    // Resume at the backend's last-active step (falls back to step one).
+    nav.setActive(
+      w.last_active_stage_id ?? w.stages?.[0]?.id ?? null,
+      w.last_active_step_id ?? w.stages?.[0]?.steps?.[0]?.id ?? null,
+    );
+  };
 
   // Load on mount / sourceId change.
   useEffect(() => {
@@ -73,36 +82,6 @@ export function WorkflowRuntime({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sourceId, workflowType]);
 
-  const handleBuildResult = (w: WorkflowBuildResponse | null) => {
-    if (!w) return;
-    setWorkflow(w);
-    setActiveStageId(w.last_active_stage_id ?? w.stages?.[0]?.id ?? null);
-    setActiveStepId(
-      w.last_active_step_id ?? w.stages?.[0]?.steps?.[0]?.id ?? null
-    );
-  };
-
-  const stages: WorkflowStageDef[] = workflow?.stages ?? [];
-  const currentStage = useMemo<WorkflowStageDef | undefined>(
-    () =>
-      stages.find((s) => String(s.id) === String(activeStageId)) ?? stages[0],
-    [stages, activeStageId]
-  );
-  const currentStep = useMemo<WorkflowStepDef | undefined>(
-    () =>
-      currentStage?.steps.find(
-        (s) => String(s.id) === String(activeStepId)
-      ) ?? currentStage?.steps?.[0],
-    [currentStage, activeStepId]
-  );
-
-  const stepIndex = currentStage?.steps.findIndex(
-    (s) => String(s.id) === String(currentStep?.id)
-  );
-  const stageIndex = stages.findIndex(
-    (s) => String(s.id) === String(currentStage?.id)
-  );
-
   // Seed step data from the server-collected `step.data` whenever the active
   // step changes. Mirrors legacy <DynamicForm existingObject={…}/> behavior.
   useEffect(() => {
@@ -113,32 +92,6 @@ export function WorkflowRuntime({
       setStepData({});
     }
   }, [currentStep?.id]);
-
-  const goPrev = () => {
-    if (!currentStage || stepIndex == null) return;
-    if (stepIndex > 0) {
-      setActiveStepId(currentStage.steps[stepIndex - 1]!.id);
-      return;
-    }
-    if (stageIndex > 0) {
-      const prevStage = stages[stageIndex - 1]!;
-      setActiveStageId(prevStage.id);
-      setActiveStepId(prevStage.steps[prevStage.steps.length - 1]?.id ?? null);
-    }
-  };
-
-  const goNextLocal = () => {
-    if (!currentStage || stepIndex == null) return;
-    if (stepIndex < currentStage.steps.length - 1) {
-      setActiveStepId(currentStage.steps[stepIndex + 1]!.id);
-      return;
-    }
-    if (stageIndex < stages.length - 1) {
-      const nextStage = stages[stageIndex + 1]!;
-      setActiveStageId(nextStage.id);
-      setActiveStepId(nextStage.steps[0]?.id ?? null);
-    }
-  };
 
   // Phase 8.5 — per-step save before execute. Legacy
   // PartnerFlowWithDynamic.moveForward POSTs the form data to the workflow's
@@ -161,17 +114,11 @@ export function WorkflowRuntime({
         toast.error("Please complete the required fields before continuing.");
         return;
       }
-      try {
-        const saved = await saveStepData({
-          workflowType,
-          data: payload ?? stepData,
-        });
-        if (saved.sourceId != null) {
-          finalSourceId = saved.sourceId;
-        }
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Save failed");
-        return;
+      // Shared save (toasts on error, returns null on failure).
+      const saved = await stepSave.save(payload ?? stepData);
+      if (!saved) return;
+      if (saved.sourceId != null) {
+        finalSourceId = saved.sourceId;
       }
     }
 
@@ -273,8 +220,7 @@ export function WorkflowRuntime({
         <aside className="col-span-12 md:col-span-4">
           <ol className="space-y-3">
             {stages.map((stage, si) => {
-              const stageActive =
-                String(stage.id) === String(currentStage?.id);
+              const stageActive = String(stage.id) === String(currentStage?.id);
               const stageDone = si < stageIndex;
               return (
                 <li
@@ -283,10 +229,9 @@ export function WorkflowRuntime({
                 >
                   <button
                     type="button"
-                    onClick={() => {
-                      setActiveStageId(stage.id);
-                      setActiveStepId(stage.steps[0]?.id ?? null);
-                    }}
+                    onClick={() =>
+                      nav.setActive(stage.id, stage.steps[0]?.id ?? null)
+                    }
                     className="flex w-full items-center gap-2 text-left"
                   >
                     <span
@@ -319,7 +264,7 @@ export function WorkflowRuntime({
                           <li key={String(step.id)}>
                             <button
                               type="button"
-                              onClick={() => setActiveStepId(step.id)}
+                              onClick={() => nav.setActive(stage.id, step.id)}
                               className={
                                 active
                                   ? "flex w-full items-center gap-2 rounded-md bg-[#4C7DF0]/10 px-2 py-1 text-left text-xs font-medium text-[#4C7DF0]"
@@ -376,19 +321,16 @@ export function WorkflowRuntime({
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={goPrev}
-                      disabled={stageIndex === 0 && stepIndex === 0}
+                      onClick={nav.goBack}
+                      disabled={nav.isFirst}
                     >
                       <ArrowLeft className="h-4 w-4" /> Back
                     </Button>
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={goNextLocal}
-                      disabled={
-                        stageIndex === stages.length - 1 &&
-                        stepIndex === (currentStage?.steps.length ?? 0) - 1
-                      }
+                      onClick={nav.goNext}
+                      disabled={nav.isLast}
                     >
                       Skip <ArrowRight className="h-4 w-4" />
                     </Button>

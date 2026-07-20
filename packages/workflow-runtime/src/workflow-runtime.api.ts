@@ -137,6 +137,7 @@ const STEP_SAVE_ENDPOINTS: Record<string, string> = {
   ROLE_CREATION: "/alpha/v1/master/user-role",
   LOAN_TYPE_CREATION: "/alpha/v1/master/loan-type",
   LENDER_CREATION: "/alpha/v1/master/lender",
+  TERRITORY_MANAGEMENT: "/alpha/v1/master/territory",
   LENDER_PINCODE_UPLOAD: "/alpha/v1/master/lender/pincode",
 };
 

@@ -6,7 +6,6 @@ import type { LoanTypeSavePayload, SubLoanRow } from "./loan-type-form.types";
 import type { LoanTypeStepContext } from "./loan-type-form.steps";
 import {
   buildNestedFormPayload,
-  useSaveStepData,
   WorkflowType,
   type FormBuilderStepContext,
   type MasterController,
@@ -31,8 +30,9 @@ export const loanTypeMaster: MasterWorkflowPageProps = {
 
 function useLoanTypeController({
   id,
-  activeStep,
-  setActiveStep,
+  saveStep,
+  saving,
+  goNext,
   setSavedId,
 }: MasterControllerArgs): MasterController {
   const navigate = useNavigate();
@@ -49,7 +49,6 @@ function useLoanTypeController({
   );
 
   const { data: detail } = useLoanTypeDetail(id);
-  const save = useSaveStepData();
 
   // Sub-loan list lives at the page level so step 2 can mutate it, and so
   // step 1 saves preserve it (legacy buildPayload always included sub_loans).
@@ -115,22 +114,17 @@ function useLoanTypeController({
       ...(id ? { loan_type_id: id } : {}),
       sub_loans: subLoans,
     };
-    try {
-      const { sourceId: newId } = await save.mutateAsync({
-        workflowType: WorkflowType.LoanTypeCreation,
-        data: payload,
+    const res = await saveStep(payload);
+    if (!res) return;
+    const newId = res.sourceId;
+    toast.success(`Loan type ${id ? "updated" : "saved"} successfully`);
+    if (!id && newId) {
+      setSavedId(String(newId));
+      navigate(`/settings/add-loan-types/${String(newId)}`, {
+        replace: true,
       });
-      toast.success(`Loan type ${id ? "updated" : "saved"} successfully`);
-      if (!id && newId) {
-        setSavedId(String(newId));
-        navigate(`/settings/add-loan-types/${String(newId)}`, {
-          replace: true,
-        });
-      }
-      setActiveStep(activeStep + 1);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong");
     }
+    goNext();
   };
 
   const submitSubLoanTypesStep = async () => {
@@ -152,23 +146,17 @@ function useLoanTypeController({
       status: Number(detail?.status ?? 1),
       sub_loans: subLoans,
     };
-    try {
-      await save.mutateAsync({
-        workflowType: WorkflowType.LoanTypeCreation,
-        data: payload,
-      });
-      toast.success("Sub loan types saved successfully");
-      navigate("/settings/loan-types");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong");
-    }
+    const res = await saveStep(payload);
+    if (!res) return;
+    toast.success("Sub loan types saved successfully");
+    navigate("/settings/loan-types");
   };
 
   // Union of everything any of this page's registered steps might need —
   // whichever step is active reads only the keys its own adapter expects.
   const stepContext: FormBuilderStepContext & LoanTypeStepContext = {
     onSubmit: submitFormBuilderStep,
-    submitting: save.isPending,
+    submitting: saving,
     cancelHref: "/settings/loan-types",
     lockField: "loan_code",
     lockWhen: id,
@@ -176,7 +164,7 @@ function useLoanTypeController({
     subLoans,
     onSubLoansChange: setSubLoans,
     onSave: submitSubLoanTypesStep,
-    saving: save.isPending,
+    saving,
   };
 
   return {

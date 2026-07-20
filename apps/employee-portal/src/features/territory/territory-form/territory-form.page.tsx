@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@craft-apex/ui";
-import { useSaveTerritory, useTerritoryDetail } from "./territory-form.api";
+import { useTerritoryDetail } from "./territory-form.api";
 import type {
   BoundaryCoordinate,
   TerritorySavePayload,
@@ -32,11 +32,12 @@ export const territoryMaster: MasterWorkflowPageProps = {
 
 function useTerritoryController({
   id,
+  saveStep,
+  saving,
 }: MasterControllerArgs): MasterController {
   const navigate = useNavigate();
 
   const { data: detail } = useTerritoryDetail(id);
-  const save = useSaveTerritory();
 
   const [formValues, setFormValues] = useState<Record<string, unknown>>({});
 
@@ -210,18 +211,15 @@ function useTerritoryController({
           : undefined,
     };
 
-    try {
-      await save.mutateAsync(payload);
-      toast.success(id ? "Updated successfully!" : "Created successfully!");
-      navigate("/settings/territory-management");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Save failed");
-    }
+    const res = await saveStep(payload);
+    if (!res) return;
+    toast.success(id ? "Updated successfully!" : "Created successfully!");
+    navigate("/settings/territory-management");
   };
 
   const stepContext: FormBuilderStepContext = {
     onSubmit: submitFormBuilderStep,
-    submitting: save.isPending,
+    submitting: saving,
     submitLabel: id ? "Save" : "Create",
     cancelHref: "/settings/territory-management",
     lockField: "code",

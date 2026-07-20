@@ -14,7 +14,6 @@ import type {
 import type { LenderStepContext } from "./lender-form.steps";
 import {
   buildNestedFormPayload,
-  useSaveStepData,
   WorkflowType,
   type FormBuilderStepContext,
   type MasterController,
@@ -38,8 +37,9 @@ export const lenderMaster: MasterWorkflowPageProps = {
 
 function useLenderController({
   id,
-  activeStep,
-  setActiveStep,
+  saveStep,
+  saving,
+  goNext,
   setSavedId,
 }: MasterControllerArgs): MasterController {
   const navigate = useNavigate();
@@ -47,7 +47,6 @@ function useLenderController({
   const { data: lookups = [] } = useLenderLookups();
   const { data: loanTypeOptions = [] } = useLoanTypeOptions();
   const { data: detail } = useLenderDetail(id);
-  const save = useSaveStepData();
 
   const lookupOptions = useMemo(() => {
     const filter = (g: string) =>
@@ -115,55 +114,38 @@ function useLenderController({
   const submitFormBuilderStep = async () => {
     const nested = buildNestedFormPayload(formValues);
     const payload = buildPayload(nested, loanTypes, contracts);
-    try {
-      const { sourceId: newId } = await save.mutateAsync({
-        workflowType: WorkflowType.LenderCreation,
-        data: payload,
-      });
-      toast.success(`Lender ${id ? "updated" : "saved"} successfully`);
-      if (!id && newId) {
-        setSavedId(String(newId));
-        navigate(`/settings/add-lender/${String(newId)}`, { replace: true });
-      }
-      setActiveStep(activeStep + 1);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong");
+    const res = await saveStep(payload);
+    if (!res) return;
+    const newId = res.sourceId;
+    toast.success(`Lender ${id ? "updated" : "saved"} successfully`);
+    if (!id && newId) {
+      setSavedId(String(newId));
+      navigate(`/settings/add-lender/${String(newId)}`, { replace: true });
     }
+    goNext();
   };
 
   const submitLoanTypesStep = async () => {
     const nested = buildNestedFormPayload(formValues);
     const payload = buildPayload(nested, loanTypes, contracts);
-    try {
-      await save.mutateAsync({
-        workflowType: WorkflowType.LenderCreation,
-        data: payload,
-      });
-      toast.success("Loan types saved successfully");
-      setActiveStep(activeStep + 1);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong");
-    }
+    const res = await saveStep(payload);
+    if (!res) return;
+    toast.success("Loan types saved successfully");
+    goNext();
   };
 
   const submitContractsStep = async () => {
     const nested = buildNestedFormPayload(formValues);
     const payload = buildPayload(nested, loanTypes, contracts);
-    try {
-      await save.mutateAsync({
-        workflowType: WorkflowType.LenderCreation,
-        data: payload,
-      });
-      toast.success("Lender created successfully");
-      navigate("/settings/lender");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong");
-    }
+    const res = await saveStep(payload);
+    if (!res) return;
+    toast.success("Lender created successfully");
+    navigate("/settings/lender");
   };
 
   const stepContext: FormBuilderStepContext & LenderStepContext = {
     onSubmit: submitFormBuilderStep,
-    submitting: save.isPending,
+    submitting: saving,
     cancelHref: "/settings/lender",
     lockField: "code",
     lockWhen: id,
@@ -178,7 +160,7 @@ function useLenderController({
     linkTypeOptions: lookupOptions.linkType,
     onSaveLoanTypes: submitLoanTypesStep,
     onSaveContracts: submitContractsStep,
-    saving: save.isPending,
+    saving,
   };
 
   return {

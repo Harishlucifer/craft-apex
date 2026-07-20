@@ -1,11 +1,12 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Check } from "lucide-react";
 import { Button } from "@craft-apex/ui";
-import { buildWorkflow } from "./workflow-runtime.api";
+import { buildWorkflow, type StepSaveResult } from "./workflow-runtime.api";
+import { useStepNavigation, useStepSave } from "./use-step-flow";
 import { UiComponentLoader } from "./step-component-registry";
-import type { WorkflowStepDef } from "./workflow-runtime.types";
+import type { WorkflowStageDef } from "./workflow-runtime.types";
 
 /**
  * Generic settings-master form page — the masters' analog of OnboardingPage.
@@ -30,9 +31,16 @@ export interface MasterControllerArgs {
   /** Raw route `:id` — undefined in create mode. Used for Add/Edit wording
    *  and create-only branches (some masters lock a code field once saved). */
   routeId: string | undefined;
-  /** Active step index (ignored by single-step masters). */
-  activeStep: number;
-  setActiveStep: (i: number) => void;
+  /** Save the current step's payload through the common flow (shared with
+   *  WorkflowRuntime — see useStepSave). Bakes in the workflow type, toasts on
+   *  failure, and resolves `null` when the save failed so the caller can just
+   *  `if (!res) return;` instead of writing its own try/catch. */
+  saveStep: (data: object) => Promise<StepSaveResult | null>;
+  /** Whether a saveStep call is in flight (for button spinners). */
+  saving: boolean;
+  /** Advance to / retreat from the next / previous step (shared navigation). */
+  goNext: () => void;
+  goBack: () => void;
   /** Record the backend-issued id after the first create save, so later steps
    *  and the workflow rebuild pick it up. */
   setSavedId: (id: string) => void;
@@ -81,16 +89,18 @@ export function MasterWorkflowPage({
   const { id: routeId } = useParams<{ id?: string }>();
   const [savedId, setSavedId] = useState<string | undefined>(routeId);
   const id = savedId ?? routeId;
-  const [activeStep, setActiveStep] = useState(0);
 
   const { data: workflow, isLoading: workflowLoading } = useQuery({
     queryKey: [`${workflowType}-workflow`, id ?? ""],
     queryFn: () => buildWorkflow({ workflowType, sourceId: id }),
   });
-  const steps: WorkflowStepDef[] = useMemo(
-    () => workflow?.stages?.flatMap((s) => s.steps) ?? [],
-    [workflow],
-  );
+
+  // Shared "next" (navigation) and "API save" — the same primitives
+  // WorkflowRuntime uses, so the two engines don't reimplement either.
+  const stages: WorkflowStageDef[] = workflow?.stages ?? [];
+  const nav = useStepNavigation(stages);
+  const stepSave = useStepSave(workflowType);
+  const steps = nav.flatSteps;
 
   const {
     formValues,
@@ -98,9 +108,17 @@ export function MasterWorkflowPage({
     stepContext,
     singleStep,
     canEnterLaterSteps,
-  } = useController({ id, routeId, activeStep, setActiveStep, setSavedId });
+  } = useController({
+    id,
+    routeId,
+    saveStep: stepSave.save,
+    saving: stepSave.saving,
+    goNext: nav.goNext,
+    goBack: nav.goBack,
+    setSavedId,
+  });
 
-  const activeStepDef = singleStep ? steps[0] : steps[activeStep];
+  const activeStepDef = singleStep ? steps[0] : nav.currentStep;
   const heading = staticHeading ?? `${routeId ? "Edit" : "Add"} ${noun}`;
 
   return (
@@ -142,9 +160,10 @@ export function MasterWorkflowPage({
         <>
           <Stepper
             steps={steps.map((s) => s.name)}
-            activeStep={activeStep}
+            activeStep={nav.flatIndex}
             onStepClick={(i) => {
-              if (i <= activeStep || canEnterLaterSteps) setActiveStep(i);
+              if (i <= nav.flatIndex || canEnterLaterSteps)
+                nav.goToFlatIndex(i);
             }}
           />
 
@@ -152,8 +171,8 @@ export function MasterWorkflowPage({
             step={activeStepDef}
             value={formValues}
             onChange={setFormValues}
-            onNext={() => setActiveStep(activeStep + 1)}
-            onBack={() => setActiveStep(activeStep - 1)}
+            onNext={nav.goNext}
+            onBack={nav.goBack}
             context={stepContext}
           />
         </>
