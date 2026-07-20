@@ -1,9 +1,8 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type {
   EmployeeDetail,
   EmployeeOption,
-  EmployeeSavePayload,
   LookupItem,
   OfficeRow,
   RoleRow,
@@ -72,12 +71,5 @@ export function useEmployeeDetail(id: string | undefined) {
       const r = body?.result ?? body?.data ?? body;
       return (r ?? null) as EmployeeDetail | null;
     },
-  });
-}
-
-export function useSaveEmployee() {
-  return useMutation({
-    mutationFn: async (payload: EmployeeSavePayload) =>
-      api.post<unknown, any>(EMPLOYEE_URL, payload),
   });
 }

@@ -3,13 +3,14 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Check } from "lucide-react";
 import { Button, toast } from "@craft-apex/ui";
-import { useEmployeeDetail, useSaveEmployee } from "./employee-form.api";
+import { useEmployeeDetail } from "./employee-form.api";
 import type { EmployeeSavePayload } from "./employee-form.types";
 import type { EmployeeStepContext } from "./employee-form.steps";
 import {
   buildNestedFormPayload,
   buildWorkflow,
   UiComponentLoader,
+  useSaveStepData,
   WorkflowType,
   type FormBuilderStepContext,
   type WorkflowStepDef,
@@ -39,7 +40,7 @@ export default function EmployeeFormPage() {
   const activeStepDef = steps[activeStep];
 
   const { data: detail } = useEmployeeDetail(id);
-  const save = useSaveEmployee();
+  const save = useSaveStepData();
 
   // Dropdown options (role/hierarchy/reportsTo/office) are no longer fetched
   // here — FormBuilderRenderer resolves each field's options itself via its
@@ -126,15 +127,14 @@ export default function EmployeeFormPage() {
       data: detail?.data,
     };
     try {
-      const res = await save.mutateAsync(payload);
+      const { sourceId } = await save.mutateAsync({
+        workflowType: WorkflowType.EmployeeCreation,
+        data: payload,
+      });
       // Legacy `index.js` reads `response?.data?.result?.employee_id` after
-      // create; on edit the existing id is preserved.
-      const newId =
-        (res as any)?.result?.employee_id ??
-        (res as any)?.data?.result?.employee_id ??
-        (res as any)?.result?.user?.employee_id ??
-        (res as any)?.employee_id ??
-        id;
+      // create (saveStepData extracts it into sourceId); on edit the existing
+      // id is preserved.
+      const newId = sourceId ?? id;
       if (newId && newId !== savedEmployeeId) {
         setSavedEmployeeId(String(newId));
       }
