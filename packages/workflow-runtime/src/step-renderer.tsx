@@ -73,6 +73,7 @@ export const StepRenderer = forwardRef<StepRendererHandle, Props>(
     const useDynamicForm =
       step.ui_component === "DYNAMIC_FORM" && formBuilder != null;
 
+    const customRef = useRef<{ submitFormExternally?: () => Promise<boolean> } | null>(null);
     const dynamicFormRef = useRef<{ submitFormExternally: () => void } | null>(
       null
     );
@@ -84,6 +85,10 @@ export const StepRenderer = forwardRef<StepRendererHandle, Props>(
       ref,
       (): StepRendererHandle => ({
         getPayload: async () => {
+          if (customRef.current?.submitFormExternally) {
+            const ok = await customRef.current.submitFormExternally();
+            if (!ok) return null;
+          }
           if (!useDynamicForm) return value;
           return new Promise((resolve) => {
             resolvePayload.current = resolve;
@@ -94,17 +99,18 @@ export const StepRenderer = forwardRef<StepRendererHandle, Props>(
       [useDynamicForm, value]
     );
 
-    const Component = getStepComponent(step.ui_component);
+    const Component = getStepComponent(step.ui_component) as any;
 
     return (
       <div className="space-y-3">
         {Component ? (
           <Component
+            ref={customRef}
             step={step}
             value={value}
             onChange={onChange}
-            onNext={onNext ?? (() => {})}
-            onBack={onBack ?? (() => {})}
+            onNext={onNext ?? (() => { })}
+            onBack={onBack ?? (() => { })}
             context={context}
           />
         ) : useDynamicForm ? (
