@@ -3,13 +3,14 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Check } from "lucide-react";
 import { Button, toast } from "@craft-apex/ui";
-import { useRoleDetail, useRoleFormLookups, useSaveRole } from "./role-form.api";
+import { useRoleDetail, useRoleFormLookups } from "./role-form.api";
 import type { RoleData } from "./role-form.types";
 import type { RoleStepContext } from "./role-form.steps";
 import {
   buildNestedFormPayload,
   buildWorkflow,
   UiComponentLoader,
+  useSaveStepData,
   WorkflowType,
   type FormBuilderStepContext,
   type WorkflowStepDef,
@@ -64,7 +65,7 @@ export default function RoleFormPage() {
     if (fetchedRole) setRole(fetchedRole);
   }, [fetchedRole]);
 
-  const save = useSaveRole();
+  const save = useSaveStepData();
 
   const [formValues, setFormValues] = useState<Record<string, unknown>>({});
 
@@ -103,7 +104,11 @@ export default function RoleFormPage() {
         : {}),
     };
     try {
-      const saved = await save.mutateAsync(data);
+      const { result } = await save.mutateAsync({
+        workflowType: WorkflowType.RoleCreation,
+        data,
+      });
+      const saved = result as RoleData;
       if (role?.partner_category) {
         saved.partner_category = role.partner_category;
       }
@@ -129,7 +134,10 @@ export default function RoleFormPage() {
     // Legacy AccessRights.submitData: blank partner_category for EMPLOYEE.
     if (data.user_type === "EMPLOYEE") data.partner_category = null;
     try {
-      await save.mutateAsync(data);
+      await save.mutateAsync({
+        workflowType: WorkflowType.RoleCreation,
+        data,
+      });
       toast.success("Role Access Rights saved successfully");
       navigate("/settings/role");
     } catch (e) {

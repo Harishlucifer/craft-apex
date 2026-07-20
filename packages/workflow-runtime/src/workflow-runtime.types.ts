@@ -34,6 +34,16 @@ export const WorkflowType = {
    * Must match the workflow_type configured server-side via /settings/workflow.
    */
   LoanTypeCreation: "LOAN_TYPE_CREATION",
+  /**
+   * Drives the Territory create/edit form (see territory-form.page.tsx).
+   * Must match the workflow_type configured server-side via /settings/workflow.
+   */
+  TerritoryManagement: "TERRITORY_MANAGEMENT",
+  /**
+   * Drives the Lender create/edit step list (see lender-form.page.tsx).
+   * Must match the workflow_type configured server-side via /settings/workflow.
+   */
+  LenderCreation: "LENDER_CREATION",
 } as const;
 
 export type WorkflowTypeValue =

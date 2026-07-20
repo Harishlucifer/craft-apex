@@ -25,6 +25,8 @@ export interface FieldValidation {
   maxLength?: number;
   min?: string;
   max?: string;
+  /** `fieldType: "file"` only — reject files larger than this (KB). */
+  maxFileSizeKB?: number;
 }
 
 export interface AutoFillMapping {
@@ -54,6 +56,10 @@ export interface FormFieldDef {
    * | "checkbox" | "checkbox-group" | "radio"
    * | "dropdown" | "dropdown-multi-select" | "dropdown-search"
    * | "text-auto-complete"
+   *
+   * Plus one addition beyond legacy, since this renderer's own base64
+   * file-read logic didn't exist upstream: "file" (see
+   * FieldValidation.maxFileSizeKB for its size-limit knob).
    */
   fieldType?: string;
   hidden?: boolean;

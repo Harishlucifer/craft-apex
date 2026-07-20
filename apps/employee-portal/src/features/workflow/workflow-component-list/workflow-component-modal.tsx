@@ -8,7 +8,7 @@ import {
   DialogTitle,
   toast,
 } from "@craft-apex/ui";
-import { FormBuilderRenderer, type FormDefinition } from "@/features/workflow-runtime";
+import { FormBuilderRenderer, type FormDefinition } from "@craft-apex/workflow-runtime";
 import {
   useSaveWorkflowComponent,
   type SaveWorkflowComponentPayload,

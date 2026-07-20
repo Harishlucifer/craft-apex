@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type {
   LookupItem,
@@ -52,16 +52,6 @@ export function useRoleDetail(
     queryFn: async (): Promise<RoleData | null> => {
       const body = await api.get<unknown, RoleEnvelope>(url);
       return body?.result ?? null;
-    },
-  });
-}
-
-/** POST role (create or update — `user_role_id` present means update). */
-export function useSaveRole() {
-  return useMutation({
-    mutationFn: async (data: RoleData): Promise<RoleData> => {
-      const body = await api.post<unknown, RoleEnvelope>(URL_ROLES, data);
-      return body?.result;
     },
   });
 }
