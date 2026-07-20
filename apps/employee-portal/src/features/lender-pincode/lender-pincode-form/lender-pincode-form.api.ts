@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type {
   LenderLoanTypeRow,
@@ -10,7 +10,6 @@ import type {
 const LENDER_URL = "/alpha/v1/master/lender";
 const LOOKUP_URL = "/alpha/v1/lookup?group_code=LENDER_PINCODE_OPTION";
 const TEMPLATE_URL = "/alpha/v1/migration/download";
-const PINCODE_SAVE_URL = "/alpha/v1/master/lender/pincode";
 
 export function useLenderOptions() {
   return useQuery({
@@ -29,12 +28,10 @@ export function useLenderLoanTypes(lenderId: string | number | undefined) {
     enabled: Boolean(lenderId),
     queryFn: async (): Promise<LenderLoanTypeRow[]> => {
       const body = await api.get<unknown, any>(
-        `${LENDER_URL}/${encodeURIComponent(String(lenderId))}`
+        `${LENDER_URL}/${encodeURIComponent(String(lenderId))}`,
       );
       const lender = body?.result ?? body?.data ?? body;
-      const list: LenderLoanTypeRow[] = Array.isArray(
-        lender?.lender_loan_type
-      )
+      const list: LenderLoanTypeRow[] = Array.isArray(lender?.lender_loan_type)
         ? lender.lender_loan_type
         : [];
       // Legacy: only status===1, deduped by loan_type_id.
@@ -70,30 +67,10 @@ export function useTemplateLink(templateType: string | undefined) {
     enabled: Boolean(templateType),
     queryFn: async (): Promise<TemplateLinkResult | null> => {
       const body = await api.get<unknown, any>(
-        `${TEMPLATE_URL}/${encodeURIComponent(String(templateType))}`
+        `${TEMPLATE_URL}/${encodeURIComponent(String(templateType))}`,
       );
       const r = body?.result ?? body?.data ?? body;
       return r && typeof r.link === "string" ? (r as TemplateLinkResult) : null;
-    },
-  });
-}
-
-export interface SavePincodeInput {
-  lender_id: string | number;
-  lender_template_type: string;
-  loan_type_id: string | number;
-  template: File;
-}
-
-export function useSavePincodeUpload() {
-  return useMutation({
-    mutationFn: async (v: SavePincodeInput) => {
-      const fd = new FormData();
-      fd.append("lender_id", String(v.lender_id));
-      fd.append("lender_template_type", v.lender_template_type);
-      fd.append("loan_type_id", String(v.loan_type_id));
-      fd.append("template", v.template);
-      return api.post<unknown, unknown>(PINCODE_SAVE_URL, fd);
     },
   });
 }

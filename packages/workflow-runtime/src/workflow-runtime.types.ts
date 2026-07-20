@@ -44,6 +44,11 @@ export const WorkflowType = {
    * Must match the workflow_type configured server-side via /settings/workflow.
    */
   LenderCreation: "LENDER_CREATION",
+  /**
+   * Drives the Lender Pincode upload form (see lender-pincode-form.page.tsx).
+   * Must match the workflow_type configured server-side via /settings/workflow.
+   */
+  LenderPincodeUpload: "LENDER_PINCODE_UPLOAD",
 } as const;
 
 export type WorkflowTypeValue =
