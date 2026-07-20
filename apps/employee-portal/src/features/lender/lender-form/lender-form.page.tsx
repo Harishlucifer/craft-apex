@@ -37,9 +37,8 @@ export const lenderMaster: MasterWorkflowPageProps = {
 
 function useLenderController({
   id,
-  saveStep,
+  advance,
   saving,
-  goNext,
   setSavedId,
 }: MasterControllerArgs): MasterController {
   const navigate = useNavigate();
@@ -114,7 +113,7 @@ function useLenderController({
   const submitFormBuilderStep = async () => {
     const nested = buildNestedFormPayload(formValues);
     const payload = buildPayload(nested, loanTypes, contracts);
-    const res = await saveStep(payload);
+    const res = await advance(payload);
     if (!res) return;
     const newId = res.sourceId;
     toast.success(`Lender ${id ? "updated" : "saved"} successfully`);
@@ -122,22 +121,20 @@ function useLenderController({
       setSavedId(String(newId));
       navigate(`/settings/add-lender/${String(newId)}`, { replace: true });
     }
-    goNext();
   };
 
   const submitLoanTypesStep = async () => {
     const nested = buildNestedFormPayload(formValues);
     const payload = buildPayload(nested, loanTypes, contracts);
-    const res = await saveStep(payload);
+    const res = await advance(payload);
     if (!res) return;
     toast.success("Loan types saved successfully");
-    goNext();
   };
 
   const submitContractsStep = async () => {
     const nested = buildNestedFormPayload(formValues);
     const payload = buildPayload(nested, loanTypes, contracts);
-    const res = await saveStep(payload);
+    const res = await advance(payload);
     if (!res) return;
     toast.success("Lender created successfully");
     navigate("/settings/lender");

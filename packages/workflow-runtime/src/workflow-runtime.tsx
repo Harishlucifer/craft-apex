@@ -1,21 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, RotateCcw, XCircle } from "lucide-react";
-import { Badge, Button, Label, toast } from "@craft-apex/ui";
-import {
-  buildWorkflow,
-  executeWorkflow,
-  hasStepSaveEndpoint,
-  useBuildWorkflow,
-  useExecuteWorkflow,
-} from "./workflow-runtime.api";
-import { useStepNavigation, useStepSave } from "./use-step-flow";
+import { Badge, Button, toast } from "@craft-apex/ui";
+import { hasStepSaveEndpoint } from "./workflow-runtime.api";
+import { useWorkflowEngine } from "./use-step-flow";
 import { JourneyPicker } from "./journey-picker";
 import { StepRenderer, type StepRendererHandle } from "./step-renderer";
-import type {
-  JourneyType,
-  WorkflowBuildResponse,
-  WorkflowStageDef,
-} from "./workflow-runtime.types";
 
 interface Props {
   workflowType: string;
@@ -30,8 +19,10 @@ interface Props {
 }
 
 /**
- * Generic workflow runtime. Loads a workflow definition + state from the
- * backend, renders a vertical stepper, and drives the executeStep cycle.
+ * Onboarding view over the shared workflow engine (see useWorkflowEngine).
+ * Renders the vertical stage list + StepRenderer and owns the central
+ * Submit&Next / Reject buttons; the engine owns build + navigation + the
+ * save→execute→resume advance that the master view shares.
  */
 export function WorkflowRuntime({
   workflowType,
@@ -40,47 +31,17 @@ export function WorkflowRuntime({
   title,
   onClose,
 }: Props) {
-  const build = useBuildWorkflow();
-  const execute = useExecuteWorkflow();
-  const stepSave = useStepSave(workflowType);
+  const engine = useWorkflowEngine({
+    workflowType,
+    sourceId,
+    noSourceBehavior: "picker",
+  });
+  const { workflow, nav, pickerOpen, setPickerOpen, busy, loading } = engine;
+  const { currentStage, currentStep, stageIndex } = nav;
+  const stages = workflow?.stages ?? [];
 
-  const [workflow, setWorkflow] = useState<WorkflowBuildResponse | null>(null);
   const [stepData, setStepData] = useState<Record<string, unknown>>({});
-  const [pickerOpen, setPickerOpen] = useState(false);
   const stepRendererRef = useRef<StepRendererHandle>(null);
-
-  // Shared step-navigation state machine (also drives the master stepper).
-  const stages: WorkflowStageDef[] = workflow?.stages ?? [];
-  const nav = useStepNavigation(stages);
-  const { currentStage, currentStep, stageIndex, stepIndex } = nav;
-
-  const handleBuildResult = (w: WorkflowBuildResponse | null) => {
-    if (!w) return;
-    setWorkflow(w);
-    // Resume at the backend's last-active step (falls back to step one).
-    nav.setActive(
-      w.last_active_stage_id ?? w.stages?.[0]?.id ?? null,
-      w.last_active_step_id ?? w.stages?.[0]?.steps?.[0]?.id ?? null,
-    );
-  };
-
-  // Load on mount / sourceId change.
-  useEffect(() => {
-    let alive = true;
-    if (sourceId) {
-      // Existing source — load directly.
-      buildWorkflow({ workflowType, sourceId }).then((w) => {
-        if (alive) handleBuildResult(w);
-      });
-    } else {
-      // No source — show journey picker so the user can start a new flow.
-      setPickerOpen(true);
-    }
-    return () => {
-      alive = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sourceId, workflowType]);
 
   // Seed step data from the server-collected `step.data` whenever the active
   // step changes. Mirrors legacy <DynamicForm existingObject={…}/> behavior.
@@ -93,71 +54,35 @@ export function WorkflowRuntime({
     }
   }, [currentStep?.id]);
 
-  // Phase 8.5 — per-step save before execute. Legacy
-  // PartnerFlowWithDynamic.moveForward POSTs the form data to the workflow's
-  // save endpoint (partner/create, collection, …) BEFORE calling
-  // workflow/execution. We mirror that here for any workflow_type that has a
-  // verified save endpoint; rejection skips the save (no point persisting a
-  // payload that's about to be rejected).
+  // Per-step save before execute (legacy PartnerFlowWithDynamic.moveForward):
+  // POST the form data to the workflow's save endpoint BEFORE /workflow/execution
+  // for any workflow_type that has one. Rejection skips the save. The engine's
+  // advance() does save→execute→resume; we just resolve the payload here.
   const advance = async (reject = false) => {
     if (!workflow || !currentStep) return;
-    let finalSourceId = workflow.source_id ?? sourceId;
-
+    let savePayload: object | undefined;
     if (!reject && hasStepSaveEndpoint(workflowType)) {
-      // For DYNAMIC_FORM (craft-ux) steps, this triggers the form's internal
-      // submit/validation and resolves the nested payload it builds; other
-      // step renderers are plain controlled components and resolve
-      // immediately with the current `stepData`. `null` means the step
-      // blocked submission (e.g. required-field validation failed).
+      // For DYNAMIC_FORM (craft-ux) steps, getPayload triggers the form's
+      // internal submit/validation; plain controlled steps resolve immediately
+      // with the current stepData. `null` means the step blocked submission.
       const payload = await stepRendererRef.current?.getPayload();
       if (payload === null) {
         toast.error("Please complete the required fields before continuing.");
         return;
       }
-      // Shared save (toasts on error, returns null on failure).
-      const saved = await stepSave.save(payload ?? stepData);
-      if (!saved) return;
-      if (saved.sourceId != null) {
-        finalSourceId = saved.sourceId;
-      }
+      savePayload = payload ?? stepData;
     }
-
-    if (!finalSourceId) {
-      toast.error("No source ID — cannot advance workflow.");
-      return;
-    }
-    try {
-      const next = await executeWorkflow({
-        workflowType,
-        executeStepId: currentStep.id,
-        sourceId: finalSourceId,
-        reject,
-      });
-      if (next) {
-        handleBuildResult(next);
-        toast.success(reject ? "Step rejected" : "Step submitted");
-      }
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Execution failed");
-    }
-  };
-
-  const startNewJourney = async (journey: JourneyType) => {
-    setPickerOpen(false);
-    try {
-      const w = await build.mutateAsync({
-        workflowType,
-        data: { journey_type: journey.code },
-      });
-      handleBuildResult(w);
-      toast.success(`Started ${journey.name ?? journey.code}`);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to start workflow");
-    }
+    const res = await engine.advance({
+      executeStepId: currentStep.id,
+      sourceId: workflow.source_id ?? sourceId,
+      reject,
+      savePayload,
+    });
+    if (res) toast.success(reject ? "Step rejected" : "Step submitted");
   };
 
   // Empty state — no workflow loaded yet.
-  if (!workflow && !pickerOpen && !build.isPending && !sourceId) {
+  if (!workflow && !pickerOpen && !loading && !sourceId) {
     return (
       <div className="rounded-md border border-dashed border-slate-200 bg-slate-50/30 p-8 text-center text-sm text-slate-500">
         Pick a journey to start the workflow.
@@ -179,7 +104,7 @@ export function WorkflowRuntime({
           workflowType={workflowType}
           partnerType={partnerType}
           onCancel={() => setPickerOpen(false)}
-          onPick={startNewJourney}
+          onPick={(j) => engine.startJourney(j.code, j.name)}
         />
       </div>
     );
@@ -340,7 +265,7 @@ export function WorkflowRuntime({
                       type="button"
                       variant="outline"
                       onClick={() => advance(true)}
-                      disabled={execute.isPending}
+                      disabled={busy}
                       className="text-rose-600"
                     >
                       <XCircle className="h-4 w-4" /> Reject
@@ -348,10 +273,10 @@ export function WorkflowRuntime({
                     <Button
                       type="button"
                       onClick={() => advance(false)}
-                      disabled={execute.isPending}
+                      disabled={busy}
                     >
                       <RotateCcw className="h-4 w-4" />{" "}
-                      {execute.isPending ? "Submitting…" : "Submit & Next"}
+                      {busy ? "Submitting…" : "Submit & Next"}
                     </Button>
                   </div>
                 </div>
@@ -366,7 +291,7 @@ export function WorkflowRuntime({
         workflowType={workflowType}
         partnerType={partnerType}
         onCancel={() => setPickerOpen(false)}
-        onPick={startNewJourney}
+        onPick={(j) => engine.startJourney(j.code, j.name)}
       />
     </div>
   );

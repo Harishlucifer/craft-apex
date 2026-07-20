@@ -1,7 +1,15 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@craft-apex/ui";
-import { saveStepData, type StepSaveResult } from "./workflow-runtime.api";
-import type { WorkflowStageDef } from "./workflow-runtime.types";
+import {
+  buildWorkflow,
+  executeWorkflow,
+  saveStepData,
+  type StepSaveResult,
+} from "./workflow-runtime.api";
+import type {
+  WorkflowBuildResponse,
+  WorkflowStageDef,
+} from "./workflow-runtime.types";
 
 /**
  * Shared step-navigation state machine over a workflow's stages. This is the
@@ -148,4 +156,170 @@ export function useStepSave(workflowType: string) {
   );
 
   return { save, saving };
+}
+
+export interface AdvanceOptions {
+  /** Workflow step being executed (usually the current step's id). */
+  executeStepId: string | number;
+  /** Source id to execute against; defaults to the engine's current source. */
+  sourceId?: string | number;
+  /** Approval-style rejection (onboarding). Skips the save. */
+  reject?: boolean;
+  /** When present, POST this as the entity/record body (saveStepData) before
+   *  executing — the create/update that yields the source id. */
+  savePayload?: object;
+}
+
+export interface AdvanceResult {
+  /** Effective source id used for execution (from the save, or the passed id). */
+  sourceId: string | number;
+  /** The saved entity envelope when `savePayload` was provided (else undefined). */
+  result?: any;
+}
+
+/**
+ * The shared workflow engine used by BOTH the onboarding view (WorkflowRuntime)
+ * and the master view (MasterWorkflowPage). Owns the workflow build + state,
+ * the step-navigation machine, and the one `advance()` that ties save →
+ * `/workflow/execution` → rebuild → resume-at-`last_active_step_id` together.
+ *
+ * `/workflow/execution` is what creates the backend `WorkflowInstance` + per-
+ * step `Task` rows (the "who is editing / when" activity) and returns the next
+ * `last_active_step_id`, so masters get the same server-tracked lifecycle as
+ * onboarding once they call `advance()` per step.
+ */
+export function useWorkflowEngine(params: {
+  workflowType: string;
+  /** Existing source id (route/props); reloads the build when it changes. */
+  sourceId?: string | number;
+  /** With no source: "picker" (onboarding starts a new journey) vs "build"
+   *  (masters build the config-only workflow so step one renders for create). */
+  noSourceBehavior: "picker" | "build";
+}) {
+  const { workflowType, sourceId, noSourceBehavior } = params;
+
+  const [workflow, setWorkflow] = useState<WorkflowBuildResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [executing, setExecuting] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const stages: WorkflowStageDef[] = workflow?.stages ?? [];
+  const nav = useStepNavigation(stages);
+  const stepSave = useStepSave(workflowType);
+
+  // nav.setActive identity is stable (useCallback []), but keep a ref so the
+  // load effect below doesn't need nav in its dep array (which would re-run it
+  // every render as stages change).
+  const setActiveRef = useRef(nav.setActive);
+  setActiveRef.current = nav.setActive;
+
+  const handleBuildResult = useCallback((w: WorkflowBuildResponse | null) => {
+    if (!w) return;
+    setWorkflow(w);
+    // Resume at the backend's last-active step (falls back to step one).
+    setActiveRef.current(
+      w.last_active_stage_id ?? w.stages?.[0]?.id ?? null,
+      w.last_active_step_id ?? w.stages?.[0]?.steps?.[0]?.id ?? null,
+    );
+  }, []);
+
+  // Load on mount / sourceId change.
+  useEffect(() => {
+    let alive = true;
+    if (sourceId != null && sourceId !== "") {
+      setLoading(true);
+      buildWorkflow({ workflowType, sourceId }).then((w) => {
+        if (!alive) return;
+        handleBuildResult(w);
+        setLoading(false);
+      });
+    } else if (noSourceBehavior === "picker") {
+      setPickerOpen(true);
+    } else {
+      // master create — build the config-only workflow so its steps render.
+      setLoading(true);
+      buildWorkflow({ workflowType }).then((w) => {
+        if (!alive) return;
+        handleBuildResult(w);
+        setLoading(false);
+      });
+    }
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sourceId, workflowType, noSourceBehavior]);
+
+  /** save? → execute → rebuild → resume. Returns the effective source id, or
+   *  null when the save/execute failed (each path toasts its own error). */
+  const advance = useCallback(
+    async (opts: AdvanceOptions): Promise<AdvanceResult | null> => {
+      let sid = opts.sourceId;
+      let saved: StepSaveResult | null = null;
+      if (opts.savePayload && !opts.reject) {
+        saved = await stepSave.save(opts.savePayload);
+        if (!saved) return null;
+        if (saved.sourceId != null) sid = saved.sourceId;
+      }
+      if (sid == null || sid === "") {
+        toast.error("No source id — cannot advance workflow.");
+        return null;
+      }
+      setExecuting(true);
+      try {
+        const next = await executeWorkflow({
+          workflowType,
+          executeStepId: opts.executeStepId,
+          sourceId: sid,
+          reject: opts.reject,
+        });
+        if (next) handleBuildResult(next);
+        // `result` is the saved entity envelope (Role needs it back); undefined
+        // when this advance only executed (a bespoke step saved on its own).
+        return { sourceId: sid, result: saved?.result };
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Execution failed");
+        return null;
+      } finally {
+        setExecuting(false);
+      }
+    },
+    [workflowType, stepSave, handleBuildResult],
+  );
+
+  /** Start a new journey (onboarding): build with the chosen journey_type. */
+  const startJourney = useCallback(
+    async (journeyCode: string, journeyLabel?: string) => {
+      setPickerOpen(false);
+      setLoading(true);
+      try {
+        const w = await buildWorkflow({
+          workflowType,
+          data: { journey_type: journeyCode },
+        });
+        handleBuildResult(w);
+        toast.success(`Started ${journeyLabel ?? journeyCode}`);
+      } catch (e) {
+        toast.error(
+          e instanceof Error ? e.message : "Failed to start workflow",
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [workflowType, handleBuildResult],
+  );
+
+  return {
+    workflow,
+    loading,
+    executing,
+    saving: stepSave.saving,
+    busy: executing || stepSave.saving,
+    pickerOpen,
+    setPickerOpen,
+    nav,
+    advance,
+    startJourney,
+  };
 }

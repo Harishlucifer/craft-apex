@@ -29,9 +29,8 @@ export const roleMaster: MasterWorkflowPageProps = {
 
 function useRoleController({
   id,
-  saveStep,
+  advance,
   saving,
-  goNext,
   setSavedId,
 }: MasterControllerArgs): MasterController {
   const navigate = useNavigate();
@@ -98,7 +97,7 @@ function useRoleController({
         ? { partner_category: role.partner_category }
         : {}),
     };
-    const res = await saveStep(data);
+    const res = await advance(data);
     if (!res) return;
     const saved = res.result as RoleData;
     if (role?.partner_category) {
@@ -114,7 +113,6 @@ function useRoleController({
         { replace: true },
       );
     }
-    goNext();
   };
 
   const submitAccessRightsStep = async () => {
@@ -122,7 +120,7 @@ function useRoleController({
     const data: RoleData = { ...role };
     // Legacy AccessRights.submitData: blank partner_category for EMPLOYEE.
     if (data.user_type === "EMPLOYEE") data.partner_category = null;
-    const res = await saveStep(data);
+    const res = await advance(data);
     if (!res) return;
     toast.success("Role Access Rights saved successfully");
     navigate("/settings/role");

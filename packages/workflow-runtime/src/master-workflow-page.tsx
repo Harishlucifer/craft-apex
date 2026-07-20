@@ -1,27 +1,21 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Check } from "lucide-react";
 import { Button } from "@craft-apex/ui";
-import { buildWorkflow, type StepSaveResult } from "./workflow-runtime.api";
-import { useStepNavigation, useStepSave } from "./use-step-flow";
+import { useWorkflowEngine, type AdvanceResult } from "./use-step-flow";
 import { UiComponentLoader } from "./step-component-registry";
-import type { WorkflowStageDef } from "./workflow-runtime.types";
 
 /**
- * Generic settings-master form page — the masters' analog of OnboardingPage.
+ * Master view over the shared workflow engine (see useWorkflowEngine) — the
+ * masters' analog of OnboardingPage's WorkflowRuntime, differing only in the
+ * render (horizontal stepper + UiComponentLoader/registry, so bespoke steps
+ * keep working) and in who owns the Submit button (each step, not the engine).
  *
- * OnboardingPage mounts WorkflowRuntime (backend-lifecycle driven: journey
- * picker + /workflow/execution). The settings masters are a different model:
- * a workflow only supplies the step/field *config*, there is no server-side
- * workflow instance, and steps advance locally while each FORM_BUILDER step
- * saves the record via saveStepData. This component owns everything those six
- * pages had in common — buildWorkflow, the stepper, UiComponentLoader wiring,
- * loading / not-configured states, and the Add/Edit header — while each master
- * supplies its bespoke state, payload transform, context, and save through a
- * `useController` hook (see MasterController). Bespoke steps (access-rights,
- * sub-loans, lender contracts, employee address/allocation, …) keep working
- * because rendering still goes through the registry, not StepRenderer.
+ * Like onboarding, each step now runs through the engine's `advance` (save →
+ * /workflow/execution → resume at last_active_step_id), so masters get a
+ * server-side WorkflowInstance + per-step Task rows (the "who is editing"
+ * activity) and resume where the last editor left off. Each master supplies its
+ * bespoke state, typed payload, and step context through a `useController` hook.
  */
 
 export interface MasterControllerArgs {
@@ -31,15 +25,17 @@ export interface MasterControllerArgs {
   /** Raw route `:id` — undefined in create mode. Used for Add/Edit wording
    *  and create-only branches (some masters lock a code field once saved). */
   routeId: string | undefined;
-  /** Save the current step's payload through the common flow (shared with
-   *  WorkflowRuntime — see useStepSave). Bakes in the workflow type, toasts on
-   *  failure, and resolves `null` when the save failed so the caller can just
-   *  `if (!res) return;` instead of writing its own try/catch. */
-  saveStep: (data: object) => Promise<StepSaveResult | null>;
-  /** Whether a saveStep call is in flight (for button spinners). */
+  /** Run the current step: `save?(payload)` → `/workflow/execution` (creates
+   *  the WorkflowInstance + Task = activity) → resume at `last_active_step_id`.
+   *  Pass the typed record payload for the FORM_BUILDER step; call with no arg
+   *  from a bespoke step that already persisted its own sub-entity (just
+   *  executes the current step for tracking). Resolves the effective source id,
+   *  or `null` when the save/execute failed (each path toasts its own error).
+   *  Also exposed on `stepContext.advance` for bespoke steps. */
+  advance: (payload?: object) => Promise<AdvanceResult | null>;
+  /** Whether a save/execute is in flight (for button spinners). */
   saving: boolean;
-  /** Advance to / retreat from the next / previous step (shared navigation). */
-  goNext: () => void;
+  /** Client-side navigation to the previous step (manual Back). */
   goBack: () => void;
   /** Record the backend-issued id after the first create save, so later steps
    *  and the workflow rebuild pick it up. */
@@ -90,17 +86,21 @@ export function MasterWorkflowPage({
   const [savedId, setSavedId] = useState<string | undefined>(routeId);
   const id = savedId ?? routeId;
 
-  const { data: workflow, isLoading: workflowLoading } = useQuery({
-    queryKey: [`${workflowType}-workflow`, id ?? ""],
-    queryFn: () => buildWorkflow({ workflowType, sourceId: id }),
+  const engine = useWorkflowEngine({
+    workflowType,
+    sourceId: id,
+    noSourceBehavior: "build",
   });
-
-  // Shared "next" (navigation) and "API save" — the same primitives
-  // WorkflowRuntime uses, so the two engines don't reimplement either.
-  const stages: WorkflowStageDef[] = workflow?.stages ?? [];
-  const nav = useStepNavigation(stages);
-  const stepSave = useStepSave(workflowType);
+  const { nav, busy, loading } = engine;
   const steps = nav.flatSteps;
+
+  // save?(payload) → execute the current step → resume. Shared with onboarding.
+  const advance = (payload?: object) =>
+    engine.advance({
+      executeStepId: nav.currentStep?.id ?? "",
+      sourceId: id,
+      savePayload: payload,
+    });
 
   const {
     formValues,
@@ -111,13 +111,13 @@ export function MasterWorkflowPage({
   } = useController({
     id,
     routeId,
-    saveStep: stepSave.save,
-    saving: stepSave.saving,
-    goNext: nav.goNext,
+    advance,
+    saving: busy,
     goBack: nav.goBack,
     setSavedId,
   });
 
+  const workflowLoading = loading;
   const activeStepDef = singleStep ? steps[0] : nav.currentStep;
   const heading = staticHeading ?? `${routeId ? "Edit" : "Add"} ${noun}`;
 

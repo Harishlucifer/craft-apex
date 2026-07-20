@@ -32,7 +32,7 @@ export const territoryMaster: MasterWorkflowPageProps = {
 
 function useTerritoryController({
   id,
-  saveStep,
+  advance,
   saving,
 }: MasterControllerArgs): MasterController {
   const navigate = useNavigate();
@@ -211,7 +211,7 @@ function useTerritoryController({
           : undefined,
     };
 
-    const res = await saveStep(payload);
+    const res = await advance(payload);
     if (!res) return;
     toast.success(id ? "Updated successfully!" : "Created successfully!");
     navigate("/settings/territory-management");

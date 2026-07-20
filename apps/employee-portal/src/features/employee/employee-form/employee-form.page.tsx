@@ -30,9 +30,8 @@ export const employeeMaster: MasterWorkflowPageProps = {
 
 function useEmployeeController({
   id,
-  saveStep,
+  advance,
   saving,
-  goNext,
   setSavedId,
 }: MasterControllerArgs): MasterController {
   const navigate = useNavigate();
@@ -124,18 +123,16 @@ function useEmployeeController({
       user_address: detail?.user_address,
       data: detail?.data,
     };
-    const res = await saveStep(payload);
+    const res = await advance(payload);
     if (!res) return;
-    // Legacy `index.js` reads `response?.data?.result?.employee_id` after
-    // create (saveStepData extracts it into sourceId); on edit the existing
-    // id is preserved.
+    // create lands the id at result.sourceId (employee_id); on edit it's
+    // preserved. Record it so steps 2–4 and the workflow rebuild pick it up.
     const newId = res.sourceId ?? id;
     if (newId && newId !== id) {
       setSavedId(String(newId));
     }
     toast.success(`Employee ${id ? "updated" : "saved"} successfully`);
-    // Advance to step 2 instead of navigating away (legacy stepper parity).
-    goNext();
+    // The server's resume (last_active_step_id) advances the stepper.
   };
 
   // Steps 2–4 need a saved employee id. Block forward navigation if not set.
@@ -156,7 +153,13 @@ function useEmployeeController({
       username: detail?.name,
       id: detail?.user_id ?? detail?.employee_id,
     },
-    onAllocationSave: () => navigate("/settings/employee"),
+    // Bespoke steps (address/territory/allocation) call this after their own
+    // save so the step executes (creating its Task) and the server resumes.
+    advance,
+    onAllocationSave: async () => {
+      await advance();
+      navigate("/settings/employee");
+    },
   };
 
   return {

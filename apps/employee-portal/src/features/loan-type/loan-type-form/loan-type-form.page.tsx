@@ -30,9 +30,8 @@ export const loanTypeMaster: MasterWorkflowPageProps = {
 
 function useLoanTypeController({
   id,
-  saveStep,
+  advance,
   saving,
-  goNext,
   setSavedId,
 }: MasterControllerArgs): MasterController {
   const navigate = useNavigate();
@@ -114,7 +113,7 @@ function useLoanTypeController({
       ...(id ? { loan_type_id: id } : {}),
       sub_loans: subLoans,
     };
-    const res = await saveStep(payload);
+    const res = await advance(payload);
     if (!res) return;
     const newId = res.sourceId;
     toast.success(`Loan type ${id ? "updated" : "saved"} successfully`);
@@ -124,7 +123,6 @@ function useLoanTypeController({
         replace: true,
       });
     }
-    goNext();
   };
 
   const submitSubLoanTypesStep = async () => {
@@ -146,7 +144,7 @@ function useLoanTypeController({
       status: Number(detail?.status ?? 1),
       sub_loans: subLoans,
     };
-    const res = await saveStep(payload);
+    const res = await advance(payload);
     if (!res) return;
     toast.success("Sub loan types saved successfully");
     navigate("/settings/loan-types");
