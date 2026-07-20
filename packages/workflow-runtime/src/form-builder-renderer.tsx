@@ -1,5 +1,13 @@
 import { useMemo, useState } from "react";
-import { Input, Label } from "@craft-apex/ui";
+import { Check, ChevronDown, X } from "lucide-react";
+import {
+  Badge,
+  Input,
+  Label,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@craft-apex/ui";
 import type {
   ConditionalOn,
   FormDefinition,
@@ -87,7 +95,10 @@ function FieldSlot({ field, value, allValues, onChange }: FieldSlotProps) {
   const async = useAsyncFieldOptions(field, allValues);
 
   if (field.hidden) return null;
-  if (field.conditionalOn && !matchesCondition(field.conditionalOn, allValues)) {
+  if (
+    field.conditionalOn &&
+    !matchesCondition(field.conditionalOn, allValues)
+  ) {
     return null;
   }
 
@@ -181,9 +192,7 @@ function FieldInput({
           disabled={disabled}
           placeholder={placeholder}
           maxLength={field.validation?.maxLength ?? 10}
-          onChange={(e) =>
-            onChange(e.target.value.replace(/\D/g, ""))
-          }
+          onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
         />
       );
 
@@ -195,7 +204,9 @@ function FieldInput({
           id={id}
           type="number"
           inputMode="decimal"
-          step={fieldType === "amount" || fieldType === "decimal" ? "0.01" : "1"}
+          step={
+            fieldType === "amount" || fieldType === "decimal" ? "0.01" : "1"
+          }
           value={stringValue}
           disabled={disabled}
           placeholder={placeholder}
@@ -261,7 +272,8 @@ function FieldInput({
       );
 
     case "checkbox-group": {
-      const opts = resolvedOptions.length > 0 ? resolvedOptions : resolveOptions(field);
+      const opts =
+        resolvedOptions.length > 0 ? resolvedOptions : resolveOptions(field);
       const arr = Array.isArray(value) ? (value as (string | number)[]) : [];
       const toggle = (v: string | number) =>
         onChange(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
@@ -287,7 +299,8 @@ function FieldInput({
     }
 
     case "radio": {
-      const opts = resolvedOptions.length > 0 ? resolvedOptions : resolveOptions(field);
+      const opts =
+        resolvedOptions.length > 0 ? resolvedOptions : resolveOptions(field);
       return (
         <div className="flex flex-wrap gap-3">
           {opts.map((o) => (
@@ -314,7 +327,8 @@ function FieldInput({
     case "dropdown":
     case "dropdown-search":
     case "text-auto-complete": {
-      const opts = resolvedOptions.length > 0 ? resolvedOptions : resolveOptions(field);
+      const opts =
+        resolvedOptions.length > 0 ? resolvedOptions : resolveOptions(field);
       return (
         <select
           id={id}
@@ -334,29 +348,17 @@ function FieldInput({
     }
 
     case "dropdown-multi-select": {
-      const opts = resolvedOptions.length > 0 ? resolvedOptions : resolveOptions(field);
-      const arr = Array.isArray(value)
-        ? (value as (string | number)[]).map((v) => String(v))
-        : [];
+      const opts =
+        resolvedOptions.length > 0 ? resolvedOptions : resolveOptions(field);
       return (
-        <select
+        <MultiSelectFieldInput
           id={id}
-          multiple
-          value={arr}
+          options={opts}
+          value={value}
           disabled={disabled}
-          onChange={(e) =>
-            onChange(
-              Array.from(e.target.selectedOptions).map((opt) => opt.value)
-            )
-          }
-          className="w-full rounded-md border border-input bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#4C7DF0] focus:ring-2 focus:ring-[#4C7DF0]/20 disabled:bg-slate-100 disabled:text-slate-500"
-        >
-          {opts.map((o) => (
-            <option key={String(o.value)} value={String(o.value)}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+          placeholder={placeholder}
+          onChange={onChange}
+        />
       );
     }
 
@@ -385,6 +387,126 @@ function FieldInput({
         />
       );
   }
+}
+
+interface MultiSelectFieldInputProps {
+  id: string;
+  options: FormFieldOption[];
+  /** Current value — an array of selected option values (string|number). */
+  value: unknown;
+  disabled: boolean;
+  placeholder: string;
+  onChange: (next: (string | number)[]) => void;
+}
+
+/**
+ * Styled multi-select — replaces the raw native `<select multiple>` listbox
+ * (which the browser renders as an ugly always-open grey box). Shows the
+ * selected options as removable chips in a trigger, and a checkbox dropdown
+ * (Popover) for picking. Values are stored as an array of the options' own
+ * values, so the payload shape (e.g. loan-type `apply_capacity: string[]`) is
+ * unchanged from the old native control.
+ */
+function MultiSelectFieldInput({
+  id,
+  options,
+  value,
+  disabled,
+  placeholder,
+  onChange,
+}: MultiSelectFieldInputProps) {
+  const [open, setOpen] = useState(false);
+  const selected = Array.isArray(value) ? (value as (string | number)[]) : [];
+  const selectedStr = new Set(selected.map(String));
+
+  const labelFor = (v: string | number) =>
+    options.find((o) => String(o.value) === String(v))?.label ?? String(v);
+
+  const toggle = (v: string | number) => {
+    if (selectedStr.has(String(v))) {
+      onChange(selected.filter((x) => String(x) !== String(v)));
+    } else {
+      onChange([...selected, v]);
+    }
+  };
+
+  const remove = (v: string | number) =>
+    onChange(selected.filter((x) => String(x) !== String(v)));
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          id={id}
+          type="button"
+          disabled={disabled}
+          className="flex min-h-[38px] w-full flex-wrap items-center gap-1 rounded-md border border-input bg-white px-2 py-1.5 text-left text-sm outline-none focus:border-[#4C7DF0] focus:ring-2 focus:ring-[#4C7DF0]/20 disabled:bg-slate-100 disabled:text-slate-500"
+        >
+          {selected.length === 0 ? (
+            <span className="px-1 text-slate-400">
+              {placeholder || "Select…"}
+            </span>
+          ) : (
+            selected.map((v) => (
+              <Badge
+                key={String(v)}
+                variant="secondary"
+                className="gap-1 pr-1 font-normal"
+              >
+                {labelFor(v)}
+                {!disabled && (
+                  <span
+                    role="button"
+                    tabIndex={-1}
+                    aria-label={`Remove ${labelFor(v)}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      remove(v);
+                    }}
+                    className="rounded-sm p-0.5 hover:bg-slate-300/60"
+                  >
+                    <X className="h-3 w-3" />
+                  </span>
+                )}
+              </Badge>
+            ))
+          )}
+          <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-slate-400" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="max-h-64 w-[var(--radix-popover-trigger-width)] overflow-auto p-1"
+      >
+        {options.length === 0 ? (
+          <div className="px-2 py-1.5 text-sm text-slate-400">No options</div>
+        ) : (
+          options.map((o) => {
+            const checked = selectedStr.has(String(o.value));
+            return (
+              <button
+                key={String(o.value)}
+                type="button"
+                onClick={() => toggle(o.value)}
+                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm hover:bg-slate-100"
+              >
+                <span
+                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                    checked
+                      ? "border-[#4C7DF0] bg-[#4C7DF0] text-white"
+                      : "border-slate-300 bg-white"
+                  }`}
+                >
+                  {checked && <Check className="h-3 w-3" />}
+                </span>
+                {o.label}
+              </button>
+            );
+          })
+        )}
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 interface FileFieldInputProps {
@@ -462,7 +584,7 @@ function resolveOptions(field: FormFieldDef): FormFieldOption[] {
  */
 function matchesCondition(
   cond: ConditionalOn,
-  values: Record<string, unknown>
+  values: Record<string, unknown>,
 ): boolean {
   const target = values[cond.field];
   if (cond.regex?.pattern) {
@@ -473,9 +595,7 @@ function matchesCondition(
     }
   }
   if (Array.isArray(target)) {
-    return target.some((t) =>
-      cond.values.map(String).includes(String(t))
-    );
+    return target.some((t) => cond.values.map(String).includes(String(t)));
   }
   return cond.values.map(String).includes(String(target ?? ""));
 }
