@@ -247,8 +247,13 @@ export function WorkflowRuntime({
 
   if (!workflow) {
     return (
-      <div className="rounded-md border border-slate-200 bg-white p-8 text-sm text-slate-500">
-        Loading workflow…
+      <div className="rounded-xl border border-slate-200 bg-white p-12 flex flex-col items-center justify-center min-h-[200px] shadow-sm">
+        <div className="flex space-x-2 items-center mb-4">
+          <div className="w-3 h-3 bg-[#1E2A6B] rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <div className="w-3 h-3 bg-[#1E2A6B] rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div className="w-3 h-3 bg-[#1E2A6B] rounded-full animate-bounce"></div>
+        </div>
+        <span className="text-slate-500 font-medium">Loading workflow…</span>
         <JourneyPicker
           open={pickerOpen}
           workflowType={workflowType}

@@ -21,6 +21,9 @@ import "./steps/consumer-enach-step";
 import "./steps/final-offer-selection-step";
 import "./steps/penny-drop-step";
 import "./steps/kfs-acceptance-step";
+import "./steps/video-kyc-step";
+import "./steps/sanction-details-step";
+import "./steps/document-upload-step";
 export type { FormBuilderStepContext } from "./steps/form-builder-step";
 export {
   UiComponentLoader,

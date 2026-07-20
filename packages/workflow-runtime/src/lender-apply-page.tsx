@@ -49,7 +49,7 @@ export function LenderApply({ title, workflowType, listPath }: Props) {
   // Legacy supports ?partner_type=... if needed, or lenderCode
   const partnerType = searchParams.get("partner_type") ?? undefined;
 
-  const { data: lenderApplyData } = useLenderApplyData(lenderApplyId);
+  const { data: lenderApplyData, isLoading: isLoadingLenderApply } = useLenderApplyData(lenderApplyId);
   const applicationId = lenderApplyData?.application_id || lenderApplyData?.applicationId;
 
   const { data: applicationDetail } = useApplicationDetail(applicationId);
