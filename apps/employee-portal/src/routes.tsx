@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AuthGuard } from "@craft-apex/auth";
 import { AppLayout } from "@craft-apex/layout";
+import { MasterWorkflowPage } from "@craft-apex/workflow-runtime";
 import { env } from "@/env";
 import LoginPage from "@/features/auth/login/login.page";
 import LogoutPage from "@/pages/logout";
@@ -15,18 +16,18 @@ import TrackingQPage from "@/features/application/tracking-q/tracking-q.page";
 import DisbursedQPage from "@/features/application/disbursed-q/disbursed-q.page";
 import RejectedQPage from "@/features/application/rejected-q/rejected-q.page";
 import RoleListPage from "@/features/role/role-list/role-list.page";
-import RoleFormPage from "@/features/role/role-form/role-form.page";
+import { roleMaster } from "@/features/role/role-form/role-form.page";
 import ParameterListPage from "@/features/parameter/parameter-list/parameter-list.page";
 import ParameterFormPage from "@/features/parameter/parameter-form/parameter-form.page";
 import NpaRuleListPage from "@/features/npa-rule/npa-rule-list/npa-rule-list.page";
 import NpaRuleFormPage from "@/features/npa-rule/npa-rule-form/npa-rule-form.page";
 import ModuleListPage from "@/features/module/module-list/module-list.page";
 import LenderListPage from "@/features/lender/lender-list/lender-list.page";
-import LenderFormPage from "@/features/lender/lender-form/lender-form.page";
+import { lenderMaster } from "@/features/lender/lender-form/lender-form.page";
 import LoanTypeListPage from "@/features/loan-type/loan-type-list/loan-type-list.page";
-import LoanTypeFormPage from "@/features/loan-type/loan-type-form/loan-type-form.page";
+import { loanTypeMaster } from "@/features/loan-type/loan-type-form/loan-type-form.page";
 import TerritoryListPage from "@/features/territory/territory-list/territory-list.page";
-import TerritoryFormPage from "@/features/territory/territory-form/territory-form.page";
+import { territoryMaster } from "@/features/territory/territory-form/territory-form.page";
 import ServiceProviderListPage from "@/features/service-provider/service-provider-list/service-provider-list.page";
 import DocChecklistListPage from "@/features/document-checklist/doc-checklist-list/doc-checklist-list.page";
 import DocChecklistFormPage from "@/features/document-checklist/doc-checklist-form/doc-checklist-form.page";
@@ -39,7 +40,7 @@ import RuleCategoryListPage from "@/features/rule/rule-category-list/rule-catego
 import NotificationTemplateListPage from "@/features/templates/notification-template-list/notification-template-list.page";
 import NotificationTemplateFormPage from "@/features/templates/notification-template-form/notification-template-form.page";
 import EmployeeListPage from "@/features/employee/employee-list/employee-list.page";
-import EmployeeFormPage from "@/features/employee/employee-form/employee-form.page";
+import { employeeMaster } from "@/features/employee/employee-form/employee-form.page";
 import ChannelListPage from "@/features/channel/channel-list/channel-list.page";
 import ActiveAccountsListPage from "@/features/lms/active-accounts-list/active-accounts-list.page";
 import VerificationListPage from "@/features/verification/verification-list/verification-list.page";
@@ -75,7 +76,7 @@ import EmployerListPage from "@/features/employer/employer-list/employer-list.pa
 import EmployerUploadListPage from "@/features/employer/employer-upload-list/employer-upload-list.page";
 import EmployerUploadFormPage from "@/features/employer/employer-upload-form/employer-upload-form.page";
 import LenderPincodeListPage from "@/features/lender-pincode/lender-pincode-list/lender-pincode-list.page";
-import LenderPincodeFormPage from "@/features/lender-pincode/lender-pincode-form/lender-pincode-form.page";
+import { lenderPincodeMaster } from "@/features/lender-pincode/lender-pincode-form/lender-pincode-form.page";
 import AskListPage from "@/features/ask/ask-list/ask-list.page";
 import FulfillmentListPage from "@/features/lead/fulfillment-list/fulfillment-list.page";
 import PartnerLeadsListPage from "@/features/partner/partner-leads-list/partner-leads-list.page";
@@ -190,36 +191,96 @@ export const router = createBrowserRouter([
 
       // Role management — legacy /pages/Configuration/Role/*
       { path: "/settings/role", element: <RoleListPage /> },
-      { path: "/settings/role/create", element: <RoleFormPage /> },
-      { path: "/settings/role/create/:id", element: <RoleFormPage /> },
+      {
+        path: "/settings/role/create",
+        element: <MasterWorkflowPage {...roleMaster} />,
+      },
+      {
+        path: "/settings/role/create/:id",
+        element: <MasterWorkflowPage {...roleMaster} />,
+      },
 
       // Settings: master lists (legacy /pages/...) — list views only.
       { path: "/settings/parameter/list", element: <ParameterListPage /> },
       { path: "/settings/parameter/create", element: <ParameterFormPage /> },
-      { path: "/settings/parameter/create/:id", element: <ParameterFormPage /> },
+      {
+        path: "/settings/parameter/create/:id",
+        element: <ParameterFormPage />,
+      },
       { path: "/settings/module/list", element: <ModuleListPage /> },
       { path: "/settings/module/create", element: <ModuleFormPage /> },
       { path: "/settings/module/create/:id", element: <ModuleFormPage /> },
       { path: "/settings/lender", element: <LenderListPage /> },
-      { path: "/settings/add-lender", element: <LenderFormPage /> },
-      { path: "/settings/add-lender/:id", element: <LenderFormPage /> },
+      {
+        path: "/settings/add-lender",
+        element: <MasterWorkflowPage {...lenderMaster} />,
+      },
+      {
+        path: "/settings/add-lender/:id",
+        element: <MasterWorkflowPage {...lenderMaster} />,
+      },
       { path: "/settings/loan-types", element: <LoanTypeListPage /> },
-      { path: "/settings/add-loan-types", element: <LoanTypeFormPage /> },
-      { path: "/settings/add-loan-types/:id", element: <LoanTypeFormPage /> },
-      { path: "/settings/territory-management", element: <TerritoryListPage /> },
-      { path: "/settings/add-territory", element: <TerritoryFormPage /> },
-      { path: "/settings/add-territory/:id", element: <TerritoryFormPage /> },
+      {
+        path: "/settings/add-loan-types",
+        element: <MasterWorkflowPage {...loanTypeMaster} />,
+      },
+      {
+        path: "/settings/add-loan-types/:id",
+        element: <MasterWorkflowPage {...loanTypeMaster} />,
+      },
+      {
+        path: "/settings/territory-management",
+        element: <TerritoryListPage />,
+      },
+      {
+        path: "/settings/add-territory",
+        element: <MasterWorkflowPage {...territoryMaster} />,
+      },
+      {
+        path: "/settings/add-territory/:id",
+        element: <MasterWorkflowPage {...territoryMaster} />,
+      },
       { path: "/settings/provider-list", element: <ServiceProviderListPage /> },
-      { path: "/settings/document/checklist", element: <DocChecklistListPage /> },
-      { path: "/settings/document/checklist/create", element: <DocChecklistFormPage /> },
-      { path: "/settings/document/checklist/create/:id", element: <DocChecklistFormPage /> },
-      { path: "/settings/cam-configuration/list", element: <CamConfigListPage /> },
-      { path: "/settings/cam-configuration/create", element: <CamConfigFormPage /> },
-      { path: "/settings/cam-configuration/create/:id", element: <CamConfigFormPage /> },
-      { path: "/settings/request-type-master", element: <ServiceRequestTypePage /> },
-      { path: "/settings/verification/list", element: <VerificationTypeListPage /> },
-      { path: "/settings/verification/add-verification-type", element: <VerificationTypeFormPage /> },
-      { path: "/settings/verification/add-verification-type/:id", element: <VerificationTypeFormPage /> },
+      {
+        path: "/settings/document/checklist",
+        element: <DocChecklistListPage />,
+      },
+      {
+        path: "/settings/document/checklist/create",
+        element: <DocChecklistFormPage />,
+      },
+      {
+        path: "/settings/document/checklist/create/:id",
+        element: <DocChecklistFormPage />,
+      },
+      {
+        path: "/settings/cam-configuration/list",
+        element: <CamConfigListPage />,
+      },
+      {
+        path: "/settings/cam-configuration/create",
+        element: <CamConfigFormPage />,
+      },
+      {
+        path: "/settings/cam-configuration/create/:id",
+        element: <CamConfigFormPage />,
+      },
+      {
+        path: "/settings/request-type-master",
+        element: <ServiceRequestTypePage />,
+      },
+      {
+        path: "/settings/verification/list",
+        element: <VerificationTypeListPage />,
+      },
+      {
+        path: "/settings/verification/add-verification-type",
+        element: <VerificationTypeFormPage />,
+      },
+      {
+        path: "/settings/verification/add-verification-type/:id",
+        element: <VerificationTypeFormPage />,
+      },
       { path: "/settings/rule/list", element: <RuleMasterListPage /> },
       { path: "/settings/rule/create", element: <RuleFormPage /> },
       { path: "/settings/rule/create/:id", element: <RuleFormPage /> },
@@ -227,12 +288,27 @@ export const router = createBrowserRouter([
       { path: "/settings/npa-rules-list", element: <NpaRuleListPage /> },
       { path: "/settings/create-npa-rule", element: <NpaRuleFormPage /> },
       { path: "/settings/npa-rule/:id", element: <NpaRuleFormPage /> },
-      { path: "/settings/template/list", element: <NotificationTemplateListPage /> },
-      { path: "/settings/template/create", element: <NotificationTemplateFormPage /> },
-      { path: "/settings/template/create/:id", element: <NotificationTemplateFormPage /> },
+      {
+        path: "/settings/template/list",
+        element: <NotificationTemplateListPage />,
+      },
+      {
+        path: "/settings/template/create",
+        element: <NotificationTemplateFormPage />,
+      },
+      {
+        path: "/settings/template/create/:id",
+        element: <NotificationTemplateFormPage />,
+      },
       { path: "/settings/employee", element: <EmployeeListPage /> },
-      { path: "/settings/employee/create", element: <EmployeeFormPage /> },
-      { path: "/settings/employee/create/:id", element: <EmployeeFormPage /> },
+      {
+        path: "/settings/employee/create",
+        element: <MasterWorkflowPage {...employeeMaster} />,
+      },
+      {
+        path: "/settings/employee/create/:id",
+        element: <MasterWorkflowPage {...employeeMaster} />,
+      },
 
       // Channel onboarding (Partner / Vendor / APF) — legacy /pages/Channel/*Mgmt
       // All routes hit the same /alpha/v1/channel endpoint with different status +
@@ -243,7 +319,10 @@ export const router = createBrowserRouter([
       { path: "/partner/onboarding/rejected", element: <ChannelListPage /> },
       { path: "/partner/onboarding/archived", element: <ChannelListPage /> },
       { path: "/partner/onboarding/inactive", element: <ChannelListPage /> },
-      { path: "/bc/partner/onboarding/in-progress", element: <ChannelListPage /> },
+      {
+        path: "/bc/partner/onboarding/in-progress",
+        element: <ChannelListPage />,
+      },
       { path: "/bc/partner/onboarding/pending", element: <ChannelListPage /> },
       { path: "/bc/partner/onboarding/approved", element: <ChannelListPage /> },
       { path: "/bc/partner/onboarding/rejected", element: <ChannelListPage /> },
@@ -251,10 +330,22 @@ export const router = createBrowserRouter([
       { path: "/vendor/onboarding/pending", element: <ChannelListPage /> },
       { path: "/vendor/onboarding/approved", element: <ChannelListPage /> },
       { path: "/vendor/onboarding/rejected", element: <ChannelListPage /> },
-      { path: "/collection/vendor/onboarding/in-progress", element: <ChannelListPage /> },
-      { path: "/collection/vendor/onboarding/pending", element: <ChannelListPage /> },
-      { path: "/collection/vendor/onboarding/approved", element: <ChannelListPage /> },
-      { path: "/collection/vendor/onboarding/rejected", element: <ChannelListPage /> },
+      {
+        path: "/collection/vendor/onboarding/in-progress",
+        element: <ChannelListPage />,
+      },
+      {
+        path: "/collection/vendor/onboarding/pending",
+        element: <ChannelListPage />,
+      },
+      {
+        path: "/collection/vendor/onboarding/approved",
+        element: <ChannelListPage />,
+      },
+      {
+        path: "/collection/vendor/onboarding/rejected",
+        element: <ChannelListPage />,
+      },
       { path: "/apf/onboarding/in-progress", element: <ChannelListPage /> },
       { path: "/apf/onboarding/pending", element: <ChannelListPage /> },
       { path: "/apf/onboarding/approved", element: <ChannelListPage /> },
@@ -265,25 +356,145 @@ export const router = createBrowserRouter([
       // all render PartnerFlowWithDynamic — i.e. workflow_type=PARTNER_ONBOARDING,
       // with partner_type varying by route (Servicing for vendors, Merchant for APF).
       // BC onboarding is its own workflow_type (BC_ONBOARDING).
-      { path: "/partner/onboarding", element: <OnboardingPage title="Partner Onboarding" workflowType="PARTNER_ONBOARDING" listPath="/partner/onboarding/in-progress" /> },
-      { path: "/partner/onboarding/:id", element: <OnboardingPage title="Partner Onboarding" workflowType="PARTNER_ONBOARDING" listPath="/partner/onboarding/in-progress" /> },
-      { path: "/bc/partner/onboarding", element: <OnboardingPage title="BC Partner Onboarding" workflowType="PARTNER_ONBOARDING" listPath="/bc/partner/onboarding/in-progress" /> },
-      { path: "/bc/partner/onboarding/:id", element: <OnboardingPage title="BC Partner Onboarding" workflowType="PARTNER_ONBOARDING" listPath="/bc/partner/onboarding/in-progress" /> },
-      { path: "/vendor/onboarding", element: <OnboardingPage title="Vendor Onboarding" workflowType="PARTNER_ONBOARDING" partnerType="Servicing" listPath="/vendor/onboarding/in-progress" /> },
-      { path: "/vendor/onboarding/:id", element: <OnboardingPage title="Vendor Onboarding" workflowType="PARTNER_ONBOARDING" partnerType="Servicing" listPath="/vendor/onboarding/in-progress" /> },
-      { path: "/collection/vendor/onboarding", element: <OnboardingPage title="Collection Vendor Onboarding" workflowType="PARTNER_ONBOARDING" partnerType="Servicing" listPath="/collection/vendor/onboarding/in-progress" /> },
-      { path: "/collection/vendor/onboarding/:id", element: <OnboardingPage title="Collection Vendor Onboarding" workflowType="PARTNER_ONBOARDING" partnerType="Servicing" listPath="/collection/vendor/onboarding/in-progress" /> },
-      { path: "/apf/onboarding", element: <OnboardingPage title="APF Onboarding" workflowType="PARTNER_ONBOARDING" partnerType="Merchant" listPath="/apf/onboarding/in-progress" /> },
-      { path: "/apf/onboarding/:id", element: <OnboardingPage title="APF Onboarding" workflowType="PARTNER_ONBOARDING" partnerType="Merchant" listPath="/apf/onboarding/in-progress" /> },
-      { path: "/bc/onboarding", element: <OnboardingPage title="BC Onboarding" workflowType="BC_ONBOARDING" listPath="/dashboard" /> },
-      { path: "/bc/onboarding/:id", element: <OnboardingPage title="BC Onboarding" workflowType="BC_ONBOARDING" listPath="/dashboard" /> },
+      {
+        path: "/partner/onboarding",
+        element: (
+          <OnboardingPage
+            title="Partner Onboarding"
+            workflowType="PARTNER_ONBOARDING"
+            listPath="/partner/onboarding/in-progress"
+          />
+        ),
+      },
+      {
+        path: "/partner/onboarding/:id",
+        element: (
+          <OnboardingPage
+            title="Partner Onboarding"
+            workflowType="PARTNER_ONBOARDING"
+            listPath="/partner/onboarding/in-progress"
+          />
+        ),
+      },
+      {
+        path: "/bc/partner/onboarding",
+        element: (
+          <OnboardingPage
+            title="BC Partner Onboarding"
+            workflowType="PARTNER_ONBOARDING"
+            listPath="/bc/partner/onboarding/in-progress"
+          />
+        ),
+      },
+      {
+        path: "/bc/partner/onboarding/:id",
+        element: (
+          <OnboardingPage
+            title="BC Partner Onboarding"
+            workflowType="PARTNER_ONBOARDING"
+            listPath="/bc/partner/onboarding/in-progress"
+          />
+        ),
+      },
+      {
+        path: "/vendor/onboarding",
+        element: (
+          <OnboardingPage
+            title="Vendor Onboarding"
+            workflowType="PARTNER_ONBOARDING"
+            partnerType="Servicing"
+            listPath="/vendor/onboarding/in-progress"
+          />
+        ),
+      },
+      {
+        path: "/vendor/onboarding/:id",
+        element: (
+          <OnboardingPage
+            title="Vendor Onboarding"
+            workflowType="PARTNER_ONBOARDING"
+            partnerType="Servicing"
+            listPath="/vendor/onboarding/in-progress"
+          />
+        ),
+      },
+      {
+        path: "/collection/vendor/onboarding",
+        element: (
+          <OnboardingPage
+            title="Collection Vendor Onboarding"
+            workflowType="PARTNER_ONBOARDING"
+            partnerType="Servicing"
+            listPath="/collection/vendor/onboarding/in-progress"
+          />
+        ),
+      },
+      {
+        path: "/collection/vendor/onboarding/:id",
+        element: (
+          <OnboardingPage
+            title="Collection Vendor Onboarding"
+            workflowType="PARTNER_ONBOARDING"
+            partnerType="Servicing"
+            listPath="/collection/vendor/onboarding/in-progress"
+          />
+        ),
+      },
+      {
+        path: "/apf/onboarding",
+        element: (
+          <OnboardingPage
+            title="APF Onboarding"
+            workflowType="PARTNER_ONBOARDING"
+            partnerType="Merchant"
+            listPath="/apf/onboarding/in-progress"
+          />
+        ),
+      },
+      {
+        path: "/apf/onboarding/:id",
+        element: (
+          <OnboardingPage
+            title="APF Onboarding"
+            workflowType="PARTNER_ONBOARDING"
+            partnerType="Merchant"
+            listPath="/apf/onboarding/in-progress"
+          />
+        ),
+      },
+      {
+        path: "/bc/onboarding",
+        element: (
+          <OnboardingPage
+            title="BC Onboarding"
+            workflowType="BC_ONBOARDING"
+            listPath="/dashboard"
+          />
+        ),
+      },
+      {
+        path: "/bc/onboarding/:id",
+        element: (
+          <OnboardingPage
+            title="BC Onboarding"
+            workflowType="BC_ONBOARDING"
+            listPath="/dashboard"
+          />
+        ),
+      },
 
       // LMS — legacy /pages/Lms/ActiveAccounts
       { path: "/active/accounts", element: <ActiveAccountsListPage /> },
 
       // Verification — legacy /pages/Verification/{VerificationList,VerificationTaskList}.js
-      { path: "/operations/verification/list", element: <VerificationListPage /> },
-      { path: "/operations/verification/task/list", element: <VerificationListPage /> },
+      {
+        path: "/operations/verification/list",
+        element: <VerificationListPage />,
+      },
+      {
+        path: "/operations/verification/task/list",
+        element: <VerificationListPage />,
+      },
 
       // Beat Plan — legacy /pages/BeatPlan/BeatPlanView.js
       { path: "/beat-plan/list", element: <BeatPlanListPage /> },
@@ -298,23 +509,56 @@ export const router = createBrowserRouter([
       { path: "/reports/user-login-report", element: <UserLoginReportPage /> },
       // MIS reports — all share the ReportShell scaffold (date filter +
       // dashboard cards + funnel table + CSV export).
-      { path: "/reports/mis/pendency-reports", element: <MisPendencyReportPage /> },
-      { path: "/reports/mis/source-productivity", element: <MisSourceProductivityPage /> },
-      { path: "/reports/mis/bank-performance", element: <MisBankPerformancePage /> },
-      { path: "/reports/mis/month-wise-performance", element: <MisMonthWisePerformancePage /> },
-      { path: "/reports/mis/process-status", element: <MisProcessStatusPage /> },
-      { path: "/reports/mis/conveyance-report", element: <MisConveyanceReportPage /> },
-      { path: "/reports/mis/attendance-report", element: <MisAttendanceReportPage /> },
-      { path: "/reports/mis/verification-tat-report", element: <MisVerificationTatReportPage /> },
-      { path: "/reports/mis/product-performance", element: <MisProductPerformancePage /> },
+      {
+        path: "/reports/mis/pendency-reports",
+        element: <MisPendencyReportPage />,
+      },
+      {
+        path: "/reports/mis/source-productivity",
+        element: <MisSourceProductivityPage />,
+      },
+      {
+        path: "/reports/mis/bank-performance",
+        element: <MisBankPerformancePage />,
+      },
+      {
+        path: "/reports/mis/month-wise-performance",
+        element: <MisMonthWisePerformancePage />,
+      },
+      {
+        path: "/reports/mis/process-status",
+        element: <MisProcessStatusPage />,
+      },
+      {
+        path: "/reports/mis/conveyance-report",
+        element: <MisConveyanceReportPage />,
+      },
+      {
+        path: "/reports/mis/attendance-report",
+        element: <MisAttendanceReportPage />,
+      },
+      {
+        path: "/reports/mis/verification-tat-report",
+        element: <MisVerificationTatReportPage />,
+      },
+      {
+        path: "/reports/mis/product-performance",
+        element: <MisProductPerformancePage />,
+      },
       // Daily Sales Report — same page is mounted at /activity/daily-activity in legacy.
-      { path: "/reports/mis/daily-sales-report", element: <MisDailySalesReportPage /> },
+      {
+        path: "/reports/mis/daily-sales-report",
+        element: <MisDailySalesReportPage />,
+      },
 
       // Workflow + Field/Component Master
       { path: "/settings/workflow", element: <WorkflowListPage /> },
       { path: "/settings/workflow/create", element: <WorkflowFormPage /> },
       { path: "/settings/workflow/create/:id", element: <WorkflowFormPage /> },
-      { path: "/settings/workflow/component", element: <WorkflowComponentListPage /> },
+      {
+        path: "/settings/workflow/component",
+        element: <WorkflowComponentListPage />,
+      },
       { path: "/field-list", element: <FieldMasterListPage /> },
       { path: "/component-list", element: <FieldMasterListPage /> },
       { path: "/field/create", element: <FieldMasterFormPage /> },
@@ -323,9 +567,18 @@ export const router = createBrowserRouter([
       { path: "/component/create/:id", element: <FieldMasterFormPage /> },
 
       // Journey Master
-      { path: "/settings/journey-type/list", element: <JourneyMasterListPage /> },
-      { path: "/settings/journey-type/list/create", element: <JourneyMasterFormPage /> },
-      { path: "/settings/journey-type/list/create/:id", element: <JourneyMasterFormPage /> },
+      {
+        path: "/settings/journey-type/list",
+        element: <JourneyMasterListPage />,
+      },
+      {
+        path: "/settings/journey-type/list/create",
+        element: <JourneyMasterFormPage />,
+      },
+      {
+        path: "/settings/journey-type/list/create/:id",
+        element: <JourneyMasterFormPage />,
+      },
 
       // Marketing
       { path: "/marketing/campaign", element: <CampaignListPage /> },
@@ -344,18 +597,30 @@ export const router = createBrowserRouter([
 
       // Scoring Engine
       { path: "/settings/scoring-engine", element: <ScoringEngineListPage /> },
-      { path: "/settings/scoring-engine/add", element: <ScoringEngineFormPage /> },
-      { path: "/settings/scoring-engine/:id", element: <ScoringEngineFormPage /> },
+      {
+        path: "/settings/scoring-engine/add",
+        element: <ScoringEngineFormPage />,
+      },
+      {
+        path: "/settings/scoring-engine/:id",
+        element: <ScoringEngineFormPage />,
+      },
 
       // Collection Upload
-      { path: "/collection/upload/list", element: <CollectionUploadListPage /> },
+      {
+        path: "/collection/upload/list",
+        element: <CollectionUploadListPage />,
+      },
 
       // Finance schemes — legacy /pages/PayableReceivableMgmt/SchemeListView.js
       { path: "/finance/payable-scheme-list", element: <SchemeListPage /> },
       { path: "/finance/receivable-scheme-list", element: <SchemeListPage /> },
       { path: "/finance/incentive-scheme-list", element: <SchemeListPage /> },
       { path: "/collection/partner-scheme-list", element: <SchemeListPage /> },
-      { path: "/collection/incentive-scheme-list", element: <SchemeListPage /> },
+      {
+        path: "/collection/incentive-scheme-list",
+        element: <SchemeListPage />,
+      },
 
       // Payout plans — legacy /pages/PayoutPlan/PayoutListView.js
       { path: "/finance/payout-plan-list", element: <PayoutPlanListPage /> },
@@ -363,9 +628,15 @@ export const router = createBrowserRouter([
       { path: "/finance/add-payout-plan/:id", element: <PayoutPlanFormPage /> },
       { path: "/finance/incentive-plan-list", element: <PayoutPlanListPage /> },
       { path: "/finance/add-incentive-plan", element: <PayoutPlanFormPage /> },
-      { path: "/finance/add-incentive-plan/:id", element: <PayoutPlanFormPage /> },
+      {
+        path: "/finance/add-incentive-plan/:id",
+        element: <PayoutPlanFormPage />,
+      },
       { path: "/collection/payout-plan-list", element: <PayoutPlanListPage /> },
-      { path: "/collection/incentive-plan-list", element: <PayoutPlanListPage /> },
+      {
+        path: "/collection/incentive-plan-list",
+        element: <PayoutPlanListPage />,
+      },
 
       // Lookup Master (grouped) — legacy /pages/Configuration/LookupMaster/LookupList.js
       { path: "/settings/lookup-list", element: <LookupMasterListPage /> },
@@ -377,17 +648,38 @@ export const router = createBrowserRouter([
 
       // Employer master — legacy /pages/Configuration/EmployerMgmt/*
       { path: "/settings/employer/list", element: <EmployerListPage /> },
-      { path: "/settings/employer/upload", element: <EmployerUploadListPage /> },
-      { path: "/settings/employer/upload/create", element: <EmployerUploadFormPage /> },
+      {
+        path: "/settings/employer/upload",
+        element: <EmployerUploadListPage />,
+      },
+      {
+        path: "/settings/employer/upload/create",
+        element: <EmployerUploadFormPage />,
+      },
 
       // Lender Pincode uploads — legacy /pages/Configuration/LenderOnboarding/LenderPincode/List.js
-      { path: "/settings/lender/pin-code/list", element: <LenderPincodeListPage /> },
-      { path: "/settings/lender/pin-code/create", element: <LenderPincodeFormPage /> },
+      {
+        path: "/settings/lender/pin-code/list",
+        element: <LenderPincodeListPage />,
+      },
+      {
+        path: "/settings/lender/pin-code/create",
+        element: <MasterWorkflowPage {...lenderPincodeMaster} />,
+      },
 
       // Delegation Matrix
-      { path: "/settings/delegation-list", element: <DelegationMatrixListPage /> },
-      { path: "/settings/delegation-matrix", element: <DelegationMatrixFormPage /> },
-      { path: "/settings/delegation-matrix/:id", element: <DelegationMatrixFormPage /> },
+      {
+        path: "/settings/delegation-list",
+        element: <DelegationMatrixListPage />,
+      },
+      {
+        path: "/settings/delegation-matrix",
+        element: <DelegationMatrixFormPage />,
+      },
+      {
+        path: "/settings/delegation-matrix/:id",
+        element: <DelegationMatrixFormPage />,
+      },
 
       // Asks queue — legacy /Components/Common/AskList.js
       { path: "/ask/list", element: <AskListPage /> },
@@ -410,24 +702,108 @@ export const router = createBrowserRouter([
 
       // Activity & tracking — large MIS reports (500+ LOC each in legacy with
       // 3-4 sub-components per page; deferred to Phase 5 report scaffold).
-      { path: "/activity/daily-activity", element: <MisDailySalesReportPage /> },
+      {
+        path: "/activity/daily-activity",
+        element: <MisDailySalesReportPage />,
+      },
       { path: "/activity/lead-disposition", element: <LeadDispositionPage /> },
       { path: "/activity/live-tracking", element: <LiveTrackingPage /> },
-      { path: "/activity/partner-disposition", element: <PartnerDispositionPage /> },
+      {
+        path: "/activity/partner-disposition",
+        element: <PartnerDispositionPage />,
+      },
 
       // Attach / FLDG / Loan account — legacy uses hard-coded PortfolioList mock
       // data (no real API). Defer until backend portfolio endpoints exist.
-      { path: "/attach/fldg", element: <RoutePlaceholder title="FLDG Attachments" legacyNotes={["Legacy PortfolioList uses mock data — no real API"]} /> },
-      { path: "/attach/fldg/add", element: <RoutePlaceholder title="Add FLDG Attachment" backTo="/attach/fldg" legacyNotes={["Legacy AttachFLDG — mock data"]} /> },
-      { path: "/attach/fldg/add/:id", element: <RoutePlaceholder title="Edit FLDG Attachment" backTo="/attach/fldg" legacyNotes={["Legacy AttachFLDG — mock data"]} /> },
-      { path: "/attach/loan-account", element: <RoutePlaceholder title="Loan Account Attachments" legacyNotes={["Legacy PortfolioList uses mock data — no real API"]} /> },
-      { path: "/attach/loan-account/add", element: <RoutePlaceholder title="Add Loan Account Attachment" backTo="/attach/loan-account" legacyNotes={["Legacy AttachLoanAccount — mock data"]} /> },
-      { path: "/attach/loan-account/add/:id", element: <RoutePlaceholder title="Edit Loan Account Attachment" backTo="/attach/loan-account" legacyNotes={["Legacy AttachLoanAccount — mock data"]} /> },
+      {
+        path: "/attach/fldg",
+        element: (
+          <RoutePlaceholder
+            title="FLDG Attachments"
+            legacyNotes={["Legacy PortfolioList uses mock data — no real API"]}
+          />
+        ),
+      },
+      {
+        path: "/attach/fldg/add",
+        element: (
+          <RoutePlaceholder
+            title="Add FLDG Attachment"
+            backTo="/attach/fldg"
+            legacyNotes={["Legacy AttachFLDG — mock data"]}
+          />
+        ),
+      },
+      {
+        path: "/attach/fldg/add/:id",
+        element: (
+          <RoutePlaceholder
+            title="Edit FLDG Attachment"
+            backTo="/attach/fldg"
+            legacyNotes={["Legacy AttachFLDG — mock data"]}
+          />
+        ),
+      },
+      {
+        path: "/attach/loan-account",
+        element: (
+          <RoutePlaceholder
+            title="Loan Account Attachments"
+            legacyNotes={["Legacy PortfolioList uses mock data — no real API"]}
+          />
+        ),
+      },
+      {
+        path: "/attach/loan-account/add",
+        element: (
+          <RoutePlaceholder
+            title="Add Loan Account Attachment"
+            backTo="/attach/loan-account"
+            legacyNotes={["Legacy AttachLoanAccount — mock data"]}
+          />
+        ),
+      },
+      {
+        path: "/attach/loan-account/add/:id",
+        element: (
+          <RoutePlaceholder
+            title="Edit Loan Account Attachment"
+            backTo="/attach/loan-account"
+            legacyNotes={["Legacy AttachLoanAccount — mock data"]}
+          />
+        ),
+      },
 
       // BC additional screens — legacy is mock data or large bulk-upload UI.
-      { path: "/bc/partner/bulk-upload", element: <RoutePlaceholder title="BC Partner Bulk Upload" legacyNotes={["Legacy PartnerBulkUpload is an 11-line stub — no real implementation"]} /> },
-      { path: "/bc/pending", element: <RoutePlaceholder title="BC Pending Queue" legacyNotes={["Legacy PortfolioList uses mock data — no real API"]} /> },
-      { path: "/bc/portfolio/view", element: <RoutePlaceholder title="BC Portfolio" legacyNotes={["Legacy PortfolioList uses mock data — no real API"]} /> },
+      {
+        path: "/bc/partner/bulk-upload",
+        element: (
+          <RoutePlaceholder
+            title="BC Partner Bulk Upload"
+            legacyNotes={[
+              "Legacy PartnerBulkUpload is an 11-line stub — no real implementation",
+            ]}
+          />
+        ),
+      },
+      {
+        path: "/bc/pending",
+        element: (
+          <RoutePlaceholder
+            title="BC Pending Queue"
+            legacyNotes={["Legacy PortfolioList uses mock data — no real API"]}
+          />
+        ),
+      },
+      {
+        path: "/bc/portfolio/view",
+        element: (
+          <RoutePlaceholder
+            title="BC Portfolio"
+            legacyNotes={["Legacy PortfolioList uses mock data — no real API"]}
+          />
+        ),
+      },
 
       // CDN / Customer 360 / Default
       { path: "/cdn-file-manager", element: <CdnFileManagerPage /> },
@@ -441,10 +817,36 @@ export const router = createBrowserRouter([
 
       // Enquiry — legacy EnquiryList (1474 LOC) is too large for a single-screen
       // port; needs its own dedicated session. Bulk Upload is an 11-line stub.
-      { path: "/enquiry/bulk-upload", element: <RoutePlaceholder title="Enquiry Bulk Upload" legacyNotes={["Legacy EnquiryBulkUpload is an 11-line stub"]} /> },
+      {
+        path: "/enquiry/bulk-upload",
+        element: (
+          <RoutePlaceholder
+            title="Enquiry Bulk Upload"
+            legacyNotes={["Legacy EnquiryBulkUpload is an 11-line stub"]}
+          />
+        ),
+      },
       { path: "/enquiry/customer/list", element: <EnquiryListPage /> },
-      { path: "/enquiry/customer/lead", element: <OnboardingPage title="Convert Enquiry to Lead" workflowType="LEAD_CREATION" listPath="/enquiry/customer/list" /> },
-      { path: "/enquiry/customer/lead/:id", element: <OnboardingPage title="Enquiry → Lead" workflowType="LEAD_CREATION" listPath="/enquiry/customer/list" /> },
+      {
+        path: "/enquiry/customer/lead",
+        element: (
+          <OnboardingPage
+            title="Convert Enquiry to Lead"
+            workflowType="LEAD_CREATION"
+            listPath="/enquiry/customer/list"
+          />
+        ),
+      },
+      {
+        path: "/enquiry/customer/lead/:id",
+        element: (
+          <OnboardingPage
+            title="Enquiry → Lead"
+            workflowType="LEAD_CREATION"
+            listPath="/enquiry/customer/list"
+          />
+        ),
+      },
       { path: "/enquiry/lead/list", element: <EnquiryListPage /> },
 
       // Finance — GST / TDS. gst-status is ported; remaining filing/withheld
@@ -459,50 +861,168 @@ export const router = createBrowserRouter([
       { path: "/settings/company-gst", element: <CompanyGstPage /> },
 
       // Finance — Payable / Receivable estimates & invoices (Phase 4.3 deferred).
-      { path: "/finance/accounting/month-closing", element: <MonthClosingPage /> },
-      { path: "/finance/add-receivable-scheme", element: <Navigate to="/settings/add-scheme" replace /> },
+      {
+        path: "/finance/accounting/month-closing",
+        element: <MonthClosingPage />,
+      },
+      {
+        path: "/finance/add-receivable-scheme",
+        element: <Navigate to="/settings/add-scheme" replace />,
+      },
       { path: "/finance/adjustment-card", element: <AdjustmentCardPage /> },
-      { path: "/finance/incentive-estimate-list", element: <IncentiveEstimateListPage /> },
-      { path: "/finance/incentive-statement", element: <IncentiveStatementPage /> },
-      { path: "/finance/invoice-details/", element: <InvoiceDetailsListPage /> },
-      { path: "/finance/invoice-details/:id", element: <InvoiceDetailsViewPage /> },
-      { path: "/finance/lender-payout-upload", element: <LenderPayoutUploadPage /> },
+      {
+        path: "/finance/incentive-estimate-list",
+        element: <IncentiveEstimateListPage />,
+      },
+      {
+        path: "/finance/incentive-statement",
+        element: <IncentiveStatementPage />,
+      },
+      {
+        path: "/finance/invoice-details/",
+        element: <InvoiceDetailsListPage />,
+      },
+      {
+        path: "/finance/invoice-details/:id",
+        element: <InvoiceDetailsViewPage />,
+      },
+      {
+        path: "/finance/lender-payout-upload",
+        element: <LenderPayoutUploadPage />,
+      },
       { path: "/finance/payable-estimate", element: <PayableEstimatePage /> },
       { path: "/finance/payable-invoice", element: <PayableInvoicePage /> },
-      { path: "/finance/payout-reconciliation-view/:id", element: <PayoutReconciliationViewPage /> },
-      { path: "/reports/bureau-reports-list", element: <BureauReportsListPage /> },
-      { path: "/reports/bureau-report-flow", element: <BureauReportFlowPage /> },
-      { path: "/reports/bureau-report-flow/:id", element: <BureauReportFlowPage /> },
-      { path: "/reports/system-usage-report", element: <SystemUsageReportPage /> },
-      { path: "/reports/business-dashboard", element: <BusinessDashboardPage /> },
-      { path: "/reports/portfolio-parameters", element: <PortfolioParametersPage /> },
+      {
+        path: "/finance/payout-reconciliation-view/:id",
+        element: <PayoutReconciliationViewPage />,
+      },
+      {
+        path: "/reports/bureau-reports-list",
+        element: <BureauReportsListPage />,
+      },
+      {
+        path: "/reports/bureau-report-flow",
+        element: <BureauReportFlowPage />,
+      },
+      {
+        path: "/reports/bureau-report-flow/:id",
+        element: <BureauReportFlowPage />,
+      },
+      {
+        path: "/reports/system-usage-report",
+        element: <SystemUsageReportPage />,
+      },
+      {
+        path: "/reports/business-dashboard",
+        element: <BusinessDashboardPage />,
+      },
+      {
+        path: "/reports/portfolio-parameters",
+        element: <PortfolioParametersPage />,
+      },
       { path: "/reports/lms/dashboard", element: <LmsDashboardPage /> },
       { path: "/reports/npa/dashboard", element: <NpaDashboardPage /> },
       { path: "/reports/pdd-dashboard", element: <PddDashboardPage /> },
-      { path: "/finance/receivable-estimate", element: <ReceivableEstimatePage /> },
-      { path: "/finance/receivable-invoice", element: <ReceivableInvoicePage /> },
+      {
+        path: "/finance/receivable-estimate",
+        element: <ReceivableEstimatePage />,
+      },
+      {
+        path: "/finance/receivable-invoice",
+        element: <ReceivableInvoicePage />,
+      },
 
       // Finance — Sales perf (Phase 4.3 deferred — shares a sales-performance scaffold).
-      { path: "/finance/sales-incentive/earnings", element: <SalesIncentiveEarningsPage /> },
-      { path: "/finance/sales-payable/earnings", element: <SalesPayableEarningsPage /> },
-      { path: "/finance/sales-performance/overview", element: <SalesPerformanceOverviewPage /> },
-      { path: "/sales/incentive-statement", element: <IncentiveStatementPage /> },
+      {
+        path: "/finance/sales-incentive/earnings",
+        element: <SalesIncentiveEarningsPage />,
+      },
+      {
+        path: "/finance/sales-payable/earnings",
+        element: <SalesPayableEarningsPage />,
+      },
+      {
+        path: "/finance/sales-performance/overview",
+        element: <SalesPerformanceOverviewPage />,
+      },
+      {
+        path: "/sales/incentive-statement",
+        element: <IncentiveStatementPage />,
+      },
       { path: "/sales/invoice-view", element: <SalesInvoiceViewPage /> },
       { path: "/sales/shareable-link", element: <SalesShareableLinkPage /> },
       { path: "/reports/leads", element: <LeadDownloadsPage /> },
       { path: "/reports/partners", element: <PartnerDownloadsPage /> },
 
       // Lead queues / actions
-      { path: "/lead/bulk-upload", element: <RoutePlaceholder title="Lead Bulk Upload" legacyNotes={["Legacy LeadBulkUpload is an 11-line stub — defer until backend bulk endpoint exists"]} /> },
-      { path: "/lead/create", element: <OnboardingPage title="Create Lead" workflowType="LEAD_CREATION" listPath="/lead/list" /> },
-      { path: "/lead/create/:id", element: <OnboardingPage title="Edit Lead" workflowType="LEAD_CREATION" listPath="/lead/list" /> },
+      {
+        path: "/lead/bulk-upload",
+        element: (
+          <RoutePlaceholder
+            title="Lead Bulk Upload"
+            legacyNotes={[
+              "Legacy LeadBulkUpload is an 11-line stub — defer until backend bulk endpoint exists",
+            ]}
+          />
+        ),
+      },
+      {
+        path: "/lead/create",
+        element: (
+          <OnboardingPage
+            title="Create Lead"
+            workflowType="LEAD_CREATION"
+            listPath="/lead/list"
+          />
+        ),
+      },
+      {
+        path: "/lead/create/:id",
+        element: (
+          <OnboardingPage
+            title="Edit Lead"
+            workflowType="LEAD_CREATION"
+            listPath="/lead/list"
+          />
+        ),
+      },
       { path: "/lead/dedupe-q", element: <LeadListPage /> },
-      { path: "/lead/lender-view", element: <RoutePlaceholder title="Lender View" legacyNotes={["Legacy /pages/Application/LenderView is an 11-line stub"]} /> },
+      {
+        path: "/lead/lender-view",
+        element: (
+          <RoutePlaceholder
+            title="Lender View"
+            legacyNotes={[
+              "Legacy /pages/Application/LenderView is an 11-line stub",
+            ]}
+          />
+        ),
+      },
       { path: "/lead/list/approval-q", element: <ApprovalQPage /> },
 
       // LOS login initiate — legacy LOSLoginFlow is a 12-line stub.
-      { path: "/los/login-initiate", element: <RoutePlaceholder title="LOS Login Initiate" legacyNotes={["Legacy /pages/LOS/LOSLogin/LOSLoginFlow is a 12-line stub"]} /> },
-      { path: "/los/login-initiate/:id", element: <RoutePlaceholder title="LOS Login — Detail" legacyNotes={["Legacy /pages/LOS/LOSLogin/LOSLoginFlow is a 12-line stub"]} /> },
+      {
+        path: "/los/login-initiate",
+        element: (
+          <RoutePlaceholder
+            title="LOS Login Initiate"
+            legacyNotes={[
+              "Legacy /pages/LOS/LOSLogin/LOSLoginFlow is a 12-line stub",
+            ]}
+          />
+        ),
+      },
+      {
+        path: "/los/login-initiate/:id",
+        element: (
+          <RoutePlaceholder
+            title="LOS Login — Detail"
+            legacyNotes={[
+              "Legacy /pages/LOS/LOSLogin/LOSLoginFlow is a 12-line stub",
+            ]}
+          />
+        ),
+      },
 
       // Marketing campaign detail / summary
       { path: "/marketing/campaign/:id", element: <CampaignAudiencePage /> },
@@ -515,30 +1035,108 @@ export const router = createBrowserRouter([
       // flows (VerificationFlow 1189 LOC, VerificationTransfer 774 LOC); the
       // Summary route had no backing file in legacy.
       { path: "/operations/verification/", element: <VerificationQueuePage /> },
-      { path: "/operations/verification/:id", element: <OnboardingPage title="Verification" workflowType="VERIFICATION" listPath="/operations/verification/" /> },
-      { path: "/operations/verification/summary", element: <RoutePlaceholder title="Verification Summary" legacyNotes={["Legacy /pages/Verification/Dashboard not present — likely never shipped"]} /> },
-      { path: "/operations/verification/transfer", element: <VerificationTransferPage /> },
+      {
+        path: "/operations/verification/:id",
+        element: (
+          <OnboardingPage
+            title="Verification"
+            workflowType="VERIFICATION"
+            listPath="/operations/verification/"
+          />
+        ),
+      },
+      {
+        path: "/operations/verification/summary",
+        element: (
+          <RoutePlaceholder
+            title="Verification Summary"
+            legacyNotes={[
+              "Legacy /pages/Verification/Dashboard not present — likely never shipped",
+            ]}
+          />
+        ),
+      },
+      {
+        path: "/operations/verification/transfer",
+        element: <VerificationTransferPage />,
+      },
 
       // Partner bulk upload — legacy stub.
-      { path: "/partner/bulk-upload", element: <RoutePlaceholder title="Partner Bulk Upload" legacyNotes={["Legacy PartnerBulkUpload is an 11-line stub"]} /> },
+      {
+        path: "/partner/bulk-upload",
+        element: (
+          <RoutePlaceholder
+            title="Partner Bulk Upload"
+            legacyNotes={["Legacy PartnerBulkUpload is an 11-line stub"]}
+          />
+        ),
+      },
 
       // Misc settings creates
-      { path: "/settings/lender/eligible-pincode/list", element: <LenderEligiblePincodeListPage /> },
-      { path: "/settings/lookup-master/create", element: <Navigate to="/settings/lookup-master" replace /> },
+      {
+        path: "/settings/lender/eligible-pincode/list",
+        element: <LenderEligiblePincodeListPage />,
+      },
+      {
+        path: "/settings/lookup-master/create",
+        element: <Navigate to="/settings/lookup-master" replace />,
+      },
 
       // Utility
       { path: "/utility/business-card", element: <BusinessCardPage /> },
-      { path: "/utility/doc-checklist-share", element: <DocChecklistSharePage /> },
+      {
+        path: "/utility/doc-checklist-share",
+        element: <DocChecklistSharePage />,
+      },
       { path: "/utility/lead-reassign", element: <LeadReassignPage /> },
-      { path: "/utility/pincode-eligibility", element: <PincodeEligibilityPage /> },
+      {
+        path: "/utility/pincode-eligibility",
+        element: <PincodeEligibilityPage />,
+      },
 
       // Vehicle — legacy /settings/vehicle has no backing component file in
       // craft-frontend; vehicle masters live at /settings/used-vehicle-makes,
       // /vehicle-models, /vehicle-price-matrix (use mock data anyway).
-      { path: "/settings/vehicle", element: <RoutePlaceholder title="Vehicle Master" legacyNotes={["Legacy VehicleView component not found; vehicle masters use mock data"]} /> },
-      { path: "/settings/vehicle-details", element: <RoutePlaceholder title="Vehicle Details" legacyNotes={["Legacy route commented out in craft-frontend"]} /> },
-      { path: "/vehicle/lead/create", element: <OnboardingPage title="Create Vehicle Lead" workflowType="CAR_BUYING_JOURNEY" listPath="/lead/list" /> },
-      { path: "/vehicle/lead/create/:id", element: <OnboardingPage title="Edit Vehicle Lead" workflowType="CAR_BUYING_JOURNEY" listPath="/lead/list" /> },
+      {
+        path: "/settings/vehicle",
+        element: (
+          <RoutePlaceholder
+            title="Vehicle Master"
+            legacyNotes={[
+              "Legacy VehicleView component not found; vehicle masters use mock data",
+            ]}
+          />
+        ),
+      },
+      {
+        path: "/settings/vehicle-details",
+        element: (
+          <RoutePlaceholder
+            title="Vehicle Details"
+            legacyNotes={["Legacy route commented out in craft-frontend"]}
+          />
+        ),
+      },
+      {
+        path: "/vehicle/lead/create",
+        element: (
+          <OnboardingPage
+            title="Create Vehicle Lead"
+            workflowType="CAR_BUYING_JOURNEY"
+            listPath="/lead/list"
+          />
+        ),
+      },
+      {
+        path: "/vehicle/lead/create/:id",
+        element: (
+          <OnboardingPage
+            title="Edit Vehicle Lead"
+            workflowType="CAR_BUYING_JOURNEY"
+            listPath="/lead/list"
+          />
+        ),
+      },
     ],
   },
   { path: "/", element: <Navigate to="/dashboard" replace /> },

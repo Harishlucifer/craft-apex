@@ -1,8 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
-import { Button, toast } from "@craft-apex/ui";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@craft-apex/ui";
 import { useSaveTerritory, useTerritoryDetail } from "./territory-form.api";
 import type {
   BoundaryCoordinate,
@@ -10,32 +8,32 @@ import type {
 } from "./territory-form.types";
 import {
   buildNestedFormPayload,
-  buildWorkflow,
-  UiComponentLoader,
   WorkflowType,
   type FormBuilderStepContext,
-  type WorkflowStepDef,
+  type MasterController,
+  type MasterControllerArgs,
+  type MasterWorkflowPageProps,
 } from "@craft-apex/workflow-runtime";
 
-export default function TerritoryFormPage() {
-  const navigate = useNavigate();
-  const { id } = useParams<{ id?: string }>();
+/**
+ * Territory create/edit — a single-FORM_BUILDER-step master (no stepper).
+ * Driven by the generic MasterWorkflowPage (see routes.tsx); this module
+ * supplies only the bespoke controller (office/boundary defaults + the
+ * hand-rolled boundary/pincode/coordinate payload transform).
+ */
+export const territoryMaster: MasterWorkflowPageProps = {
+  noun: "Territory",
+  workflowType: WorkflowType.TerritoryManagement,
+  listPath: "/settings/territory-management",
+  maxWidth: "max-w-5xl",
+  emptyLabel: "territory management",
+  useController: useTerritoryController,
+};
 
-  const { data: workflow, isLoading: workflowLoading } = useQuery({
-    queryKey: ["territory-workflow", id ?? ""],
-    queryFn: () =>
-      buildWorkflow({
-        workflowType: WorkflowType.TerritoryManagement,
-        sourceId: id,
-      }),
-  });
-  const steps: WorkflowStepDef[] = useMemo(
-    () => workflow?.stages?.flatMap((s) => s.steps) ?? [],
-    [workflow]
-  );
-  // Single-step form — no stepper needed, just render whatever the
-  // configured workflow's one step is.
-  const activeStepDef = steps[0];
+function useTerritoryController({
+  id,
+}: MasterControllerArgs): MasterController {
+  const navigate = useNavigate();
 
   const { data: detail } = useTerritoryDetail(id);
   const save = useSaveTerritory();
@@ -103,12 +101,11 @@ export default function TerritoryFormPage() {
           ? String(detail.territory_boundary.longitude)
           : "0",
       "territory_boundary.pincodes": Array.isArray(
-        detail?.territory_boundary?.pincodes
+        detail?.territory_boundary?.pincodes,
       )
         ? detail!.territory_boundary!.pincodes!.join(", ")
         : "",
-      "territory_boundary.coordinates": detail?.territory_boundary
-        ?.coordinates
+      "territory_boundary.coordinates": detail?.territory_boundary?.coordinates
         ? JSON.stringify(detail.territory_boundary.coordinates, null, 2)
         : "[]",
     });
@@ -140,18 +137,20 @@ export default function TerritoryFormPage() {
                       latitude: Number(c.latitude),
                       longitude: Number(c.longitude),
                     }
-                : c
+                : c,
             )
           : [];
       } catch (e) {
         toast.error(
-          e instanceof Error ? e.message : "Invalid boundary coordinates JSON"
+          e instanceof Error ? e.message : "Invalid boundary coordinates JSON",
         );
         return;
       }
     }
 
-    const nested = buildNestedFormPayload(rest) as Partial<TerritorySavePayload> & {
+    const nested = buildNestedFormPayload(
+      rest,
+    ) as Partial<TerritorySavePayload> & {
       office_detail?: Record<string, any>;
       territory_boundary?: Record<string, any>;
     };
@@ -229,43 +228,10 @@ export default function TerritoryFormPage() {
     lockWhen: id,
   };
 
-  return (
-    <div className="mx-auto max-w-5xl space-y-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          {id ? "Edit Territory" : "Add Territory"}
-        </h1>
-        <Button asChild variant="outline" size="sm">
-          <Link to="/settings/territory-management">
-            <ArrowLeft className="h-4 w-4" /> Back
-          </Link>
-        </Button>
-      </div>
-
-      {workflowLoading ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
-          Loading form…
-        </div>
-      ) : steps.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/30 p-8 text-center text-sm text-slate-500">
-          No workflow configured for territory management yet. Configure a
-          workflow with workflow_type &quot;
-          {WorkflowType.TerritoryManagement}&quot; at{" "}
-          <Link to="/settings/workflow" className="underline">
-            Settings → Workflow
-          </Link>
-          .
-        </div>
-      ) : (
-        <UiComponentLoader
-          step={activeStepDef}
-          value={formValues}
-          onChange={setFormValues}
-          onNext={() => {}}
-          onBack={() => {}}
-          context={stepContext}
-        />
-      )}
-    </div>
-  );
+  return {
+    formValues,
+    setFormValues,
+    stepContext,
+    singleStep: true,
+  };
 }

@@ -1,51 +1,49 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Check } from "lucide-react";
-import { Button, toast } from "@craft-apex/ui";
+import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "@craft-apex/ui";
 import { useRoleDetail, useRoleFormLookups } from "./role-form.api";
 import type { RoleData } from "./role-form.types";
 import type { RoleStepContext } from "./role-form.steps";
 import {
   buildNestedFormPayload,
-  buildWorkflow,
-  UiComponentLoader,
   useSaveStepData,
   WorkflowType,
   type FormBuilderStepContext,
-  type WorkflowStepDef,
+  type MasterController,
+  type MasterControllerArgs,
+  type MasterWorkflowPageProps,
 } from "@craft-apex/workflow-runtime";
 
-export default function RoleFormPage() {
+/**
+ * Role create/edit. Driven by the generic MasterWorkflowPage (see routes.tsx);
+ * this module supplies only the bespoke controller (FORM_BUILDER defaults +
+ * payload, and the Access Rights step's context).
+ */
+export const roleMaster: MasterWorkflowPageProps = {
+  noun: "Role",
+  workflowType: WorkflowType.RoleCreation,
+  listPath: "/settings/role",
+  maxWidth: "max-w-5xl",
+  emptyLabel: "role creation",
+  useController: useRoleController,
+};
+
+function useRoleController({
+  id,
+  activeStep,
+  setActiveStep,
+  setSavedId,
+}: MasterControllerArgs): MasterController {
   const navigate = useNavigate();
-  const { id: routeId } = useParams<{ id?: string }>();
   const { hash } = useLocation();
   const hashType = hash.startsWith("#") ? hash.substring(1) : "";
   const isChannel = hashType === "CHANNEL";
-
-  // `id` is the active role id used by the Access Rights step. For edit it
-  // comes from the URL; for create it's set after the FORM_BUILDER step
-  // saves and the backend returns a `user_role_id` in the response.
-  const [savedRoleId, setSavedRoleId] = useState<string | undefined>(routeId);
-  const id = savedRoleId ?? routeId;
-  const [activeStep, setActiveStep] = useState(0);
-
-  const { data: workflow, isLoading: workflowLoading } = useQuery({
-    queryKey: ["role-workflow", id ?? ""],
-    queryFn: () =>
-      buildWorkflow({ workflowType: WorkflowType.RoleCreation, sourceId: id }),
-  });
-  const steps: WorkflowStepDef[] = useMemo(
-    () => workflow?.stages?.flatMap((s) => s.steps) ?? [],
-    [workflow]
-  );
-  const activeStepDef = steps[activeStep];
 
   // Lookups.
   const { data: lookups = [] } = useRoleFormLookups();
   const partnerCategories = useMemo(
     () => lookups.filter((l) => l.group_code === "PARTNER_CATEGORY"),
-    [lookups]
+    [lookups],
   );
 
   // CHANNEL partner-category param (legacy default = first PC's lu_key).
@@ -82,8 +80,7 @@ export default function RoleFormPage() {
       data_access: role?.data_access ?? "",
       generate_application_link: role?.generate_application_link ?? "false",
       generate_partner_link: role?.generate_partner_link ?? "false",
-      generate_child_partner_link:
-        role?.generate_child_partner_link ?? "false",
+      generate_child_partner_link: role?.generate_child_partner_link ?? "false",
       default_route: role?.default_route ?? "",
       status: role?.status ?? 1,
     });
@@ -116,10 +113,10 @@ export default function RoleFormPage() {
 
       const isNew = !role?.user_role_id;
       if (isNew && saved.user_role_id != null) {
-        setSavedRoleId(String(saved.user_role_id));
+        setSavedId(String(saved.user_role_id));
         navigate(
           `/settings/role/create/${String(saved.user_role_id)}#${saved.user_type}`,
-          { replace: true }
+          { replace: true },
         );
       }
       setActiveStep(activeStep + 1);
@@ -145,10 +142,6 @@ export default function RoleFormPage() {
     }
   };
 
-  // Steps after the first need a saved role. Block forward navigation if not set.
-  const canEnterLaterSteps = Boolean(role);
-  const heading = routeId ? "Edit Role" : "Add Role";
-
   // Union of everything any of this page's registered steps might need —
   // whichever step is active reads only the keys its own adapter expects.
   const stepContext: FormBuilderStepContext & RoleStepContext = {
@@ -164,98 +157,10 @@ export default function RoleFormPage() {
     onPartnerCategoryChange: setPartnerCategory,
   };
 
-  return (
-    <div className="mx-auto max-w-5xl space-y-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          {heading}
-        </h1>
-        <Button asChild variant="outline" size="sm">
-          <Link to="/settings/role">
-            <ArrowLeft className="h-4 w-4" /> Back to roles
-          </Link>
-        </Button>
-      </div>
-
-      {workflowLoading ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
-          Loading steps…
-        </div>
-      ) : steps.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/30 p-8 text-center text-sm text-slate-500">
-          No workflow configured for role creation yet. Configure a workflow
-          with workflow_type &quot;{WorkflowType.RoleCreation}&quot; at{" "}
-          <Link to="/settings/workflow" className="underline">
-            Settings → Workflow
-          </Link>
-          .
-        </div>
-      ) : (
-        <>
-          <Stepper
-            steps={steps.map((s) => s.name)}
-            activeStep={activeStep}
-            onStepClick={(i) => {
-              if (i <= activeStep || canEnterLaterSteps) setActiveStep(i);
-            }}
-          />
-
-          <UiComponentLoader
-            step={activeStepDef}
-            value={formValues}
-            onChange={setFormValues}
-            onNext={() => setActiveStep(activeStep + 1)}
-            onBack={() => setActiveStep(activeStep - 1)}
-            context={stepContext}
-          />
-        </>
-      )}
-    </div>
-  );
-}
-
-function Stepper({
-  steps,
-  activeStep,
-  onStepClick,
-}: {
-  steps: string[];
-  activeStep: number;
-  onStepClick: (i: number) => void;
-}) {
-  return (
-    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-      {steps.map((label, i) => {
-        const isDone = i < activeStep;
-        const isActive = i === activeStep;
-        return (
-          <button
-            key={label}
-            type="button"
-            onClick={() => onStepClick(i)}
-            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
-              isActive
-                ? "bg-[#4C7DF0] text-white"
-                : isDone
-                  ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                  : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-            }`}
-          >
-            <span
-              className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold ${
-                isActive
-                  ? "bg-white/20 text-white"
-                  : isDone
-                    ? "bg-emerald-600 text-white"
-                    : "bg-slate-200 text-slate-600"
-              }`}
-            >
-              {isDone ? <Check className="h-3 w-3" /> : i + 1}
-            </span>
-            <span className="font-medium">{label}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
+  return {
+    formValues,
+    setFormValues,
+    stepContext,
+    canEnterLaterSteps: Boolean(role),
+  };
 }
