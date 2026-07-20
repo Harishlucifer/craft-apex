@@ -29,7 +29,7 @@ export const router = createBrowserRouter([
       { path: "/", element: <Navigate to="/applications" replace /> },
       { path: "/applications", element: <ApplicationListPage /> },
       { path: "/applications/:id", element: <ApplicationDetailPage /> },
-      { path: "/applications/lender-apply/:id", element: <LenderApply title="Customer Lender Apply" workflowType="LENDER_APPLY" listPath="/applications" /> },
+      { path: "/applications/lender-apply/:lenderApplyId", element: <LenderApply title="Customer Lender Apply" workflowType="LENDER_APPLY" listPath="/applications" /> },
       { path: "/loans", element: <LoanListPage /> },
       { path: "/profile", element: <ProfilePage /> },
       { path: "*", element: <NotFound /> },

@@ -5,7 +5,22 @@ import { WorkflowRuntime } from "./workflow-runtime";
 import { useQuery } from "@tanstack/react-query";
 import { getApiClient } from "@craft-apex/api";
 
-const APPLICATION_URL = "/alpha/v2/application";
+const APPLICATION_URL_V1 = "/alpha/v1/application";
+const APPLICATION_URL_V2 = "/alpha/v2/application";
+
+export function useLenderApplyData(lenderApplyId?: string) {
+  return useQuery({
+    queryKey: ["consumer-lender-apply", lenderApplyId ?? ""],
+    enabled: Boolean(lenderApplyId),
+    queryFn: async () => {
+      const body = await getApiClient().get<unknown, any>(
+        `${APPLICATION_URL_V1}/lender-apply/${encodeURIComponent(lenderApplyId!)}`
+      );
+      console.log("lenderApplyData", body)
+      return (body?.data ?? body?.result ?? body ?? {});
+    },
+  });
+}
 
 export function useApplicationDetail(id?: string) {
   return useQuery({
@@ -13,7 +28,7 @@ export function useApplicationDetail(id?: string) {
     enabled: Boolean(id),
     queryFn: async () => {
       const body = await getApiClient().get<unknown, any>(
-        `${APPLICATION_URL}/${encodeURIComponent(id!)}`
+        `${APPLICATION_URL_V2}/${encodeURIComponent(id!)}`
       );
       return (body?.data ?? body?.result ?? body ?? {});
     },
@@ -28,13 +43,16 @@ interface Props {
 
 export function LenderApply({ title, workflowType, listPath }: Props) {
   const navigate = useNavigate();
-  const { id } = useParams<{ id?: string }>();
+  const { lenderApplyId } = useParams<{ lenderApplyId?: string }>();
   const [searchParams] = useSearchParams();
 
   // Legacy supports ?partner_type=... if needed, or lenderCode
   const partnerType = searchParams.get("partner_type") ?? undefined;
 
-  const { data: applicationDetail } = useApplicationDetail(id);
+  const { data: lenderApplyData } = useLenderApplyData(lenderApplyId);
+  const applicationId = lenderApplyData?.application_id || lenderApplyData?.applicationId;
+
+  const { data: applicationDetail } = useApplicationDetail(applicationId);
 
   // Safely extract values
   const appCore = applicationDetail?.application || {};
@@ -122,7 +140,7 @@ export function LenderApply({ title, workflowType, listPath }: Props) {
       </div>
       <WorkflowRuntime
         workflowType={workflowType}
-        sourceId={id}
+        sourceId={lenderApplyId}
         partnerType={partnerType}
         title={title}
         onClose={() => navigate(listPath)}
