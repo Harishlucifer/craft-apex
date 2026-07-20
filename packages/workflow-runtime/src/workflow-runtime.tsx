@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Check, ChevronRight, RotateCcw, XCircle } from "lucide-react";
 import { Badge, Button, Label, toast, cn, Stepper, type StepperStep } from "@craft-apex/ui";
 import {
@@ -45,6 +46,7 @@ export function WorkflowRuntime({
 }: Props) {
   const build = useBuildWorkflow();
   const execute = useExecuteWorkflow();
+  const queryClient = useQueryClient();
 
   const isPartnerOnboarding = workflowType === "PARTNER_ONBOARDING";
   const { data: partnerDetail } = usePartnerDetail(
@@ -149,6 +151,7 @@ export function WorkflowRuntime({
       }
     }
 
+
     setStepData(baseData);
   }, [currentStep?.id, partnerDetail, isPartnerOnboarding]);
 
@@ -207,6 +210,9 @@ export function WorkflowRuntime({
         if (saved.sourceId != null) {
           finalSourceId = saved.sourceId;
         }
+        queryClient.invalidateQueries({
+          queryKey: ["partner-detail", String(finalSourceId)],
+        });
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Save failed");
         return;
