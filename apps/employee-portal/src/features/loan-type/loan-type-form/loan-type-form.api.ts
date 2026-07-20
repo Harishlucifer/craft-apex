@@ -1,10 +1,6 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import type {
-  LoanTypeDetail,
-  LoanTypeSavePayload,
-  LookupItem,
-} from "./loan-type-form.types";
+import type { LoanTypeDetail, LookupItem } from "./loan-type-form.types";
 
 const LOAN_TYPE_URL = "/alpha/v1/master/loan-type";
 const LOOKUP_URL =
@@ -32,12 +28,5 @@ export function useLoanTypeDetail(id: string | undefined) {
       const r = body?.result ?? body?.data ?? body;
       return (r ?? null) as LoanTypeDetail | null;
     },
-  });
-}
-
-export function useSaveLoanType() {
-  return useMutation({
-    mutationFn: async (payload: LoanTypeSavePayload) =>
-      api.post<unknown, any>(LOAN_TYPE_URL, payload),
   });
 }

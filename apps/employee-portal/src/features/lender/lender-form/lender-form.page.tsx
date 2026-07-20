@@ -7,7 +7,6 @@ import {
   useLenderDetail,
   useLenderLookups,
   useLoanTypeOptions,
-  useSaveLender,
 } from "./lender-form.api";
 import type {
   LenderContractRow,
@@ -19,6 +18,7 @@ import {
   buildNestedFormPayload,
   buildWorkflow,
   UiComponentLoader,
+  useSaveStepData,
   WorkflowType,
   type FormBuilderStepContext,
   type WorkflowStepDef,
@@ -48,7 +48,7 @@ export default function LenderFormPage() {
   const { data: lookups = [] } = useLenderLookups();
   const { data: loanTypeOptions = [] } = useLoanTypeOptions();
   const { data: detail } = useLenderDetail(id);
-  const save = useSaveLender();
+  const save = useSaveStepData();
 
   const lookupOptions = useMemo(() => {
     const filter = (g: string) =>
@@ -117,9 +117,10 @@ export default function LenderFormPage() {
     const nested = buildNestedFormPayload(formValues);
     const payload = buildPayload(nested, loanTypes, contracts);
     try {
-      const res = await save.mutateAsync(payload);
-      const newId =
-        (res as any)?.result?.lender_id ?? (res as any)?.data?.lender_id;
+      const { sourceId: newId } = await save.mutateAsync({
+        workflowType: WorkflowType.LenderCreation,
+        data: payload,
+      });
       toast.success(`Lender ${id ? "updated" : "saved"} successfully`);
       if (!id && newId) {
         setSavedLenderId(String(newId));
@@ -135,7 +136,10 @@ export default function LenderFormPage() {
     const nested = buildNestedFormPayload(formValues);
     const payload = buildPayload(nested, loanTypes, contracts);
     try {
-      await save.mutateAsync(payload);
+      await save.mutateAsync({
+        workflowType: WorkflowType.LenderCreation,
+        data: payload,
+      });
       toast.success("Loan types saved successfully");
       setActiveStep(activeStep + 1);
     } catch (e) {
@@ -147,7 +151,10 @@ export default function LenderFormPage() {
     const nested = buildNestedFormPayload(formValues);
     const payload = buildPayload(nested, loanTypes, contracts);
     try {
-      await save.mutateAsync(payload);
+      await save.mutateAsync({
+        workflowType: WorkflowType.LenderCreation,
+        data: payload,
+      });
       toast.success("Lender created successfully");
       navigate("/settings/lender");
     } catch (e) {
