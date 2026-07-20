@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Input, Label } from "@craft-apex/ui";
 import type {
   ConditionalOn,
@@ -421,6 +421,17 @@ function FieldInput({
       );
     }
 
+    case "file":
+      return (
+        <FileFieldInput
+          id={id}
+          value={stringValue}
+          disabled={disabled}
+          maxFileSizeKB={field.validation?.maxFileSizeKB}
+          onChange={onChange}
+        />
+      );
+
     case "text":
     default:
       return (
@@ -435,6 +446,70 @@ function FieldInput({
         />
       );
   }
+}
+
+interface FileFieldInputProps {
+  id: string;
+  /** Data-URI string once a file's been read, else "". */
+  value: string;
+  disabled: boolean;
+  /** Reject files larger than this (KB); no limit when unset. */
+  maxFileSizeKB?: number;
+  onChange: (dataUri: string) => void;
+}
+
+/**
+ * Reads a picked file as a base64 data URI (matches legacy's inline
+ * FileReader pattern — e.g. Lender's Logo upload) and shows a small preview.
+ * Kept as its own component (not inlined in the switch like other cases)
+ * because it needs local state for the size-limit error message, which
+ * FormBuilderRenderer has no other mechanism to surface per-field.
+ */
+function FileFieldInput({
+  id,
+  value,
+  disabled,
+  maxFileSizeKB,
+  onChange,
+}: FileFieldInputProps) {
+  const [error, setError] = useState<string | null>(null);
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-3">
+        <input
+          id={id}
+          type="file"
+          accept="image/*"
+          disabled={disabled}
+          onChange={(e) => {
+            setError(null);
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (!file) return;
+            if (maxFileSizeKB && file.size > maxFileSizeKB * 1024) {
+              setError(`File size exceeds ${maxFileSizeKB}KB limit`);
+              return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => onChange(String(reader.result ?? ""));
+            reader.readAsDataURL(file);
+          }}
+          className="text-sm text-slate-600"
+        />
+        {value ? (
+          <img
+            src={value}
+            alt="preview"
+            className="h-12 rounded border border-slate-200 bg-white object-contain p-1"
+          />
+        ) : (
+          <span className="text-xs text-slate-400">No file selected.</span>
+        )}
+      </div>
+      {error && <p className="text-xs text-rose-500">{error}</p>}
+    </div>
+  );
 }
 
 function resolveOptions(field: FormFieldDef): FormFieldOption[] {

@@ -1,8 +1,7 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type {
   LenderDetail,
-  LenderSavePayload,
   LoanTypeMasterOption,
   LookupItem,
 } from "./lender-form.types";
@@ -37,13 +36,6 @@ export function useLenderDetail(id: string | undefined) {
       const r = body?.result ?? body?.data ?? body;
       return (r ?? null) as LenderDetail | null;
     },
-  });
-}
-
-export function useSaveLender() {
-  return useMutation({
-    mutationFn: async (payload: LenderSavePayload) =>
-      api.post<unknown, any>(LENDER_URL, payload),
   });
 }
 

@@ -78,9 +78,9 @@ export default function LenderListPage() {
         }
       >
         {list.paged.map((r, i) => (
-          <TableRow key={`${String(r.id ?? "")}-${i}`} className={TABLE_ROW_CLASS}>
+          <TableRow key={`${String(r.lender_id ?? "")}-${i}`} className={TABLE_ROW_CLASS}>
             <TableCell className="font-mono text-xs text-slate-500">
-              {String(r.id ?? "—")}
+              {String(r.lender_id ?? "—")}
             </TableCell>
             <TableCell className="font-mono text-xs">{r.code ?? "—"}</TableCell>
             <TableCell className="font-medium">{r.name ?? "—"}</TableCell>
@@ -93,7 +93,7 @@ export default function LenderListPage() {
             <TableCell className="text-end">
               <PermissionGate action="edit">
                 <Button asChild size="sm" variant="ghost" className="gap-1.5">
-                  <Link to={`/settings/add-lender/${String(r.id ?? "")}`}>
+                  <Link to={`/settings/add-lender/${String(r.lender_id ?? "")}`}>
                     <Pencil className="h-3.5 w-3.5" /> {tc("edit")}
                   </Link>
                 </Button>

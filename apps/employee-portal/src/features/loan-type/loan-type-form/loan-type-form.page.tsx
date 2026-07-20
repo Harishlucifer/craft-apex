@@ -3,17 +3,14 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Check } from "lucide-react";
 import { Button, toast } from "@craft-apex/ui";
-import {
-  useLoanTypeDetail,
-  useLoanTypeLookups,
-  useSaveLoanType,
-} from "./loan-type-form.api";
+import { useLoanTypeDetail, useLoanTypeLookups } from "./loan-type-form.api";
 import type { LoanTypeSavePayload, SubLoanRow } from "./loan-type-form.types";
 import type { LoanTypeStepContext } from "./loan-type-form.steps";
 import {
   buildNestedFormPayload,
   buildWorkflow,
   UiComponentLoader,
+  useSaveStepData,
   WorkflowType,
   type FormBuilderStepContext,
   type WorkflowStepDef,
@@ -58,7 +55,7 @@ export default function LoanTypeFormPage() {
   );
 
   const { data: detail } = useLoanTypeDetail(id);
-  const save = useSaveLoanType();
+  const save = useSaveStepData();
 
   // Sub-loan list lives at the page level so step 2 can mutate it, and so
   // step 1 saves preserve it (legacy buildPayload always included sub_loans).
@@ -125,9 +122,10 @@ export default function LoanTypeFormPage() {
       sub_loans: subLoans,
     };
     try {
-      const res = await save.mutateAsync(payload);
-      const newId =
-        (res as any)?.result?.loan_type_id ?? (res as any)?.data?.loan_type_id;
+      const { sourceId: newId } = await save.mutateAsync({
+        workflowType: WorkflowType.LoanTypeCreation,
+        data: payload,
+      });
       toast.success(`Loan type ${id ? "updated" : "saved"} successfully`);
       if (!id && newId) {
         setSavedLoanTypeId(String(newId));
@@ -161,7 +159,10 @@ export default function LoanTypeFormPage() {
       sub_loans: subLoans,
     };
     try {
-      await save.mutateAsync(payload);
+      await save.mutateAsync({
+        workflowType: WorkflowType.LoanTypeCreation,
+        data: payload,
+      });
       toast.success("Sub loan types saved successfully");
       navigate("/settings/loan-types");
     } catch (e) {

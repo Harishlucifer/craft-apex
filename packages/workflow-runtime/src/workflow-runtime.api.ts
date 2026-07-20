@@ -119,6 +119,12 @@ export function useSavePartner() {
 //     (Components/redux/application/applicationThunk.js#createUpdateApplication)
 //   VERIFICATION       -> POST /alpha/v1/verification/create
 //     (Components/redux/Verification/verificationThunk.js#createUpdateVerification)
+//   EMPLOYEE_CREATION  -> POST /alpha/v1/employee
+//   ROLE_CREATION      -> POST /alpha/v1/master/user-role
+//   LOAN_TYPE_CREATION -> POST /alpha/v1/master/loan-type
+//   LENDER_CREATION    -> POST /alpha/v1/master/lender
+//     (the four settings masters — each form page builds its own payload but
+//      saves through this common flow instead of a bespoke useSaveXxx hook)
 // Other workflow types don't have a verified save endpoint yet — those steps
 // will only advance via /alpha/v1/workflow/execution without persisting form data.
 const STEP_SAVE_ENDPOINTS: Record<string, string> = {
@@ -127,6 +133,10 @@ const STEP_SAVE_ENDPOINTS: Record<string, string> = {
   LEAD_CREATION: "/alpha/v1/application/create",
   VERIFICATION: "/alpha/v1/verification/create",
   LENDER_APPLY: "/alpha/v1/application/create",
+  EMPLOYEE_CREATION: "/alpha/v1/employee",
+  ROLE_CREATION: "/alpha/v1/master/user-role",
+  LOAN_TYPE_CREATION: "/alpha/v1/master/loan-type",
+  LENDER_CREATION: "/alpha/v1/master/lender",
 };
 
 export function hasStepSaveEndpoint(workflowType: string): boolean {
@@ -135,13 +145,21 @@ export function hasStepSaveEndpoint(workflowType: string): boolean {
 
 export interface StepSaveInput {
   workflowType: string;
-  /** Raw form payload collected from the structured renderer / textarea. */
-  data: Record<string, unknown>;
+  /**
+   * The request body to POST. Either the raw form payload collected from the
+   * structured renderer / textarea (a flat `Record`), or a fully-typed save
+   * payload a page built itself (e.g. the settings masters) — hence `object`
+   * rather than `Record<string, unknown>`, so typed interfaces are accepted.
+   */
+  data: object;
 }
 
 export interface StepSaveResult {
   /** Channel/source id parsed from result.application.channel_id (if present). */
   sourceId?: string | number;
+  /** Unwrapped result envelope (body.result ?? body.data.result ?? …) — the
+   *  saved entity, for steps that need the whole record back (e.g. Role). */
+  result: any;
   /** Raw server response — handy for downstream extraction. */
   raw: any;
 }
@@ -180,9 +198,16 @@ export async function saveStepData(
     result?.application?.channel_id ??
     result?.verification_id ??
     result?.channel_id ??
+    // Settings masters: employee/role/loan-type/lender each land a fresh id on
+    // create at their own `*_id` field (employee also nests it under `user`).
+    result?.employee_id ??
+    result?.user?.employee_id ??
+    result?.user_role_id ??
+    result?.loan_type_id ??
+    result?.lender_id ??
     result?.id ??
     undefined;
-  return { sourceId, raw: body };
+  return { sourceId, result, raw: body };
 }
 
 export function useSaveStepData() {
