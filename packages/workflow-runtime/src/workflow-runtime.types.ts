@@ -15,6 +15,7 @@
 export const WorkflowType = {
   PartnerOnboarding: "PARTNER_ONBOARDING",
   Verification: "VERIFICATION",
+  LenderApply: "LENDER_APPLY",
   Campaign: "CAMPAIGN",
   BcPartnerOnboarding: "BC_PARTNER_ONBOARDING",
   LeadCreation: "LEAD_CREATION",

@@ -1,9 +1,8 @@
-import {Field, FormState} from "../types";
+import { Field, FormState } from "../types";
 
 // Utility to set nested value in an object given a path
 export const setNestedValue = (obj: Record<string, any>, path: string, value: any): Record<string, any> => {
     if (!path || typeof path !== 'string') {
-        console.error('Invalid path:', path);
         return obj;
     }
 
@@ -35,26 +34,25 @@ export const setNestedValue = (obj: Record<string, any>, path: string, value: an
     }, obj);
 };
 
-// Utility to flatten an object to a single level with dot notation keys
 export const flattenObject = (
     data: Record<string, any>,
     parentKey: string = '',
     res: Record<string, any> = {}
 ): Record<string, any> => {
+    if (!data || typeof data !== 'object') return res;
+
     for (let key in data) {
-        if (data.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
             const newKey = parentKey ? `${parentKey}.${key}` : key;
 
-            if (typeof data[key] === 'object' && !Array.isArray(data[key])) {
+            if (typeof data[key] === 'object' && !Array.isArray(data[key]) && data[key] !== null) {
                 flattenObject(data[key], newKey, res);
             } else if (Array.isArray(data[key])) {
-                // Check if the array contains objects or primitives
-                if (data[key].every((item) => typeof item === 'object' && item !== null)) {
-                    data[key].forEach((item, index) => {
+                if (data[key].length > 0 && data[key].every((item: any) => typeof item === 'object' && item !== null)) {
+                    data[key].forEach((item: any, index: number) => {
                         flattenObject(item, `${newKey}[${index}]`, res);
                     });
                 } else {
-                    // Flatten primitive arrays as a single key-value
                     res[newKey] = data[key];
                 }
             } else {
@@ -184,7 +182,7 @@ export const removeFieldAtIndex = (allFields: Field[], indexToRemove: number): F
             return true;
         })
         .map((field) => {
-            const fieldCopy = {...field};
+            const fieldCopy = { ...field };
             const match = field.name.match(/(\w+)\[(\d+)\]/);
             if (match) {
                 let fieldIndex = parseInt(match[2]!, 10);

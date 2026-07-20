@@ -79,6 +79,7 @@ import LenderPincodeFormPage from "@/features/lender-pincode/lender-pincode-form
 import AskListPage from "@/features/ask/ask-list/ask-list.page";
 import FulfillmentListPage from "@/features/lead/fulfillment-list/fulfillment-list.page";
 import PartnerLeadsListPage from "@/features/partner/partner-leads-list/partner-leads-list.page";
+import PartnerBulkUploadPage from "@/features/partner/partner-bulk-upload/partner-bulk-upload.page";
 import NewChannelListPage from "@/features/channel/new-channel-list/new-channel-list.page";
 import ModuleFormPage from "@/features/module/module-form/module-form.page";
 import JourneyMasterFormPage from "@/features/journey-master/journey-master-form/journey-master-form.page";
@@ -519,8 +520,8 @@ export const router = createBrowserRouter([
       { path: "/operations/verification/summary", element: <RoutePlaceholder title="Verification Summary" legacyNotes={["Legacy /pages/Verification/Dashboard not present — likely never shipped"]} /> },
       { path: "/operations/verification/transfer", element: <VerificationTransferPage /> },
 
-      // Partner bulk upload — legacy stub.
-      { path: "/partner/bulk-upload", element: <RoutePlaceholder title="Partner Bulk Upload" legacyNotes={["Legacy PartnerBulkUpload is an 11-line stub"]} /> },
+      // Partner bulk upload
+      { path: "/partner/bulk-upload", element: <PartnerBulkUploadPage /> },
 
       // Misc settings creates
       { path: "/settings/lender/eligible-pincode/list", element: <LenderEligiblePincodeListPage /> },
