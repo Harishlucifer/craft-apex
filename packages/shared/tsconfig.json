@@ -3,6 +3,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@craft-apex/api": ["../api/src/index.ts"],
+      "@craft-apex/auth": ["../auth/src/index.ts"],
       "@craft-apex/ui": ["../ui/src/index.ts"],
       "@craft-apex/i18n": ["../i18n/src/index.ts"]
     }
