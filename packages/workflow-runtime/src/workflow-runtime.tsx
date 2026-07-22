@@ -1,8 +1,3 @@
-import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, RotateCcw, XCircle } from "lucide-react";
-import { Badge, Button, toast } from "@craft-apex/ui";
-import { hasStepSaveEndpoint } from "./workflow-runtime.api";
-import { useWorkflowEngine } from "./use-step-flow";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Check, ChevronRight, RotateCcw, XCircle } from "lucide-react";
@@ -16,6 +11,7 @@ import {
   useExecuteWorkflow,
   usePartnerDetail,
 } from "./workflow-runtime.api";
+import { useWorkflowEngine } from "./use-step-flow";
 import { JourneyPicker } from "./journey-picker";
 import { StepRenderer, type StepRendererHandle } from "./step-renderer";
 import { flattenObject } from "@craft-apex/craft-ux";
@@ -57,10 +53,17 @@ export function WorkflowRuntime({
     noSourceBehavior: "picker",
   });
   const { workflow, nav, pickerOpen, setPickerOpen, busy, loading } = engine;
-  const { currentStage, currentStep, stageIndex } = nav;
+  const {
+    currentStage,
+    currentStep,
+    stageIndex,
+    stepIndex,
+    setActiveStageId,
+    setActiveStepId,
+    goNext,
+    goBack,
+  } = nav;
   const stages = workflow?.stages ?? [];
-  const build = useBuildWorkflow();
-  const execute = useExecuteWorkflow();
   const queryClient = useQueryClient();
 
   const isPartnerOnboarding = workflowType === "PARTNER_ONBOARDING";
@@ -70,47 +73,6 @@ export function WorkflowRuntime({
 
   const [stepData, setStepData] = useState<Record<string, unknown>>({});
   const stepRendererRef = useRef<StepRendererHandle>(null);
-
-  // Load on mount / sourceId change.
-  useEffect(() => {
-    let alive = true;
-    if (sourceId) {
-      // Existing source — load directly.
-      buildWorkflow({ workflowType, sourceId }).then((w) => {
-        if (alive) handleBuildResult(w);
-      });
-    } else {
-      // No source — show journey picker so the user can start a new flow.
-      setPickerOpen(true);
-    }
-    return () => {
-      alive = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sourceId, workflowType]);
-
-  const handleBuildResult = (w: WorkflowBuildResponse | null) => {
-    if (!w) return;
-    setWorkflow(w);
-    setActiveStageId(w.last_active_stage_id ?? w.stages?.[0]?.id ?? null);
-    setActiveStepId(
-      w.last_active_step_id ?? w.stages?.[0]?.steps?.[0]?.id ?? null
-    );
-  };
-
-  const stages: WorkflowStageDef[] = workflow?.stages ?? [];
-  const currentStage = useMemo<WorkflowStageDef | undefined>(
-    () =>
-      stages.find((s) => String(s.id) === String(activeStageId)) ?? stages[0],
-    [stages, activeStageId]
-  );
-  const currentStep = useMemo<WorkflowStepDef | undefined>(
-    () =>
-      currentStage?.steps.find(
-        (s) => String(s.id) === String(activeStepId)
-      ) ?? currentStage?.steps?.[0],
-    [currentStage, activeStepId]
-  );
 
   const sourceName = useMemo(() => {
     const src = workflow?.source as any;
@@ -122,13 +84,6 @@ export function WorkflowRuntime({
       undefined
     );
   }, [workflow]);
-
-  const stepIndex = currentStage?.steps.findIndex(
-    (s) => String(s.id) === String(currentStep?.id)
-  );
-  const stageIndex = stages.findIndex(
-    (s) => String(s.id) === String(currentStage?.id)
-  );
 
   const stepSteps = useMemo<StepperStep[]>(() => {
     if (!currentStage) return [];
@@ -168,7 +123,8 @@ export function WorkflowRuntime({
   // advance() does save→execute→resume; we just resolve the payload here.
   const advance = async (reject = false) => {
     if (!workflow || !currentStep) return;
-    let savePayload: object | undefined;
+    let finalSourceId: string | number | undefined =
+      workflow.source_id ?? sourceId;
     if (!reject && hasStepSaveEndpoint(workflowType)) {
       // For DYNAMIC_FORM (craft-ux) steps, getPayload triggers the form's
       // internal submit/validation; plain controlled steps resolve immediately
@@ -196,9 +152,8 @@ export function WorkflowRuntime({
     }
     const res = await engine.advance({
       executeStepId: currentStep.id,
-      sourceId: workflow.source_id ?? sourceId,
+      sourceId: finalSourceId,
       reject,
-      savePayload,
     });
     if (res) toast.success(reject ? "Step rejected" : "Step submitted");
   };
@@ -342,8 +297,8 @@ export function WorkflowRuntime({
                 step={currentStep}
                 value={stepData}
                 onChange={setStepData}
-                onNext={goNextLocal}
-                onBack={goPrev}
+                onNext={goNext}
+                onBack={goBack}
                 context={{
                   workflow,
                   sourceId,
@@ -362,7 +317,7 @@ export function WorkflowRuntime({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={goPrev}
+                  onClick={goBack}
                   disabled={stageIndex === 0 && stepIndex === 0}
                   className="text-slate-600 hover:text-slate-800 border-slate-200"
                 >
@@ -371,7 +326,7 @@ export function WorkflowRuntime({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={goNextLocal}
+                  onClick={goNext}
                   disabled={
                     stageIndex === stages.length - 1 &&
                     stepIndex === (currentStage?.steps.length ?? 0) - 1
@@ -386,7 +341,7 @@ export function WorkflowRuntime({
                   type="button"
                   variant="outline"
                   onClick={() => advance(true)}
-                  disabled={execute.isPending}
+                  disabled={busy}
                   className="text-rose-600 border-rose-200 hover:bg-rose-50"
                 >
                   <XCircle className="h-4 w-4" /> Reject
@@ -394,11 +349,11 @@ export function WorkflowRuntime({
                 <Button
                   type="button"
                   onClick={() => advance(false)}
-                  disabled={execute.isPending}
+                  disabled={busy}
                   className="bg-[#1E2A6B] text-white hover:bg-[#1E2A6B]/90"
                 >
                   <RotateCcw className="h-4 w-4" />{" "}
-                  {execute.isPending ? "Submitting…" : "Submit & Next"}
+                  {busy ? "Submitting…" : "Submit & Next"}
                 </Button>
               </div>
             </div>

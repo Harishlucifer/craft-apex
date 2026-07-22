@@ -187,7 +187,9 @@ export async function saveStepData(
     );
   }
   console.log("[saveStepData] Raw Step Data:", input.data);
-  const nestedPayload = buildNestedFormPayload(input.data);
+  const nestedPayload = buildNestedFormPayload(
+    input.data as Record<string, unknown>,
+  );
   console.log("[saveStepData] Nested Payload to POST:", nestedPayload);
   const body = await getApiClient().post<unknown, any>(url, nestedPayload);
 

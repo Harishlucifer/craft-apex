@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check, ChevronDown, X } from "lucide-react";
 import {
   Badge,
@@ -8,8 +8,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@craft-apex/ui";
-import { useMemo, useEffect, useState } from "react";
-import { Input, Label } from "@craft-apex/ui";
 import type {
   ConditionalOn,
   FormDefinition,
@@ -455,19 +453,8 @@ function FieldInput({
           value={value}
           disabled={disabled}
           placeholder={placeholder}
-          onChange={(e) =>
-            onChange(
-              Array.from(e.target.selectedOptions).map((opt) => opt.value)
-            )
-          }
-          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-[13px] text-slate-900 shadow-sm transition-all outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
-        >
-          {opts.map((o) => (
-            <option key={String(o.value)} value={String(o.value)}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+          onChange={(next) => onChange(next)}
+        />
       );
     }
 
