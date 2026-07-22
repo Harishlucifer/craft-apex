@@ -57,7 +57,7 @@ export function ChildPartnerListPage({ mode = "employee" }: ChildPartnerListPage
   const isPartnerMode = mode === "partner";
 
   const employeeId = user?.employee_id as string | undefined;
-  const isAdmin = user?.user_role_code === "ADMINISTRATOR";
+  const isAdmin = user?.user_role_code === "ADMIN";
   const partnerChannelId = String(user?.channel_id ?? "");
 
   const [page, setPage] = useState(1);
@@ -68,15 +68,21 @@ export function ChildPartnerListPage({ mode = "employee" }: ChildPartnerListPage
   const { data, isFetching, refetch } = useChildPartnerList({
     page,
     size: PAGE_SIZE,
-    excludeRoleCode: "ADMINISTRATOR",
+    excludeRoleCode: "ADMIN",
     keyword: searchTerm,
     ...(isPartnerMode
       ? { channel_id: partnerChannelId }
       : { rm_id: !isAdmin && employeeId ? String(employeeId) : undefined }),
   });
 
-  const rows = data?.data?.data ?? [];
-  const total = data?.data?.pagination?.total ?? data?.pagination?.total ?? 0;
+  const rows: ChildPartnerListItem[] = Array.isArray(data?.data)
+    ? data.data
+    : Array.isArray((data as any)?.data?.data)
+      ? (data as any).data.data
+      : Array.isArray(data)
+        ? (data as any)
+        : [];
+  const total = data?.pagination?.total ?? (data as any)?.data?.pagination?.total ?? rows.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const handleAdd = () => {

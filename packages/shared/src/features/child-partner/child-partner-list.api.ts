@@ -42,9 +42,9 @@ export function useChildPartnerList(params: {
     queryKey: ["child-partner-list", params],
     placeholderData: keepPreviousData,
     queryFn: async (): Promise<ChildPartnerListResponse> =>
-      api().get<ChildPartnerListResponse>(
+      api().get<unknown, ChildPartnerListResponse>(
         `/alpha/v1/channel/channel-user?${queryParams.toString()}`
-      ).then((r) => r.data),
+      ),
   });
 }
 
@@ -67,9 +67,9 @@ export function useChildPartnerApprovalList(params: {
     queryKey: ["child-partner-approval-list", params],
     placeholderData: keepPreviousData,
     queryFn: async (): Promise<ChildPartnerListResponse> =>
-      api().get<ChildPartnerListResponse>(
+      api().get<unknown, ChildPartnerListResponse>(
         `/alpha/v1/channel/channel-user?${queryParams.toString()}`
-      ).then((r) => r.data),
+      ),
   });
 }
 
@@ -88,12 +88,8 @@ export function useChannelList(params: {
 
   return useQuery({
     queryKey: ["channel-list-options", params],
-    queryFn: async () => {
-      const response = await api().get<any>(
-        `/alpha/v1/channel?${queryParams.toString()}`
-      );
-      return response.data;
-    },
+    queryFn: async (): Promise<any> =>
+      api().get<unknown, any>(`/alpha/v1/channel?${queryParams.toString()}`),
   });
 }
 
@@ -102,7 +98,7 @@ export function useChannelRoles() {
   return useQuery({
     queryKey: ["channel-roles"],
     queryFn: async (): Promise<ChannelRoleOption[]> =>
-      api().get<ChannelRoleOption[]>("/alpha/v1/master/user-role?user_type=CHANNEL").then((r) => r.data),
+      api().get<unknown, ChannelRoleOption[]>("/alpha/v1/master/user-role?user_type=CHANNEL"),
   });
 }
 
@@ -116,12 +112,8 @@ export function useRMEmployees(roleCode?: string) {
 
   return useQuery({
     queryKey: ["rm-employees", roleCode],
-    queryFn: async () => {
-      const response = await api().get<any>(
-        `/alpha/v1/employee?${queryParams.toString()}`
-      );
-      return response.data;
-    },
+    queryFn: async (): Promise<any> =>
+      api().get<unknown, any>(`/alpha/v1/employee?${queryParams.toString()}`),
   });
 }
 
@@ -131,9 +123,9 @@ export function useSupervisorUsers(roleId?: string, channelId?: string) {
     queryKey: ["supervisor-users", roleId, channelId],
     enabled: !!roleId && !!channelId,
     queryFn: async (): Promise<SupervisorOption[]> =>
-      api().get<SupervisorOption[]>(
+      api().get<unknown, SupervisorOption[]>(
         `/alpha/v1/channel/channel-user?filterSuperiorRole=${roleId}&channelId=${channelId}`
-      ).then((r) => r.data),
+      ),
   });
 }
 
@@ -142,12 +134,8 @@ export function useRMLeastTerritories(rmUserId?: number) {
   return useQuery({
     queryKey: ["rm-territories", rmUserId],
     enabled: !!rmUserId,
-    queryFn: async () => {
-      const response = await api().get<any>(
-        `/alpha/v1/master/territory/user-least-territory?user_id=${rmUserId}`
-      );
-      return response.data;
-    },
+    queryFn: async (): Promise<any> =>
+      api().get<unknown, any>(`/alpha/v1/user/least/territory?user_id=${rmUserId}`),
   });
 }
 
@@ -157,9 +145,9 @@ export function usePincodeSuggest(pincode: string) {
     queryKey: ["pincode-suggest", pincode],
     enabled: pincode.length >= 3,
     queryFn: async (): Promise<PincodeOption[]> =>
-      api().get<PincodeOption[]>(
+      api().get<unknown, PincodeOption[]>(
         `/alpha/v1/master/pin-code/suggest?pincode=${pincode}`
-      ).then((r) => r.data),
+      ),
   });
 }
 
@@ -169,9 +157,9 @@ export function usePincodeDetails(pincode?: string) {
     queryKey: ["pincode-details", pincode],
     enabled: !!pincode,
     queryFn: async (): Promise<PincodeOption[]> =>
-      api().get<PincodeOption[]>(
+      api().get<unknown, PincodeOption[]>(
         `/alpha/v1/master/pin-code?pincode=${pincode}`
-      ).then((r) => r.data),
+      ),
   });
 }
 
@@ -181,10 +169,10 @@ export function useCreateOrUpdateChannelUser() {
     mutationFn: async (
       data: Record<string, unknown>
     ): Promise<{ status: number; result?: { channel_user_id: string } }> =>
-      api().post<{ status: number; result?: { channel_user_id: string } }>(
+      api().post<unknown, { status: number; result?: { channel_user_id: string } }>(
         "/alpha/v1/channel/channel-user",
         data
-      ).then((r) => r.data),
+      ),
   });
 }
 
@@ -193,10 +181,10 @@ export function useUploadedDocuments(channelUserId?: string) {
   return useQuery({
     queryKey: ["uploaded-documents", channelUserId],
     enabled: !!channelUserId,
-    queryFn: async (): Promise<{ status: number; data?: { result: any[] } }> =>
-      api().get<{ status: number; data?: { result: any[] } }>(
+    queryFn: async (): Promise<any> =>
+      api().get<unknown, any>(
         `/alpha/v1/onboarding/documents?channel_user_id=${channelUserId}`
-      ).then((r) => r.data),
+      ),
   });
 }
 

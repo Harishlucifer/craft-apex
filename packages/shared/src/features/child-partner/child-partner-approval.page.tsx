@@ -48,8 +48,14 @@ export function ChildPartnerApprovalPage() {
     keyword: searchTerm,
   });
 
-  const rows = data?.data?.data ?? [];
-  const total = data?.data?.pagination?.total ?? data?.pagination?.total ?? 0;
+  const rows: ChildPartnerListItem[] = Array.isArray(data?.data)
+    ? data.data
+    : Array.isArray((data as any)?.data?.data)
+    ? (data as any).data.data
+    : Array.isArray(data)
+    ? (data as any)
+    : [];
+  const total = data?.pagination?.total ?? (data as any)?.data?.pagination?.total ?? rows.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (

@@ -25,7 +25,14 @@ import {
   useUploadedDocuments,
 } from "../features/child-partner/child-partner-list.api";
 import { DocumentUpload } from "./document-upload";
-import type { ChildPartnerListItem, UploadedDocument } from "../features/child-partner/child-partner-list.types";
+import type {
+  ChildPartnerListItem,
+  UploadedDocument,
+  ChannelRoleOption,
+  SupervisorOption,
+  TerritoryOption,
+  PincodeOption,
+} from "../features/child-partner/child-partner-list.types";
 
 export interface AddUserModalProps {
   isOpen: boolean;
@@ -47,6 +54,15 @@ export interface AddUserModalProps {
   approvalMode?: boolean;
 }
 
+function extractArray<T = any>(val: any): T[] {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (Array.isArray(val.data?.data)) return val.data.data;
+  if (Array.isArray(val.data)) return val.data;
+  if (Array.isArray(val.result)) return val.result;
+  return [];
+}
+
 // Base schema shared by both modes
 const baseSchema = {
   channel_id: zod.string().min(1, "Channel is required"),
@@ -56,8 +72,14 @@ const baseSchema = {
   email: zod.string().email("Invalid email address").min(1, "Email is required"),
   mobile: zod.string().regex(/^[0-9]{10}$/, "Mobile number must be exactly 10 digits"),
   address: zod.string().optional(),
-  pincode: zod.string().regex(/^[1-9][0-9]{5}$/, "Invalid pincode"),
-  pincode_id: zod.number().min(1, "Please select a pincode option"),
+  pincode: zod
+    .union([zod.string(), zod.number()])
+    .transform((val) => String(val).trim())
+    .pipe(zod.string().regex(/^[1-9][0-9]{5}$/, "Invalid pincode")),
+  pincode_id: zod
+    .union([zod.string(), zod.number()])
+    .transform((val) => Number(val))
+    .pipe(zod.number().min(1, "Please select a pincode option")),
   area: zod.string().min(1, "Area is required"),
   city: zod.string().min(1, "City is required"),
   state: zod.string().min(1, "State/UT is required"),
@@ -91,6 +113,7 @@ export function AddUserModal({
 }: AddUserModalProps) {
   const isEdit = !!editData;
   const isPartnerMode = mode === "partner";
+  const isApprovalMode = approvalMode || (isEdit && editData?.status === 2);
 
   const [pincodeQuery, setPincodeQuery] = useState("");
   const [showPincodeSuggestions, setShowPincodeSuggestions] = useState(false);
@@ -140,29 +163,10 @@ export function AddUserModal({
   const { data: supervisorsData } = useSupervisorUsers(selectedRoleId, selectedChannelId);
 
   // Extract RM options early so we can use it for selectedRMUser calculation
-  const rmOptions = (() => {
-    let employees = null;
-    
-    if (rmData) {
-      // Try different possible structures
-      if (Array.isArray(rmData.data?.data)) {
-        employees = rmData.data.data;
-      } else if (Array.isArray(rmData.data)) {
-        employees = rmData.data;
-      } else if (Array.isArray(rmData)) {
-        employees = rmData;
-      }
-    }
-    
-    if (!Array.isArray(employees)) {
-      return [];
-    }
-    
-    return employees.map((emp: any) => ({
-      ...emp,
-      employee_id: emp.employee_id || emp.id,
-    }));
-  })();
+  const rmOptions = extractArray(rmData).map((emp: any) => ({
+    ...emp,
+    employee_id: emp.employee_id || emp.id,
+  }));
 
   // Territory (employee mode only — depends on selected RM user's user_id)
   const selectedRMUser = (() => {
@@ -178,8 +182,10 @@ export function AddUserModal({
   );
 
   // Pincode suggest & details
-  const { data: pincodeSuggestions } = usePincodeSuggest(pincodeQuery);
-  const { data: pincodeDetailsList } = usePincodeDetails(pincodeVal);
+  const { data: pincodeSuggestionsRaw } = usePincodeSuggest(pincodeQuery);
+  const { data: pincodeDetailsRaw } = usePincodeDetails(pincodeVal);
+  const pincodeSuggestions: PincodeOption[] = extractArray(pincodeSuggestionsRaw);
+  const pincodeDetailsList: PincodeOption[] = extractArray(pincodeDetailsRaw);
 
   const createUpdateUserMutation = useCreateOrUpdateChannelUser();
   const uploadDocMutation = useUploadDocument();
@@ -204,8 +210,8 @@ export function AddUserModal({
       setValue("email", editData.email ?? "");
       setValue("mobile", editData.mobile ?? "");
       setValue("address", editData.address ?? "");
-      setValue("pincode", editData.pincode ?? "");
-      setValue("pincode_id", editData.pincode_id ?? 0);
+      setValue("pincode", editData.pincode ? String(editData.pincode) : "");
+      setValue("pincode_id", editData.pincode_id ? Number(editData.pincode_id) : 0);
       setValue("channel_id", isPartnerMode ? partnerChannelId : String(editData.channel_id ?? ""));
       setValue("role_id", String(editData.role_id ?? ""));
       setValue("supervisor_id", String(editData.supervisor_user_id ?? ""));
@@ -213,7 +219,7 @@ export function AddUserModal({
         setValue("rm_employee_id", String(editData.employee_id ?? ""));
         setValue("territory_id", String(editData.territory_id ?? ""));
       }
-      if (editData.pincode) setPincodeQuery(editData.pincode);
+      if (editData.pincode) setPincodeQuery(String(editData.pincode));
     } else if (!isEdit && isOpen) {
       setValue("name", "");
       setValue("email", "");
@@ -240,34 +246,48 @@ export function AddUserModal({
     if (pincodeDetailsList && pincodeDetailsList.length > 0) {
       const activePincodeId = watch("pincode_id");
       const matched =
-        pincodeDetailsList.find((p) => p.id === activePincodeId) ||
+        pincodeDetailsList.find((p) => String(p.id) === String(activePincodeId)) ||
         pincodeDetailsList[0];
       if (matched) {
-        setValue("pincode_id", matched.id);
-        setValue("area", matched.area);
-        setValue("city", matched.coreCityList?.name ?? "");
-        setValue("state", matched.coreStateList?.name ?? "");
-        setValue("country", matched.coreCountryList?.name ?? "");
+        setValue("pincode_id", Number(matched.id), { shouldValidate: true });
+        setValue("area", matched.area, { shouldValidate: true });
+        setValue("city", matched.coreCityList?.name ?? "", { shouldValidate: true });
+        setValue("state", matched.coreStateList?.name ?? "", { shouldValidate: true });
+        setValue("country", matched.coreCountryList?.name ?? "", { shouldValidate: true });
       }
     }
   }, [pincodeDetailsList, watch("pincode_id"), setValue]);
 
   // Load uploaded docs from DB for edit mode
   useEffect(() => {
-    if (dbDocs?.data?.result) {
+    const rawList = Array.isArray(dbDocs?.result)
+      ? dbDocs.result
+      : Array.isArray(dbDocs?.data?.result)
+      ? dbDocs.data.result
+      : Array.isArray(dbDocs?.data)
+      ? dbDocs.data
+      : Array.isArray(dbDocs)
+      ? dbDocs
+      : [];
+
+    if (rawList.length > 0) {
       const mapped: Record<string, UploadedDocument> = {};
-      (dbDocs.data.result as any[]).forEach((doc) => {
-        const docId = String(doc.document_id);
-        const fileUrl =
-          doc.files?.[doc.files.length - 1]?.url || doc.url || "";
+      (rawList as any[]).forEach((doc) => {
+        const docId = String(doc.document_id || doc.id);
+        const latestFile = doc.files?.[doc.files.length - 1];
+        const fileUrl = latestFile?.url || doc.url || "";
+        const fileName =
+          latestFile?.file_name ||
+          doc.file_name ||
+          `${doc.document_name || "Uploaded Document"}.pdf`;
+
         mapped[docId] = {
           document_id: docId,
           document_name: doc.document_name || "",
-          file_name: doc.file_name || "Uploaded Document",
+          file_name: fileName,
           file_url: fileUrl,
-          is_password_protected:
-            doc.files?.[doc.files.length - 1]?.password != null,
-          password: doc.files?.[doc.files.length - 1]?.password || "",
+          is_password_protected: latestFile?.password != null,
+          password: latestFile?.password || "",
         };
       });
       setUploadedDocs(mapped);
@@ -305,7 +325,7 @@ export function AddUserModal({
     const missingDocs = documentConfig.filter(
       (d) => d.is_mandatory && !uploadedDocs[String(d.document_id)]
     );
-    if (missingDocs.length > 0 && !approvalMode) {
+    if (missingDocs.length > 0 && !isApprovalMode) {
       toast.error(
         `Please upload mandatory documents: ${missingDocs.map((d) => d.document_name).join(", ")}`
       );
@@ -314,33 +334,36 @@ export function AddUserModal({
 
     try {
       const payload: Record<string, unknown> = {
-        role_id: values.role_id,
+        role_id: String(values.role_id),
         name: values.name,
         email: values.email,
         mobile: values.mobile,
-        address: values.address,
-        pincode_id: values.pincode_id,
-        channel_id: isPartnerMode ? partnerChannelId : values.channel_id,
-        supervisor_user_id: values.supervisor_id,
-        status: approvalMode ? 1 : 2,
+        address: values.address || null,
+        pincode_id: values.pincode_id ? BigInt(values.pincode_id) : null,
+        channel_id: isPartnerMode ? partnerChannelId : String(values.channel_id),
+        supervisor_user_id: values.supervisor_id ? String(values.supervisor_id) : null,
+        status: isApprovalMode ? 1 : 2,
       };
 
       if (!isPartnerMode) {
-        payload.employee_id = values.rm_employee_id;
-        payload.territory_id = values.territory_id || null;
+        payload.employee_id = values.rm_employee_id ? BigInt(values.rm_employee_id) : null;
+        payload.territory_id = values.territory_id ? String(values.territory_id) : null;
       }
 
       if (isEdit && editData?.channel_user_id) {
         payload.channel_user_id = String(editData.channel_user_id);
-        payload.status = editData.status;
+        payload.status = isApprovalMode ? 1 : editData.status;
       }
 
-      const res = await createUpdateUserMutation.mutateAsync(payload);
-      if (res.status === 1) {
+      const res: any = await createUpdateUserMutation.mutateAsync(payload);
+      const status = res?.status ?? res?.data?.status;
+      if (status === 1) {
         const userChannelId =
-          res.result?.channel_user_id || editData?.channel_user_id;
+          res?.result?.channel_user_id ||
+          res?.data?.result?.channel_user_id ||
+          editData?.channel_user_id;
 
-        if (userChannelId && !approvalMode) {
+        if (userChannelId && !isApprovalMode) {
           for (const docId of Object.keys(uploadedDocs)) {
             const docObj = uploadedDocs[docId];
             if (docObj && docObj.file) {
@@ -355,7 +378,7 @@ export function AddUserModal({
         }
 
         toast.success(
-          approvalMode
+          isApprovalMode
             ? "Child partner approved successfully!"
             : isEdit
             ? "Child partner updated successfully!"
@@ -364,61 +387,23 @@ export function AddUserModal({
         onSuccess();
         onOpenChange(false);
       } else {
-        toast.error("Failed to save child partner.");
+        toast.error(
+          res?.error || res?.data?.error || "Failed to save child partner."
+        );
       }
     } catch (e: any) {
-      toast.error(e?.message || "An error occurred.");
+      toast.error(e?.message || "An error occurred while saving child partner.");
     }
   };
 
-  const channelOptions = (() => {
-    // Handle different possible API response structures
-    let channels = null;
-    
-    if (channelsData) {
-      // Try different possible structures
-      if (Array.isArray(channelsData.data?.data)) {
-        channels = channelsData.data.data;
-      } else if (Array.isArray(channelsData.data)) {
-        channels = channelsData.data;
-      } else if (Array.isArray(channelsData)) {
-        channels = channelsData;
-      }
-    }
-    
-    if (!Array.isArray(channels)) {
-      return [];
-    }
-    
-    return channels.map((ch: any) => ({
-      ...ch,
-      channel_id: ch.channel_id || ch.id,
-    }));
-  })();null
+  const channelOptions = extractArray(channelsData).map((ch: any) => ({
+    ...ch,
+    channel_id: ch.channel_id || ch.id,
+  }));
   
-  const rolesOptions = rolesData ?? [];
-  const supervisorOptions = supervisorsData ?? [];
-  
-  const territoryOptions = (() => {
-    let territories = null;
-    
-    if (territoriesData) {
-      // Try different possible structures
-      if (Array.isArray(territoriesData.data?.data)) {
-        territories = territoriesData.data.data;
-      } else if (Array.isArray(territoriesData.data)) {
-        territories = territoriesData.data;
-      } else if (Array.isArray(territoriesData)) {
-        territories = territoriesData;
-      }
-    }
-    
-    if (!Array.isArray(territories)) {
-      return [];
-    }
-    
-    return territories;
-  })();
+  const rolesOptions: ChannelRoleOption[] = extractArray(rolesData);
+  const supervisorOptions: SupervisorOption[] = extractArray(supervisorsData);
+  const territoryOptions: TerritoryOption[] = extractArray(territoriesData);
 
   const selectClass =
     "w-full h-10 px-3 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring";
@@ -428,7 +413,7 @@ export function AddUserModal({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {approvalMode
+            {isApprovalMode
               ? "Approve Child Partner"
               : isEdit
               ? "Edit Child Partner"
@@ -444,7 +429,7 @@ export function AddUserModal({
                 <Label htmlFor="channel_id">Channel *</Label>
                 <select
                   id="channel_id"
-                  disabled={isEdit || approvalMode}
+                  disabled={isEdit || isApprovalMode}
                   className={selectClass}
                   {...register("channel_id")}
                 >
@@ -468,7 +453,7 @@ export function AddUserModal({
               <Label htmlFor="role_id">Role *</Label>
               <select
                 id="role_id"
-                disabled={isEdit || approvalMode}
+                disabled={isEdit || isApprovalMode}
                 className={selectClass}
                 {...register("role_id")}
               >
@@ -492,7 +477,7 @@ export function AddUserModal({
                 <Label htmlFor="rm_employee_id">Relationship Manager *</Label>
                 <select
                   id="rm_employee_id"
-                  disabled={approvalMode}
+                  disabled={isApprovalMode}
                   className={selectClass}
                   {...register("rm_employee_id")}
                 >
@@ -516,15 +501,15 @@ export function AddUserModal({
               <Label htmlFor="supervisor_id">Supervisor *</Label>
               <select
                 id="supervisor_id"
-                disabled={approvalMode}
+                disabled={isApprovalMode}
                 className={selectClass}
                 {...register("supervisor_id")}
               >
                 <option value="">Select Supervisor</option>
                 {supervisorOptions.map((opt) => (
                   <option
-                    key={opt.channel_user_id}
-                    value={String(opt.channel_user_id)}
+                    key={opt.user_id || opt.channel_user_id}
+                    value={String(opt.user_id || opt.channel_user_id)}
                   >
                     {opt.name}
                   </option>
@@ -543,7 +528,7 @@ export function AddUserModal({
                 <Label htmlFor="territory_id">Territory</Label>
                 <select
                   id="territory_id"
-                  disabled={approvalMode}
+                  disabled={isApprovalMode}
                   className={selectClass}
                   {...register("territory_id")}
                 >
@@ -562,7 +547,7 @@ export function AddUserModal({
               <Label htmlFor="name">Name *</Label>
               <Input
                 id="name"
-                disabled={approvalMode}
+                disabled={isApprovalMode}
                 placeholder="Name"
                 {...register("name")}
               />
@@ -578,7 +563,7 @@ export function AddUserModal({
               <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
-                disabled={isEdit || approvalMode}
+                disabled={isEdit || isApprovalMode}
                 placeholder="Email"
                 {...register("email")}
               />
@@ -594,7 +579,7 @@ export function AddUserModal({
               <Label htmlFor="mobile">Mobile No *</Label>
               <Input
                 id="mobile"
-                disabled={isEdit || approvalMode}
+                disabled={isEdit || isApprovalMode}
                 placeholder="Mobile number"
                 {...register("mobile")}
               />
@@ -610,12 +595,13 @@ export function AddUserModal({
               <Label htmlFor="pincode">Pin code *</Label>
               <Input
                 id="pincode"
-                disabled={approvalMode}
+                disabled={isApprovalMode}
                 placeholder="Pincode"
                 value={pincodeQuery}
                 onChange={(e) => {
-                  setPincodeQuery(e.target.value);
-                  setValue("pincode", e.target.value);
+                  const val = e.target.value;
+                  setPincodeQuery(val);
+                  setValue("pincode", val, { shouldValidate: true });
                   setShowPincodeSuggestions(true);
                 }}
                 onFocus={() => setShowPincodeSuggestions(true)}
@@ -634,13 +620,14 @@ export function AddUserModal({
                         key={item.id}
                         type="button"
                         onClick={() => {
-                          setValue("pincode", item.pincode);
-                          setValue("pincode_id", item.id);
-                          setValue("area", item.area);
-                          setValue("city", item.coreCityList?.name ?? "");
-                          setValue("state", item.coreStateList?.name ?? "");
-                          setValue("country", item.coreCountryList?.name ?? "");
-                          setPincodeQuery(item.pincode);
+                          const pcStr = String(item.pincode);
+                          setValue("pincode", pcStr, { shouldValidate: true });
+                          setValue("pincode_id", Number(item.id), { shouldValidate: true });
+                          setValue("area", item.area, { shouldValidate: true });
+                          setValue("city", item.coreCityList?.name ?? "", { shouldValidate: true });
+                          setValue("state", item.coreStateList?.name ?? "", { shouldValidate: true });
+                          setValue("country", item.coreCountryList?.name ?? "", { shouldValidate: true });
+                          setPincodeQuery(pcStr);
                           setShowPincodeSuggestions(false);
                         }}
                         className="w-full text-left px-3 py-2 text-sm hover:bg-slate-100 focus:outline-none"
@@ -682,7 +669,7 @@ export function AddUserModal({
             <Label htmlFor="address">Address</Label>
             <textarea
               id="address"
-              disabled={approvalMode}
+              disabled={isApprovalMode}
               placeholder="Address"
               rows={2}
               className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -696,7 +683,7 @@ export function AddUserModal({
             uploadedDocuments={uploadedDocs}
             onSelectFile={handleSelectFile}
             onRemoveFile={handleRemoveFile}
-            disabled={approvalMode}
+            disabled={isApprovalMode}
           />
 
           <div className="flex justify-end space-x-2 pt-4 border-t">
@@ -715,7 +702,7 @@ export function AddUserModal({
             >
               {createUpdateUserMutation.isPending || uploadDocMutation.isPending
                 ? "Submitting..."
-                : approvalMode
+                : isApprovalMode
                 ? "Approve"
                 : isEdit
                 ? "Update"
