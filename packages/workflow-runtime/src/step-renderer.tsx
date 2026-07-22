@@ -14,6 +14,7 @@ import {
   Provider as CraftUxProvider,
 } from "@craft-apex/craft-ux";
 import { getApiClient } from "@craft-apex/api";
+import { getStepComponent } from "./step-component-registry";
 import { FormBuilderRenderer } from "./form-builder-renderer";
 import type { FormBuilderStepConfiguration } from "./form-builder.types";
 import { StepType, type WorkflowStepDef } from "./workflow-runtime.types";
@@ -23,6 +24,9 @@ interface Props {
   /** Step output (sent into executeWorkflow / saved per step). */
   value: Record<string, unknown>;
   onChange: (next: Record<string, unknown>) => void;
+  onNext?: () => void;
+  onBack?: () => void;
+  context?: Record<string, any>;
 }
 
 /** Imperative handle so the parent can pull a step's final payload on submit
@@ -56,7 +60,7 @@ export interface StepRendererHandle {
  * so the workflow stays round-trippable.
  */
 export const StepRenderer = forwardRef<StepRendererHandle, Props>(
-  function StepRenderer({ step, value, onChange }, ref) {
+  function StepRenderer({ step, value, onChange, onNext, onBack, context }, ref) {
     const formBuilder = useMemo<
       FormBuilderStepConfiguration["form_builder"] | undefined
     >(() => {
@@ -69,6 +73,7 @@ export const StepRenderer = forwardRef<StepRendererHandle, Props>(
     const useDynamicForm =
       step.ui_component === "DYNAMIC_FORM" && formBuilder != null;
 
+    const customRef = useRef<{ submitFormExternally?: () => Promise<boolean> } | null>(null);
     const dynamicFormRef = useRef<{ submitFormExternally: () => void } | null>(
       null
     );
@@ -80,6 +85,10 @@ export const StepRenderer = forwardRef<StepRendererHandle, Props>(
       ref,
       (): StepRendererHandle => ({
         getPayload: async () => {
+          if (customRef.current?.submitFormExternally) {
+            const ok = await customRef.current.submitFormExternally();
+            if (!ok) return null;
+          }
           if (!useDynamicForm) return value;
           return new Promise((resolve) => {
             resolvePayload.current = resolve;
@@ -90,25 +99,21 @@ export const StepRenderer = forwardRef<StepRendererHandle, Props>(
       [useDynamicForm, value]
     );
 
+    const Component = getStepComponent(step.ui_component) as any;
+
     return (
       <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <StepTypeBadge step={step} />
-          {step.code && (
-            <span className="font-mono text-xs text-slate-500">{step.code}</span>
-          )}
-          {step.display_mode && (
-            <Badge variant="secondary">{step.display_mode}</Badge>
-          )}
-        </div>
-
-        {step.description && (
-          <p className="text-sm text-slate-600">{step.description}</p>
-        )}
-
-        <ComponentMeta step={step} />
-
-        {useDynamicForm ? (
+        {Component ? (
+          <Component
+            ref={customRef}
+            step={step}
+            value={value}
+            onChange={onChange}
+            onNext={onNext ?? (() => { })}
+            onBack={onBack ?? (() => { })}
+            context={context}
+          />
+        ) : useDynamicForm ? (
           <CraftUxProvider>
             <AxiosProvider axiosInstance={getApiClient()}>
               <DynamicForm

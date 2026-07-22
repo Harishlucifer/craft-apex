@@ -30,7 +30,7 @@ export function OnboardingPage({
     searchParams.get("partner_type") ?? partnerType ?? undefined;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5">
+    <div className="w-full space-y-5 px-4 md:px-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">
           {title}

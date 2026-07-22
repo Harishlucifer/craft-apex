@@ -17,5 +17,7 @@
 import "@/features/employee/employee-form/employee-form.steps";
 import "@/features/role/role-form/role-form.steps";
 import "@/features/loan-type/loan-type-form/loan-type-form.steps";
+import "@/features/rm-mapping/rm-mapping.steps";
+import "@/features/partner/partner-approval-rejection/partner-approval-rejection.steps";
 import "@/features/lender/lender-form/lender-form.steps";
 import "@/features/lender-pincode/lender-pincode-form/lender-pincode-form.steps";

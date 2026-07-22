@@ -3,7 +3,7 @@ import { api } from "@/lib/api";
 import type { ApplicationDetail } from "./application-detail.types";
 
 // Backend returns the detail under `result` (not `data`) — see .types.ts.
-const APPLICATION_URL = "/alpha/v1/application";
+const APPLICATION_URL = "/alpha/v2/application";
 
 interface ApplicationDetailResponse {
   result?: ApplicationDetail;

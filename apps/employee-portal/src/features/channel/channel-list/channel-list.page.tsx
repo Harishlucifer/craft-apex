@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
-import { Badge, TableCell, TableHead, TableRow } from "@craft-apex/ui";
+import { useLocation, Link } from "react-router-dom";
+import { Badge, TableCell, TableHead, TableRow, Button } from "@craft-apex/ui";
 import {
   DataTableShell,
   TABLE_HEADER_ROW_CLASS,
@@ -86,7 +86,7 @@ export default function ChannelListPage() {
 
   return (
     <DataTableShell
-      columnCount={8}
+      columnCount={9}
       loading={isFetching && rows.length === 0}
       isEmpty={!isFetching && rows.length === 0}
       emptyTitle={
@@ -111,11 +111,13 @@ export default function ChannelListPage() {
           <TableHead className={TABLE_HEAD_CLASS}>Journey</TableHead>
           <TableHead className={TABLE_HEAD_CLASS}>Status</TableHead>
           <TableHead className={TABLE_HEAD_CLASS}>Created</TableHead>
+          <TableHead className={TABLE_HEAD_CLASS}>Actions</TableHead>
         </TableRow>
       }
     >
       {rows.map((r, i) => {
         const s = statusLabel(r.status);
+        const editPrefix = pathname.replace(/\/(in-progress|pending|approved|rejected|archived|inactive)$/, "");
         return (
           <TableRow
             key={`${String(r.channel_id ?? r.dsa_code ?? "")}-${i}`}
@@ -139,6 +141,11 @@ export default function ChannelListPage() {
             </TableCell>
             <TableCell className="text-xs text-slate-500">
               {fmtDate(r.createdAt)}
+            </TableCell>
+            <TableCell>
+              <Button asChild variant="outline" size="sm" className="h-7 px-3 border-slate-200 text-slate-600 hover:text-slate-800">
+                <Link to={`${editPrefix}/${r.channel_id ?? ""}`}>Edit</Link>
+              </Button>
             </TableCell>
           </TableRow>
         );
