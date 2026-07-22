@@ -30,7 +30,7 @@ import TerritoryListPage from "@/features/territory/territory-list/territory-lis
 import { territoryMaster } from "@/features/territory/territory-form/territory-form.page";
 import ServiceProviderListPage from "@/features/service-provider/service-provider-list/service-provider-list.page";
 import DocChecklistListPage from "@/features/document-checklist/doc-checklist-list/doc-checklist-list.page";
-import DocChecklistFormPage from "@/features/document-checklist/doc-checklist-form/doc-checklist-form.page";
+import { docChecklistMaster } from "@/features/document-checklist/doc-checklist-form/doc-checklist-form.page";
 import CamConfigListPage from "@/features/cam-configuration/cam-configuration-list/cam-configuration-list.page";
 import VerificationTypeListPage from "@/features/verification-type/verification-type-list/verification-type-list.page";
 import VerificationTypeFormPage from "@/features/verification-type/verification-type-form/verification-type-form.page";
@@ -249,11 +249,11 @@ export const router = createBrowserRouter([
       },
       {
         path: "/settings/document/checklist/create",
-        element: <DocChecklistFormPage />,
+        element: <MasterWorkflowPage {...docChecklistMaster} />,
       },
       {
         path: "/settings/document/checklist/create/:id",
-        element: <DocChecklistFormPage />,
+        element: <MasterWorkflowPage {...docChecklistMaster} />,
       },
       {
         path: "/settings/cam-configuration/list",

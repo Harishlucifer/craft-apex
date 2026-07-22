@@ -50,6 +50,11 @@ export const WorkflowType = {
    * Must match the workflow_type configured server-side via /settings/workflow.
    */
   LenderPincodeUpload: "LENDER_PINCODE_UPLOAD",
+  /**
+   * Drives the Document Checklist Master create/edit step list (see doc-checklist-form.page.tsx).
+   * Must match the workflow_type configured server-side via /settings/workflow.
+   */
+  ChecklistMasterCreation: "CHECKLIST_MASTER_CREATION",
 } as const;
 
 export type WorkflowTypeValue =

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@craft-apex/ui";
 import { FormBuilderRenderer } from "../form-builder-renderer";
 import type { FormDefinition } from "../form-builder.types";
@@ -51,6 +52,25 @@ function FormBuilderStep({ step, value, onChange, onBack, context }: StepCompone
           This step has no form_builder configuration.
         </p>
       )}
+
+      <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+        {ctx.cancelHref ? (
+          <Button asChild variant="outline">
+            <Link to={ctx.cancelHref}>Cancel</Link>
+          </Button>
+        ) : (
+          <Button type="button" variant="outline" onClick={onBack}>
+            Back
+          </Button>
+        )}
+        <Button
+          type="button"
+          onClick={() => ctx.onSubmit?.()}
+          disabled={ctx.submitting}
+        >
+          {ctx.submitting ? "Saving…" : (ctx.submitLabel ?? "Save & Next")}
+        </Button>
+      </div>
     </div>
   );
 }

@@ -21,3 +21,4 @@ import "@/features/rm-mapping/rm-mapping.steps";
 import "@/features/partner/partner-approval-rejection/partner-approval-rejection.steps";
 import "@/features/lender/lender-form/lender-form.steps";
 import "@/features/lender-pincode/lender-pincode-form/lender-pincode-form.steps";
+import "@/features/document-checklist/doc-checklist-form/doc-checklist-form.steps";

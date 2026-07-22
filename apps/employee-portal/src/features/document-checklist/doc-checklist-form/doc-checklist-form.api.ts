@@ -1,12 +1,9 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type {
   ChecklistDetail,
-  ChecklistSavePayload,
   DocumentClassRow,
   DocumentRow,
-  LenderRow,
-  LoanTypeRow,
   LookupItem,
   RuleRow,
   ServiceProviderRow,
@@ -15,13 +12,11 @@ import type {
 const CHECKLIST_URL = "/alpha/v1/master/checklist";
 const DOC_CLASS_URL = "/alpha/v1/master/document-class";
 const DOC_URL = "/alpha/v1/master/document";
-const LOAN_TYPE_URL = "/alpha/v1/master/loan-type";
-const LENDER_URL = "/alpha/v1/master/lender";
 const RULE_URL = "/alpha/v1/rule";
 const SERVICE_PROVIDER_URL =
   "/alpha/v1/master/service-provider?provider_type=OCR";
 const LOOKUP_URL =
-  "/alpha/v1/lookup?group_code=CHECKLIST_TYPE,CHECKLIST_ITEM_MANDATORY,APPLICANT_TYPE,CHECKLIST_TAGS";
+  "/alpha/v1/lookup?group_code=CHECKLIST_TYPE,CHECKLIST_ITEM_MANDATORY,APPLICANT_TYPE,CHECKLIST_TAGS,CHECKLIST_FIELD_CATEGORY,CHECKLIST_SOURCE_TYPE,SOURCE_MATCH_TYPE";
 
 export function useChecklistLookups() {
   return useQuery({
@@ -52,28 +47,6 @@ export function useDocOptions() {
       const body = await api.get<unknown, any>(DOC_URL);
       const arr = body?.data ?? body?.result ?? body;
       return Array.isArray(arr) ? (arr as DocumentRow[]) : [];
-    },
-  });
-}
-
-export function useChecklistLoanTypes() {
-  return useQuery({
-    queryKey: ["loan-type-master-checklist"],
-    queryFn: async (): Promise<LoanTypeRow[]> => {
-      const body = await api.get<unknown, any>(LOAN_TYPE_URL);
-      const arr = body?.data ?? body?.result ?? body;
-      return Array.isArray(arr) ? (arr as LoanTypeRow[]) : [];
-    },
-  });
-}
-
-export function useChecklistLenders() {
-  return useQuery({
-    queryKey: ["lender-master-checklist"],
-    queryFn: async (): Promise<LenderRow[]> => {
-      const body = await api.get<unknown, any>(LENDER_URL);
-      const arr = body?.result ?? body?.data ?? body;
-      return Array.isArray(arr) ? (arr as LenderRow[]) : [];
     },
   });
 }
@@ -113,12 +86,5 @@ export function useChecklistDetail(id: string | undefined) {
       const r = body?.result ?? body?.data ?? body;
       return (r ?? null) as ChecklistDetail | null;
     },
-  });
-}
-
-export function useSaveChecklist() {
-  return useMutation({
-    mutationFn: async (payload: ChecklistSavePayload) =>
-      api.post<unknown, any>(CHECKLIST_URL, payload),
   });
 }

@@ -128,6 +128,7 @@ export function useSavePartner() {
 //   LENDER_PINCODE_UPLOAD -> POST /alpha/v1/master/lender/pincode
 //     (bespoke step passes a multipart FormData body as `data`; the api client
 //      forwards FormData untouched so the boundary survives)
+//   CHECKLIST_MASTER_CREATION -> POST /alpha/v1/master/checklist
 // Other workflow types don't have a verified save endpoint yet — those steps
 // will only advance via /alpha/v1/workflow/execution without persisting form data.
 const STEP_SAVE_ENDPOINTS: Record<string, string> = {
@@ -141,6 +142,7 @@ const STEP_SAVE_ENDPOINTS: Record<string, string> = {
   LENDER_CREATION: "/alpha/v1/master/lender",
   TERRITORY_MANAGEMENT: "/alpha/v1/master/territory",
   LENDER_PINCODE_UPLOAD: "/alpha/v1/master/lender/pincode",
+  CHECKLIST_MASTER_CREATION: "/alpha/v1/master/checklist",
 };
 
 export function hasStepSaveEndpoint(workflowType: string): boolean {
@@ -213,6 +215,13 @@ export async function saveStepData(
     result?.employee_id ??
     result?.user?.employee_id ??
     result?.user_role_id ??
+    // CHECKLIST_MASTER_CREATION must be checked before loan_type_id/lender_id:
+    // ChecklistParams (alpha-api app/handler/master/checklist.go) carries BOTH
+    // its own `checklist_id` AND a `lender_id`/`loan_type` the checklist merely
+    // references — checking the generic loan_type_id/lender_id fields first
+    // would wrongly resolve sourceId to that referenced entity's id instead of
+    // the checklist's own, breaking the id handoff into step 2+.
+    result?.checklist_id ??
     result?.loan_type_id ??
     result?.lender_id ??
     result?.id ??
