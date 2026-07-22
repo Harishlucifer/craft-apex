@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Check } from "lucide-react";
-import { Button, toast } from "@craft-apex/ui";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@craft-apex/ui";
 import {
   useLenderDetail,
   useLenderLookups,
@@ -16,39 +14,38 @@ import type {
 import type { LenderStepContext } from "./lender-form.steps";
 import {
   buildNestedFormPayload,
-  buildWorkflow,
-  UiComponentLoader,
-  useSaveStepData,
   WorkflowType,
   type FormBuilderStepContext,
-  type WorkflowStepDef,
+  type MasterController,
+  type MasterControllerArgs,
+  type MasterWorkflowPageProps,
 } from "@craft-apex/workflow-runtime";
 
-export default function LenderFormPage() {
+/**
+ * Lender create/edit. Driven by the generic MasterWorkflowPage (see
+ * routes.tsx); this module supplies only the bespoke controller (FORM_BUILDER
+ * defaults + payload, and the loan-types / contracts panels' context).
+ */
+export const lenderMaster: MasterWorkflowPageProps = {
+  noun: "Lender",
+  workflowType: WorkflowType.LenderCreation,
+  listPath: "/settings/lender",
+  maxWidth: "max-w-6xl",
+  emptyLabel: "lender creation",
+  useController: useLenderController,
+};
+
+function useLenderController({
+  id,
+  advance,
+  saving,
+  setSavedId,
+}: MasterControllerArgs): MasterController {
   const navigate = useNavigate();
-  const { id: routeId } = useParams<{ id?: string }>();
-
-  const [savedLenderId, setSavedLenderId] = useState<string | undefined>(
-    routeId
-  );
-  const id = savedLenderId ?? routeId;
-  const [activeStep, setActiveStep] = useState(0);
-
-  const { data: workflow, isLoading: workflowLoading } = useQuery({
-    queryKey: ["lender-workflow", id ?? ""],
-    queryFn: () =>
-      buildWorkflow({ workflowType: WorkflowType.LenderCreation, sourceId: id }),
-  });
-  const steps: WorkflowStepDef[] = useMemo(
-    () => workflow?.stages?.flatMap((s) => s.steps) ?? [],
-    [workflow]
-  );
-  const activeStepDef = steps[activeStep];
 
   const { data: lookups = [] } = useLenderLookups();
   const { data: loanTypeOptions = [] } = useLoanTypeOptions();
   const { data: detail } = useLenderDetail(id);
-  const save = useSaveStepData();
 
   const lookupOptions = useMemo(() => {
     const filter = (g: string) =>
@@ -68,12 +65,12 @@ export default function LenderFormPage() {
   const [contracts, setContracts] = useState<LenderContractRow[]>([]);
   useEffect(() => {
     setLoanTypes(
-      Array.isArray(detail?.lender_loan_type) ? detail!.lender_loan_type! : []
+      Array.isArray(detail?.lender_loan_type) ? detail!.lender_loan_type! : [],
     );
     setContracts(
       Array.isArray(detail?.lender_loan_contract)
         ? detail!.lender_loan_contract!
-        : []
+        : [],
     );
   }, [detail?.lender_loan_type, detail?.lender_loan_contract]);
 
@@ -98,7 +95,7 @@ export default function LenderFormPage() {
   const buildPayload = (
     fields: Record<string, any>,
     lt: LenderLoanTypeRow[],
-    ct: LenderContractRow[]
+    ct: LenderContractRow[],
   ): LenderSavePayload => ({
     ...(id ? { lender_id: id } : {}),
     code: String(fields.code ?? "").toUpperCase(),
@@ -116,57 +113,36 @@ export default function LenderFormPage() {
   const submitFormBuilderStep = async () => {
     const nested = buildNestedFormPayload(formValues);
     const payload = buildPayload(nested, loanTypes, contracts);
-    try {
-      const { sourceId: newId } = await save.mutateAsync({
-        workflowType: WorkflowType.LenderCreation,
-        data: payload,
-      });
-      toast.success(`Lender ${id ? "updated" : "saved"} successfully`);
-      if (!id && newId) {
-        setSavedLenderId(String(newId));
-        navigate(`/settings/add-lender/${String(newId)}`, { replace: true });
-      }
-      setActiveStep(activeStep + 1);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong");
+    const res = await advance(payload);
+    if (!res) return;
+    const newId = res.sourceId;
+    toast.success(`Lender ${id ? "updated" : "saved"} successfully`);
+    if (!id && newId) {
+      setSavedId(String(newId));
+      navigate(`/settings/add-lender/${String(newId)}`, { replace: true });
     }
   };
 
   const submitLoanTypesStep = async () => {
     const nested = buildNestedFormPayload(formValues);
     const payload = buildPayload(nested, loanTypes, contracts);
-    try {
-      await save.mutateAsync({
-        workflowType: WorkflowType.LenderCreation,
-        data: payload,
-      });
-      toast.success("Loan types saved successfully");
-      setActiveStep(activeStep + 1);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong");
-    }
+    const res = await advance(payload);
+    if (!res) return;
+    toast.success("Loan types saved successfully");
   };
 
   const submitContractsStep = async () => {
     const nested = buildNestedFormPayload(formValues);
     const payload = buildPayload(nested, loanTypes, contracts);
-    try {
-      await save.mutateAsync({
-        workflowType: WorkflowType.LenderCreation,
-        data: payload,
-      });
-      toast.success("Lender created successfully");
-      navigate("/settings/lender");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong");
-    }
+    const res = await advance(payload);
+    if (!res) return;
+    toast.success("Lender created successfully");
+    navigate("/settings/lender");
   };
-
-  const canEnterLaterSteps = Boolean(id);
 
   const stepContext: FormBuilderStepContext & LenderStepContext = {
     onSubmit: submitFormBuilderStep,
-    submitting: save.isPending,
+    submitting: saving,
     cancelHref: "/settings/lender",
     lockField: "code",
     lockWhen: id,
@@ -181,102 +157,13 @@ export default function LenderFormPage() {
     linkTypeOptions: lookupOptions.linkType,
     onSaveLoanTypes: submitLoanTypesStep,
     onSaveContracts: submitContractsStep,
-    saving: save.isPending,
+    saving,
   };
 
-  return (
-    <div className="mx-auto max-w-6xl space-y-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          {routeId ? "Edit Lender" : "Add Lender"}
-        </h1>
-        <Button asChild variant="outline" size="sm">
-          <Link to="/settings/lender">
-            <ArrowLeft className="h-4 w-4" /> Back
-          </Link>
-        </Button>
-      </div>
-
-      {workflowLoading ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
-          Loading steps…
-        </div>
-      ) : steps.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/30 p-8 text-center text-sm text-slate-500">
-          No workflow configured for lender creation yet. Configure a
-          workflow with workflow_type &quot;{WorkflowType.LenderCreation}
-          &quot; at{" "}
-          <Link to="/settings/workflow" className="underline">
-            Settings → Workflow
-          </Link>
-          .
-        </div>
-      ) : (
-        <>
-          <Stepper
-            steps={steps.map((s) => s.name)}
-            activeStep={activeStep}
-            onStepClick={(i) => {
-              if (i <= activeStep || canEnterLaterSteps) setActiveStep(i);
-            }}
-          />
-
-          <UiComponentLoader
-            step={activeStepDef}
-            value={formValues}
-            onChange={setFormValues}
-            onNext={() => setActiveStep(activeStep + 1)}
-            onBack={() => setActiveStep(activeStep - 1)}
-            context={stepContext}
-          />
-        </>
-      )}
-    </div>
-  );
-}
-
-function Stepper({
-  steps,
-  activeStep,
-  onStepClick,
-}: {
-  steps: string[];
-  activeStep: number;
-  onStepClick: (i: number) => void;
-}) {
-  return (
-    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-      {steps.map((label, i) => {
-        const isDone = i < activeStep;
-        const isActive = i === activeStep;
-        return (
-          <button
-            key={label}
-            type="button"
-            onClick={() => onStepClick(i)}
-            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
-              isActive
-                ? "bg-[#4C7DF0] text-white"
-                : isDone
-                  ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                  : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-            }`}
-          >
-            <span
-              className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold ${
-                isActive
-                  ? "bg-white/20 text-white"
-                  : isDone
-                    ? "bg-emerald-600 text-white"
-                    : "bg-slate-200 text-slate-600"
-              }`}
-            >
-              {isDone ? <Check className="h-3 w-3" /> : i + 1}
-            </span>
-            <span className="font-medium">{label}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
+  return {
+    formValues,
+    setFormValues,
+    stepContext,
+    canEnterLaterSteps: Boolean(id),
+  };
 }

@@ -1,52 +1,47 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Check } from "lucide-react";
-import { Button, toast } from "@craft-apex/ui";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@craft-apex/ui";
 import { useEmployeeDetail } from "./employee-form.api";
 import type { EmployeeSavePayload } from "./employee-form.types";
 import type { EmployeeStepContext } from "./employee-form.steps";
 import {
   buildNestedFormPayload,
-  buildWorkflow,
-  UiComponentLoader,
-  useSaveStepData,
   WorkflowType,
   type FormBuilderStepContext,
-  type WorkflowStepDef,
+  type MasterController,
+  type MasterControllerArgs,
+  type MasterWorkflowPageProps,
 } from "@craft-apex/workflow-runtime";
 
-export default function EmployeeFormPage() {
-  const navigate = useNavigate();
-  const { id: routeId } = useParams<{ id?: string }>();
-  // `id` is the active employee id used by steps 2–4. For edit it comes from
-  // the URL; for create it's set after the FORM_BUILDER step saves and the
-  // backend returns an `employee_id` in the response.
-  const [savedEmployeeId, setSavedEmployeeId] = useState<string | undefined>(
-    routeId
-  );
-  const id = savedEmployeeId ?? routeId;
-  const [activeStep, setActiveStep] = useState(0);
+/**
+ * Employee create/edit. Driven by the generic MasterWorkflowPage (see
+ * routes.tsx); this module supplies only the bespoke controller (FORM_BUILDER
+ * defaults + payload, and the address / territory-map / allocation steps'
+ * context).
+ */
+export const employeeMaster: MasterWorkflowPageProps = {
+  noun: "Employee",
+  workflowType: WorkflowType.EmployeeCreation,
+  listPath: "/settings/employee",
+  maxWidth: "max-w-5xl",
+  emptyLabel: "employee creation",
+  useController: useEmployeeController,
+};
 
-  const { data: workflow, isLoading: workflowLoading } = useQuery({
-    queryKey: ["employee-workflow", id ?? ""],
-    queryFn: () =>
-      buildWorkflow({ workflowType: WorkflowType.EmployeeCreation, sourceId: id }),
-  });
-  const steps: WorkflowStepDef[] = useMemo(
-    () => workflow?.stages?.flatMap((s) => s.steps) ?? [],
-    [workflow]
-  );
-  const activeStepDef = steps[activeStep];
+function useEmployeeController({
+  id,
+  advance,
+  saving,
+  setSavedId,
+}: MasterControllerArgs): MasterController {
+  const navigate = useNavigate();
 
   const { data: detail } = useEmployeeDetail(id);
-  const save = useSaveStepData();
 
   // Dropdown options (role/hierarchy/reportsTo/office) are no longer fetched
   // here — FormBuilderRenderer resolves each field's options itself via its
   // `source.api` config, which the backend's form_builder JSON should point
-  // at the same endpoints employee-form.api.ts used to call directly
-  // (see the plan's step-4 backend prerequisite for the exact endpoint list).
+  // at the same endpoints employee-form.api.ts used to call directly.
 
   const [formValues, setFormValues] = useState<Record<string, unknown>>({});
 
@@ -96,7 +91,9 @@ export default function EmployeeFormPage() {
     // Field `name`s already mirror the payload's JSON path, so the nested
     // shape falls out of the flat formValues automatically.
     const { password: _pw, confirmPassword: _cpw, ...fields } = formValues;
-    const nested = buildNestedFormPayload(fields) as Partial<EmployeeSavePayload>;
+    const nested = buildNestedFormPayload(
+      fields,
+    ) as Partial<EmployeeSavePayload>;
 
     const payload: EmployeeSavePayload = {
       ...nested,
@@ -126,35 +123,26 @@ export default function EmployeeFormPage() {
       user_address: detail?.user_address,
       data: detail?.data,
     };
-    try {
-      const { sourceId } = await save.mutateAsync({
-        workflowType: WorkflowType.EmployeeCreation,
-        data: payload,
-      });
-      // Legacy `index.js` reads `response?.data?.result?.employee_id` after
-      // create (saveStepData extracts it into sourceId); on edit the existing
-      // id is preserved.
-      const newId = sourceId ?? id;
-      if (newId && newId !== savedEmployeeId) {
-        setSavedEmployeeId(String(newId));
-      }
-      toast.success(`Employee ${id ? "updated" : "saved"} successfully`);
-      // Advance to step 2 instead of navigating away (legacy stepper parity).
-      setActiveStep(activeStep + 1);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Save failed");
+    const res = await advance(payload);
+    if (!res) return;
+    // create lands the id at result.sourceId (employee_id); on edit it's
+    // preserved. Record it so steps 2–4 and the workflow rebuild pick it up.
+    const newId = res.sourceId ?? id;
+    if (newId && newId !== id) {
+      setSavedId(String(newId));
     }
+    toast.success(`Employee ${id ? "updated" : "saved"} successfully`);
+    // The server's resume (last_active_step_id) advances the stepper.
   };
 
   // Steps 2–4 need a saved employee id. Block forward navigation if not set.
   const stepEmployeeId = id ?? "";
-  const canEnterLaterSteps = Boolean(stepEmployeeId);
 
   // Union of everything any of this page's registered steps might need —
   // whichever step is active reads only the keys its own adapter expects.
   const stepContext: FormBuilderStepContext & EmployeeStepContext = {
     onSubmit: submitFormBuilderStep,
-    submitting: save.isPending,
+    submitting: saving,
     submitLabel: id ? "Save & Next" : "Create & Next",
     cancelHref: "/settings/employee",
     lockField: "employee_code",
@@ -165,103 +153,19 @@ export default function EmployeeFormPage() {
       username: detail?.name,
       id: detail?.user_id ?? detail?.employee_id,
     },
-    onAllocationSave: () => navigate("/settings/employee"),
+    // Bespoke steps (address/territory/allocation) call this after their own
+    // save so the step executes (creating its Task) and the server resumes.
+    advance,
+    onAllocationSave: async () => {
+      await advance();
+      navigate("/settings/employee");
+    },
   };
 
-  return (
-    <div className="mx-auto max-w-5xl space-y-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          {routeId ? "Edit Employee" : "Add Employee"}
-        </h1>
-        <Button asChild variant="outline" size="sm">
-          <Link to="/settings/employee">
-            <ArrowLeft className="h-4 w-4" /> Back
-          </Link>
-        </Button>
-      </div>
-
-      {workflowLoading ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
-          Loading steps…
-        </div>
-      ) : steps.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/30 p-8 text-center text-sm text-slate-500">
-          No workflow configured for employee creation yet. Configure a
-          workflow with workflow_type &quot;{WorkflowType.EmployeeCreation}
-          &quot; at{" "}
-          <Link to="/settings/workflow" className="underline">
-            Settings → Workflow
-          </Link>
-          .
-        </div>
-      ) : (
-        <>
-          <Stepper
-            steps={steps.map((s) => s.name)}
-            activeStep={activeStep}
-            onStepClick={(i) => {
-              // Allow free navigation back; only allow forward when we have an id.
-              if (i <= activeStep || canEnterLaterSteps) setActiveStep(i);
-            }}
-          />
-
-          <UiComponentLoader
-            step={activeStepDef}
-            value={formValues}
-            onChange={setFormValues}
-            onNext={() => setActiveStep(activeStep + 1)}
-            onBack={() => setActiveStep(activeStep - 1)}
-            context={stepContext}
-          />
-        </>
-      )}
-    </div>
-  );
-}
-
-function Stepper({
-  steps,
-  activeStep,
-  onStepClick,
-}: {
-  steps: string[];
-  activeStep: number;
-  onStepClick: (i: number) => void;
-}) {
-  return (
-    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-      {steps.map((label, i) => {
-        const isDone = i < activeStep;
-        const isActive = i === activeStep;
-        return (
-          <button
-            key={label}
-            type="button"
-            onClick={() => onStepClick(i)}
-            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
-              isActive
-                ? "bg-[#4C7DF0] text-white"
-                : isDone
-                  ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                  : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-            }`}
-          >
-            <span
-              className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold ${
-                isActive
-                  ? "bg-white/20 text-white"
-                  : isDone
-                    ? "bg-emerald-600 text-white"
-                    : "bg-slate-200 text-slate-600"
-              }`}
-            >
-              {isDone ? <Check className="h-3 w-3" /> : i + 1}
-            </span>
-            <span className="font-medium">{label}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
+  return {
+    formValues,
+    setFormValues,
+    stepContext,
+    canEnterLaterSteps: Boolean(stepEmployeeId),
+  };
 }

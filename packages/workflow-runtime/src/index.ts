@@ -1,5 +1,19 @@
 export { WorkflowRuntime } from "./workflow-runtime";
 export { OnboardingPage } from "./onboarding-page";
+export {
+  MasterWorkflowPage,
+  type MasterControllerArgs,
+  type MasterController,
+  type UseMasterController,
+  type MasterWorkflowPageProps,
+} from "./master-workflow-page";
+export {
+  useStepNavigation,
+  useStepSave,
+  useWorkflowEngine,
+  type AdvanceOptions,
+  type AdvanceResult,
+} from "./use-step-flow";
 export { JourneyPicker } from "./journey-picker";
 export { FormBuilderRenderer } from "./form-builder-renderer";
 // Side-effect import: registers "FORM_BUILDER" in the step registry as soon

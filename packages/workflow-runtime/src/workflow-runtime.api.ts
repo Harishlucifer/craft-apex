@@ -18,7 +18,7 @@ export interface BuildInput {
 }
 
 export async function buildWorkflow(
-  input: BuildInput
+  input: BuildInput,
 ): Promise<WorkflowBuildResponse | null> {
   const payload: Record<string, unknown> = {
     workflow_type: input.workflowType,
@@ -38,7 +38,7 @@ export interface ExecuteInput {
 }
 
 export async function executeWorkflow(
-  input: ExecuteInput
+  input: ExecuteInput,
 ): Promise<WorkflowBuildResponse | null> {
   const payload: Record<string, unknown> = {
     workflow_type: input.workflowType,
@@ -65,17 +65,15 @@ export function useExecuteWorkflow() {
 
 export function useJourneyTypes(workflowType: string, partnerType?: string) {
   return useQuery({
-    queryKey: [
-      "journey-type-group",
-      workflowType,
-      partnerType ?? "",
-    ],
+    queryKey: ["journey-type-group", workflowType, partnerType ?? ""],
     enabled: Boolean(workflowType),
     queryFn: async (): Promise<Record<string, JourneyType[]>> => {
       const qs = partnerType
         ? `?workflow_type=${encodeURIComponent(workflowType)}&partner_type=${encodeURIComponent(partnerType)}`
         : `?workflow_type=${encodeURIComponent(workflowType)}`;
-      const body = await getApiClient().get<unknown, any>(`${JOURNEY_GROUP_URL}${qs}`);
+      const body = await getApiClient().get<unknown, any>(
+        `${JOURNEY_GROUP_URL}${qs}`,
+      );
       const data = body?.data ?? body?.result ?? body;
       return (data ?? {}) as Record<string, JourneyType[]>;
     },
@@ -97,7 +95,7 @@ export function usePartnerDetail(id: string | undefined) {
     enabled: Boolean(id),
     queryFn: async (): Promise<PartnerDetail | null> => {
       const body = await getApiClient().get<unknown, any>(
-        `${PARTNER_BASE}/${encodeURIComponent(id!)}`
+        `${PARTNER_BASE}/${encodeURIComponent(id!)}`,
       );
       return (body ?? null) as PartnerDetail | null;
     },
@@ -127,6 +125,9 @@ export function useSavePartner() {
 //   LENDER_CREATION    -> POST /alpha/v1/master/lender
 //     (the four settings masters — each form page builds its own payload but
 //      saves through this common flow instead of a bespoke useSaveXxx hook)
+//   LENDER_PINCODE_UPLOAD -> POST /alpha/v1/master/lender/pincode
+//     (bespoke step passes a multipart FormData body as `data`; the api client
+//      forwards FormData untouched so the boundary survives)
 // Other workflow types don't have a verified save endpoint yet — those steps
 // will only advance via /alpha/v1/workflow/execution without persisting form data.
 const STEP_SAVE_ENDPOINTS: Record<string, string> = {
@@ -138,6 +139,8 @@ const STEP_SAVE_ENDPOINTS: Record<string, string> = {
   ROLE_CREATION: "/alpha/v1/master/user-role",
   LOAN_TYPE_CREATION: "/alpha/v1/master/loan-type",
   LENDER_CREATION: "/alpha/v1/master/lender",
+  TERRITORY_MANAGEMENT: "/alpha/v1/master/territory",
+  LENDER_PINCODE_UPLOAD: "/alpha/v1/master/lender/pincode",
 };
 
 export function hasStepSaveEndpoint(workflowType: string): boolean {
@@ -175,16 +178,18 @@ export interface StepSaveResult {
  * gets included.
  */
 export async function saveStepData(
-  input: StepSaveInput
+  input: StepSaveInput,
 ): Promise<StepSaveResult> {
   const url = STEP_SAVE_ENDPOINTS[input.workflowType];
   if (!url) {
     throw new Error(
-      `No save endpoint configured for workflow_type=${input.workflowType}`
+      `No save endpoint configured for workflow_type=${input.workflowType}`,
     );
   }
   console.log("[saveStepData] Raw Step Data:", input.data);
-  const nestedPayload = buildNestedFormPayload(input.data);
+  const nestedPayload = buildNestedFormPayload(
+    input.data as Record<string, unknown>,
+  );
   console.log("[saveStepData] Nested Payload to POST:", nestedPayload);
   const body = await getApiClient().post<unknown, any>(url, nestedPayload);
 

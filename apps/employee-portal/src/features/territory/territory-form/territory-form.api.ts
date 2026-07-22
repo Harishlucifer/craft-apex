@@ -1,9 +1,8 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type {
   TerritoryDetail,
   TerritoryRow,
-  TerritorySavePayload,
   TerritoryTypeRow,
 } from "./territory-form.types";
 
@@ -38,17 +37,10 @@ export function useTerritoryDetail(id: string | undefined) {
     enabled: Boolean(id),
     queryFn: async (): Promise<TerritoryDetail | null> => {
       const body = await api.get<unknown, any>(
-        `${TERRITORY_URL}/${encodeURIComponent(id!)}`
+        `${TERRITORY_URL}/${encodeURIComponent(id!)}`,
       );
       const r = body?.result ?? body?.data ?? body;
       return (r ?? null) as TerritoryDetail | null;
     },
-  });
-}
-
-export function useSaveTerritory() {
-  return useMutation({
-    mutationFn: async (payload: TerritorySavePayload) =>
-      api.post<unknown, any>(TERRITORY_URL, payload),
   });
 }
