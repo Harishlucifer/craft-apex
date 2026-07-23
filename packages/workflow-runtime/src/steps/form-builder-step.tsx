@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@craft-apex/ui";
 import { FormBuilderRenderer } from "../form-builder-renderer";
 import type { FormDefinition } from "../form-builder.types";
@@ -22,9 +22,12 @@ export interface FormBuilderStepContext {
 
 function FormBuilderStep({ step, value, onChange, onBack, context }: StepComponentProps) {
   const ctx = (context ?? {}) as Partial<FormBuilderStepContext>;
-  const base = (
-    step.configuration as { form_builder?: FormDefinition } | undefined
-  )?.form_builder;
+  const navigate = useNavigate();
+  const config = step.configuration as
+    | { form_builder?: FormDefinition; navigate_to?: string }
+    | undefined;
+  const base = config?.form_builder;
+  const navigateTo = config?.navigate_to;
 
   const formJson = useMemo<FormDefinition | undefined>(() => {
     if (!base) return undefined;
@@ -42,6 +45,19 @@ function FormBuilderStep({ step, value, onChange, onBack, context }: StepCompone
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [base, ctx.lockField, ctx.lockWhen]);
+
+  // `navigate_to` (sibling of `form_builder` in the step's configuration) is
+  // for masters whose save endpoint has nothing for the generic advance()/
+  // executeWorkflow flow to track (e.g. Lookup Master's POST returns no id
+  // at all, so advance() can never resolve a source id) — once such a step's
+  // own onSubmit resolves (the domain save it's responsible for), navigate
+  // there directly instead of relying on the workflow-execution step chain.
+  const handleSubmit = async () => {
+    await ctx.onSubmit?.();
+    if (navigateTo) {
+      navigate(navigateTo.startsWith("/") ? navigateTo : `/${navigateTo}`);
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -65,7 +81,7 @@ function FormBuilderStep({ step, value, onChange, onBack, context }: StepCompone
         )}
         <Button
           type="button"
-          onClick={() => ctx.onSubmit?.()}
+          onClick={handleSubmit}
           disabled={ctx.submitting}
         >
           {ctx.submitting ? "Saving…" : (ctx.submitLabel ?? "Save & Next")}

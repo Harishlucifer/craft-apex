@@ -121,9 +121,3 @@ export interface WorkflowComponentOption {
   code: string;
   name: string;
 }
-
-export interface LookupItem {
-  group_code: string;
-  lu_key: string;
-  lu_name: string;
-}

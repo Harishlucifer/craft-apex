@@ -81,7 +81,7 @@ export default function CamConfigListPage() {
       >
         {list.paged.map((r, i) => (
           <TableRow
-            key={`${String(r.cam_config_id ?? r.title ?? "")}-${i}`}
+            key={`${String(r.configuration_id ?? r.title ?? "")}-${i}`}
             className={TABLE_ROW_CLASS}
           >
             <TableCell className="text-xs text-slate-500">
@@ -102,7 +102,7 @@ export default function CamConfigListPage() {
               <PermissionGate action="edit">
                 <Button asChild size="sm" variant="ghost" className="gap-1.5">
                   <Link
-                    to={`/settings/cam-configuration/create/${String(r.cam_config_id ?? "")}`}
+                    to={`/settings/cam-configuration/create/${String(r.configuration_id ?? "")}`}
                   >
                     <Pencil className="h-3.5 w-3.5" /> {tc("edit")}
                   </Link>

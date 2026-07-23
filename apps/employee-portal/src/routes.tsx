@@ -38,7 +38,7 @@ import RuleMasterListPage from "@/features/rule/rule-list/rule-list.page";
 import RuleFormPage from "@/features/rule/rule-form/rule-form.page";
 import RuleCategoryListPage from "@/features/rule/rule-category-list/rule-category-list.page";
 import NotificationTemplateListPage from "@/features/templates/notification-template-list/notification-template-list.page";
-import NotificationTemplateFormPage from "@/features/templates/notification-template-form/notification-template-form.page";
+import { templateMaster } from "@/features/templates/notification-template-form/notification-template-form.page";
 import EmployeeListPage from "@/features/employee/employee-list/employee-list.page";
 import { employeeMaster } from "@/features/employee/employee-form/employee-form.page";
 import ChannelListPage from "@/features/channel/channel-list/channel-list.page";
@@ -49,8 +49,9 @@ import TargetPlanListPage from "@/features/target-mgmt/target-plan-list/target-p
 import TargetPlanFormPage from "@/features/target-mgmt/target-plan-form/target-plan-form.page";
 import UserLoginReportPage from "@/features/reports/user-login-report/user-login-report.page";
 import WorkflowListPage from "@/features/workflow/workflow-list/workflow-list.page";
-import WorkflowFormPage from "@/features/workflow/workflow-form/workflow-form.page";
+import { workflowMaster } from "@/features/workflow/workflow-form/workflow-form.page";
 import WorkflowComponentListPage from "@/features/workflow/workflow-component-list/workflow-component-list.page";
+import { workflowComponentMaster } from "@/features/workflow/workflow-component-form/workflow-component-form.page";
 import DelegationMatrixListPage from "@/features/delegation-matrix/delegation-matrix-list/delegation-matrix-list.page";
 import DelegationMatrixFormPage from "@/features/delegation-matrix/delegation-matrix-form/delegation-matrix-form.page";
 import FieldMasterFormPage from "@/features/field-master/field-master-form/field-master-form.page";
@@ -70,6 +71,7 @@ import SchemeListPage from "@/features/finance/scheme-list/scheme-list.page";
 import PayoutPlanListPage from "@/features/payout-plan/payout-plan-list/payout-plan-list.page";
 import PayoutPlanFormPage from "@/features/payout-plan/payout-plan-form/payout-plan-form.page";
 import LookupMasterListPage from "@/features/lookup-master/lookup-master-list/lookup-master-list.page";
+import { lookupMasterMaster } from "@/features/lookup-master/lookup-master-form/lookup-master-form.page";
 import BuilderListPage from "@/features/builder/builder-list/builder-list.page";
 import BuilderFormPage from "@/features/builder/builder-form/builder-form.page";
 import EmployerListPage from "@/features/employer/employer-list/employer-list.page";
@@ -84,8 +86,8 @@ import PartnerBulkUploadPage from "@/features/partner/partner-bulk-upload/partne
 import { ChildPartnerListPage, ChildPartnerApprovalPage } from "@craft-apex/shared";
 import NewChannelListPage from "@/features/channel/new-channel-list/new-channel-list.page";
 import ModuleFormPage from "@/features/module/module-form/module-form.page";
-import JourneyMasterFormPage from "@/features/journey-master/journey-master-form/journey-master-form.page";
-import CamConfigFormPage from "@/features/cam-configuration/cam-configuration-form/cam-configuration-form.page";
+import { journeyTypeMaster } from "@/features/journey-master/journey-master-form/journey-master-form.page";
+import { camConfigMaster } from "@/features/cam-configuration/cam-configuration-form/cam-configuration-form.page";
 import ServiceRequestTypePage from "@/features/service-request-type/service-request-type.page";
 import { OnboardingPage } from "@craft-apex/workflow-runtime";
 import PincodeEligibilityPage from "@/features/utility/pincode-eligibility/pincode-eligibility.page";
@@ -261,11 +263,11 @@ export const router = createBrowserRouter([
       },
       {
         path: "/settings/cam-configuration/create",
-        element: <CamConfigFormPage />,
+        element: <MasterWorkflowPage {...camConfigMaster} />,
       },
       {
         path: "/settings/cam-configuration/create/:id",
-        element: <CamConfigFormPage />,
+        element: <MasterWorkflowPage {...camConfigMaster} />,
       },
       {
         path: "/settings/request-type-master",
@@ -296,11 +298,11 @@ export const router = createBrowserRouter([
       },
       {
         path: "/settings/template/create",
-        element: <NotificationTemplateFormPage />,
+        element: <MasterWorkflowPage {...templateMaster} />,
       },
       {
         path: "/settings/template/create/:id",
-        element: <NotificationTemplateFormPage />,
+        element: <MasterWorkflowPage {...templateMaster} />,
       },
       { path: "/settings/employee", element: <EmployeeListPage /> },
       {
@@ -558,11 +560,25 @@ export const router = createBrowserRouter([
 
       // Workflow + Field/Component Master
       { path: "/settings/workflow", element: <WorkflowListPage /> },
-      { path: "/settings/workflow/create", element: <WorkflowFormPage /> },
-      { path: "/settings/workflow/create/:id", element: <WorkflowFormPage /> },
+      {
+        path: "/settings/workflow/create",
+        element: <MasterWorkflowPage {...workflowMaster} />,
+      },
+      {
+        path: "/settings/workflow/create/:id",
+        element: <MasterWorkflowPage {...workflowMaster} />,
+      },
       {
         path: "/settings/workflow/component",
         element: <WorkflowComponentListPage />,
+      },
+      {
+        path: "/settings/workflow/component/create",
+        element: <MasterWorkflowPage {...workflowComponentMaster} />,
+      },
+      {
+        path: "/settings/workflow/component/create/:id",
+        element: <MasterWorkflowPage {...workflowComponentMaster} />,
       },
       { path: "/field-list", element: <FieldMasterListPage /> },
       { path: "/component-list", element: <FieldMasterListPage /> },
@@ -578,11 +594,11 @@ export const router = createBrowserRouter([
       },
       {
         path: "/settings/journey-type/list/create",
-        element: <JourneyMasterFormPage />,
+        element: <MasterWorkflowPage {...journeyTypeMaster} />,
       },
       {
         path: "/settings/journey-type/list/create/:id",
-        element: <JourneyMasterFormPage />,
+        element: <MasterWorkflowPage {...journeyTypeMaster} />,
       },
 
       // Marketing
@@ -644,7 +660,15 @@ export const router = createBrowserRouter([
       },
 
       // Lookup Master (grouped) — legacy /pages/Configuration/LookupMaster/LookupList.js
-      { path: "/settings/lookup-list", element: <LookupMasterListPage /> },
+      { path: "/settings/lookup-master", element: <LookupMasterListPage /> },
+      {
+        path: "/settings/lookup-master/create",
+        element: <MasterWorkflowPage {...lookupMasterMaster} />,
+      },
+      {
+        path: "/settings/lookup-master/create/:id",
+        element: <MasterWorkflowPage {...lookupMasterMaster} />,
+      },
 
       // Builders — legacy /pages/Builder/BuildersList.js
       { path: "/settings/builders", element: <BuilderListPage /> },
@@ -1074,11 +1098,6 @@ export const router = createBrowserRouter([
         path: "/settings/lender/eligible-pincode/list",
         element: <LenderEligiblePincodeListPage />,
       },
-      {
-        path: "/settings/lookup-master/create",
-        element: <Navigate to="/settings/lookup-master" replace />,
-      },
-
       // Utility
       { path: "/utility/business-card", element: <BusinessCardPage /> },
       {

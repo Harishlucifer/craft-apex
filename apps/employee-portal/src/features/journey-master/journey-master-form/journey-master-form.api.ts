@@ -1,39 +1,16 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import type {
-  JourneyTypeDetail,
-  JourneyTypeSavePayload,
-  LoanTypeOption,
-  LookupItem,
-} from "./journey-master-form.types";
+import type { JourneyTypeDetail } from "./journey-master-form.types";
 
-// Legacy: GetCall(`/alpha/v1/lookup?group_code=WORKFLOW_TYPE,PARTNER_CATEGORY,USER_TYPE,PARTNER_TYPE`)
-const LOOKUP_URL =
-  "/alpha/v1/lookup?group_code=WORKFLOW_TYPE,PARTNER_CATEGORY,USER_TYPE,PARTNER_TYPE";
-const LOAN_TYPE_URL = "/alpha/v1/master/loan-type";
+// Legacy craft-frontend/src/pages/JourneyMaster/AddJourneyType.js
+// GET/POST /alpha/v1/master/journey-type
+// The save itself now goes through the workflow-runtime's saveStepData (see
+// JOURNEY_TYPE_CREATION in workflow-runtime.api.ts) rather than a bespoke
+// useSaveJourneyType mutation, and every dropdown's options (Workflow Type,
+// User Type, Partner Category, Partner Type, Loan Type) are resolved by the
+// server-configured form_builder JSON's `source.api`, not fetched here — this
+// file now only supplies the edit-mode detail hook the controller needs.
 const JOURNEY_URL = "/alpha/v1/master/journey-type";
-
-export function useJourneyFormLookups() {
-  return useQuery({
-    queryKey: ["journey-form-lookups"],
-    queryFn: async (): Promise<LookupItem[]> => {
-      const body = await api.get<unknown, any>(LOOKUP_URL);
-      const arr = body?.data ?? body?.result ?? body;
-      return Array.isArray(arr) ? (arr as LookupItem[]) : [];
-    },
-  });
-}
-
-export function useLoanTypeOptions() {
-  return useQuery({
-    queryKey: ["loan-type-options"],
-    queryFn: async (): Promise<LoanTypeOption[]> => {
-      const body = await api.get<unknown, any>(LOAN_TYPE_URL);
-      const arr = body?.data ?? body?.result ?? body;
-      return Array.isArray(arr) ? (arr as LoanTypeOption[]) : [];
-    },
-  });
-}
 
 export function useJourneyTypeDetail(id: string | undefined) {
   return useQuery({
@@ -47,12 +24,5 @@ export function useJourneyTypeDetail(id: string | undefined) {
       const first = Array.isArray(arr) ? (arr[0] as JourneyTypeDetail) : null;
       return first ?? null;
     },
-  });
-}
-
-export function useSaveJourneyType() {
-  return useMutation({
-    mutationFn: async (payload: JourneyTypeSavePayload) =>
-      api.post<unknown, unknown>(JOURNEY_URL, payload),
   });
 }

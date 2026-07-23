@@ -35,18 +35,3 @@ export interface CamConfigDetail {
   status?: number;
 }
 
-export interface LookupItem {
-  lu_key: string;
-  lu_name: string;
-  group_code: string;
-}
-
-export interface IdNameRow {
-  id?: string | number | bigint;
-  name?: string;
-}
-
-export interface NotificationTemplateRow {
-  id?: string | number | bigint;
-  name?: string;
-}

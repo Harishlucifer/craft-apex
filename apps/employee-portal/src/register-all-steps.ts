@@ -22,3 +22,5 @@ import "@/features/partner/partner-approval-rejection/partner-approval-rejection
 import "@/features/lender/lender-form/lender-form.steps";
 import "@/features/lender-pincode/lender-pincode-form/lender-pincode-form.steps";
 import "@/features/document-checklist/doc-checklist-form/doc-checklist-form.steps";
+import "@/features/templates/notification-template-form/notification-template-form.steps";
+import "@/features/workflow/workflow-form/workflow-form.steps";

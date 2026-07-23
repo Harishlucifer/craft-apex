@@ -25,7 +25,7 @@ export default function NotificationTemplateListPage() {
   const { t: ts } = useTranslation("settings");
   const { t: tc } = useTranslation("common");
   const list = useClientList<TemplateRow>(data, (r, q) =>
-    [r.name, r.module, r.provider_name].some((v) =>
+    [r.name, r.module, r.service_provider?.provider_name].some((v) =>
       String(v ?? "").toLowerCase().includes(q)
     )
   );
@@ -81,7 +81,7 @@ export default function NotificationTemplateListPage() {
       >
         {list.paged.map((r, i) => (
           <TableRow
-            key={`${String(r.template_id ?? r.name ?? "")}-${i}`}
+            key={`${String(r.id ?? r.name ?? "")}-${i}`}
             className={TABLE_ROW_CLASS}
           >
             <TableCell className="text-xs text-slate-500">
@@ -91,7 +91,7 @@ export default function NotificationTemplateListPage() {
             <TableCell className="font-mono text-xs">
               {r.module ?? "—"}
             </TableCell>
-            <TableCell>{r.provider_name ?? "—"}</TableCell>
+            <TableCell>{r.service_provider?.provider_name ?? "—"}</TableCell>
             <TableCell className="font-mono text-xs text-slate-500">
               {String(r.template_id ?? "—")}
             </TableCell>
@@ -106,7 +106,7 @@ export default function NotificationTemplateListPage() {
             <TableCell className="text-end">
               <PermissionGate action="edit">
                 <Button asChild size="sm" variant="ghost" className="gap-1.5">
-                  <Link to={`/settings/template/create/${String(r.template_id ?? "")}`}>
+                  <Link to={`/settings/template/create/${String(r.id ?? "")}`}>
                     <Pencil className="h-3.5 w-3.5" /> {tc("edit")}
                   </Link>
                 </Button>

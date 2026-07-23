@@ -35,13 +35,3 @@ export interface JourneyTypeDetail {
   status?: number | string;
 }
 
-export interface LookupItem {
-  lu_key: string;
-  lu_name: string;
-  group_code: string;
-}
-
-export interface LoanTypeOption {
-  id?: string | number | bigint;
-  name?: string;
-}
