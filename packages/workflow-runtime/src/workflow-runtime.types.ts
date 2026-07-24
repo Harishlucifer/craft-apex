@@ -50,6 +50,43 @@ export const WorkflowType = {
    * Must match the workflow_type configured server-side via /settings/workflow.
    */
   LenderPincodeUpload: "LENDER_PINCODE_UPLOAD",
+  /**
+   * Drives the Document Checklist Master create/edit step list (see doc-checklist-form.page.tsx).
+   * Must match the workflow_type configured server-side via /settings/workflow.
+   */
+  ChecklistMasterCreation: "CHECKLIST_MASTER_CREATION",
+  /**
+   * Drives the CAM Configuration create/edit form (see cam-configuration-form.page.tsx).
+   * Must match the workflow_type configured server-side via /settings/workflow.
+   */
+  CamConfigurationCreation: "CAM_CONFIGURATION_CREATION",
+  /**
+   * Drives the Lookup Master create/edit form (see lookup-master-form.page.tsx).
+   * Must match the workflow_type configured server-side via /settings/workflow.
+   */
+  LookupMasterCreation: "LOOKUP_MASTER_CREATION",
+  /**
+   * Drives the Communication Template create/edit step list (see notification-template-form.page.tsx).
+   * Must match the workflow_type configured server-side via /settings/workflow.
+   */
+  CommunicationTemplateCreation: "COMMUNICATION_TEMPLATE_CREATION",
+  /**
+   * Drives the Workflow (Settings → Workflow) create/edit step list (see
+   * workflow-form.page.tsx). Must match the workflow_type configured
+   * server-side via /settings/workflow.
+   */
+  WorkflowMasterCreation: "WORKFLOW_MASTER_CREATION",
+  /**
+   * Drives the Workflow Component create/edit form (see
+   * workflow-component-form.page.tsx). Must match the workflow_type
+   * configured server-side via /settings/workflow.
+   */
+  WorkflowComponentCreation: "WORKFLOW_COMPONENT_CREATION",
+  /**
+   * Drives the Journey Type create/edit form (see journey-master-form.page.tsx).
+   * Must match the workflow_type configured server-side via /settings/workflow.
+   */
+  JourneyTypeCreation: "JOURNEY_TYPE_CREATION",
 } as const;
 
 export type WorkflowTypeValue =

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Link } from "react-router-dom";
 import { PermissionGate } from "@craft-apex/layout";
 import { Pencil, Plus, Search } from "lucide-react";
 import {
@@ -18,13 +18,9 @@ import {
 import { useClientList } from "@/components/use-client-list";
 import { useWorkflowComponentList } from "./workflow-component-list.api";
 import type { WorkflowComponentRow } from "./workflow-component-list.types";
-import { WorkflowComponentModal } from "./workflow-component-modal";
 
 export default function WorkflowComponentListPage() {
-  const { data = [], isFetching, refetch } = useWorkflowComponentList();
-  
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingComponent, setEditingComponent] = useState<WorkflowComponentRow | null>(null);
+  const { data = [], isFetching } = useWorkflowComponentList();
 
   const list = useClientList<WorkflowComponentRow>(data, (r, q) =>
     [
@@ -35,16 +31,6 @@ export default function WorkflowComponentListPage() {
       typeof r.tags === "string" ? r.tags : Array.isArray(r.tags) ? r.tags.join(",") : "",
     ].some((v) => String(v ?? "").toLowerCase().includes(q))
   );
-
-  const handleAdd = () => {
-    setEditingComponent(null);
-    setModalOpen(true);
-  };
-
-  const handleEdit = (component: WorkflowComponentRow) => {
-    setEditingComponent(component);
-    setModalOpen(true);
-  };
 
   return (
     <div className="space-y-4">
@@ -59,8 +45,10 @@ export default function WorkflowComponentListPage() {
           />
         </div>
         <PermissionGate action="add">
-          <Button onClick={handleAdd}>
-            <Plus className="h-4 w-4" /> Add workflow Component
+          <Button asChild>
+            <Link to="/settings/workflow/component/create">
+              <Plus className="h-4 w-4" /> Add workflow Component
+            </Link>
           </Button>
         </PermissionGate>
       </div>
@@ -119,26 +107,18 @@ export default function WorkflowComponentListPage() {
             </TableCell>
             <TableCell className="text-right">
               <PermissionGate action="edit">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="gap-1.5"
-                  onClick={() => handleEdit(r)}
-                >
-                  <Pencil className="h-3.5 w-3.5" /> Edit
+                <Button asChild size="sm" variant="ghost" className="gap-1.5">
+                  <Link
+                    to={`/settings/workflow/component/create/${String(r.id ?? "")}`}
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </Link>
                 </Button>
               </PermissionGate>
             </TableCell>
           </TableRow>
         ))}
       </DataTableShell>
-
-      <WorkflowComponentModal
-        open={modalOpen}
-        initial={editingComponent}
-        onClose={() => setModalOpen(false)}
-        onSuccess={refetch}
-      />
     </div>
   );
 }

@@ -138,6 +138,16 @@ export function MasterWorkflowPage({
         <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
           Loading steps…
         </div>
+      ) : steps.length === 0 && !workflowType ? (
+        // workflowType itself is empty — this is a caller/build bug (e.g. a
+        // stale dev bundle after a WorkflowType rename in workflow-runtime),
+        // not "unconfigured" — surface it distinctly so it isn't mistaken for
+        // the normal not-configured-yet case below.
+        <div className="rounded-xl border border-dashed border-rose-200 bg-rose-50/40 p-8 text-center text-sm text-rose-600">
+          This page&apos;s <code>workflowType</code> prop is empty. That
+          usually means a stale dev bundle — fully restart the dev server
+          (not just a browser refresh) and reload.
+        </div>
       ) : steps.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/30 p-8 text-center text-sm text-slate-500">
           No workflow configured for {emptyLabel} yet. Configure a workflow with

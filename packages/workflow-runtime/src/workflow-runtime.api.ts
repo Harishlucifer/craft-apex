@@ -128,6 +128,21 @@ export function useSavePartner() {
 //   LENDER_PINCODE_UPLOAD -> POST /alpha/v1/master/lender/pincode
 //     (bespoke step passes a multipart FormData body as `data`; the api client
 //      forwards FormData untouched so the boundary survives)
+//   CHECKLIST_MASTER_CREATION -> POST /alpha/v1/master/checklist
+//   CAM_CONFIGURATION_CREATION -> POST /alpha/v1/master/cam-configuration
+//   LOOKUP_MASTER_CREATION -> POST /alpha/v1/lookup/create
+//     (response is `{status, message}` — no result/id at all, see the
+//     sourceId comment below)
+//   COMMUNICATION_TEMPLATE_CREATION -> POST /alpha/v1/notification/template
+//   WORKFLOW_MASTER_CREATION -> POST /alpha/v1/workflow/create
+//     (response is `{status, message, data: workflowDetail}` — workflowDetail's
+//     `id` is caught by the generic `result?.id` fallback below)
+//   WORKFLOW_COMPONENT_CREATION -> POST /alpha/v1/workflow/component
+//     (response is `{status, message}` — no result/id at all, same shape as
+//     LOOKUP_MASTER_CREATION; the controller bypasses advance() entirely)
+//   JOURNEY_TYPE_CREATION -> POST /alpha/v1/master/journey-type
+//     (response is `{status, result: journeyType}` — journeyType.id is caught
+//     by the generic `result?.id` fallback below)
 // Other workflow types don't have a verified save endpoint yet — those steps
 // will only advance via /alpha/v1/workflow/execution without persisting form data.
 const STEP_SAVE_ENDPOINTS: Record<string, string> = {
@@ -141,6 +156,13 @@ const STEP_SAVE_ENDPOINTS: Record<string, string> = {
   LENDER_CREATION: "/alpha/v1/master/lender",
   TERRITORY_MANAGEMENT: "/alpha/v1/master/territory",
   LENDER_PINCODE_UPLOAD: "/alpha/v1/master/lender/pincode",
+  CHECKLIST_MASTER_CREATION: "/alpha/v1/master/checklist",
+  CAM_CONFIGURATION_CREATION: "/alpha/v1/master/cam-configuration",
+  LOOKUP_MASTER_CREATION: "/alpha/v1/lookup/create",
+  COMMUNICATION_TEMPLATE_CREATION: "/alpha/v1/notification/template",
+  WORKFLOW_MASTER_CREATION: "/alpha/v1/workflow/create",
+  WORKFLOW_COMPONENT_CREATION: "/alpha/v1/workflow/component",
+  JOURNEY_TYPE_CREATION: "/alpha/v1/master/journey-type",
 };
 
 export function hasStepSaveEndpoint(workflowType: string): boolean {
@@ -213,6 +235,18 @@ export async function saveStepData(
     result?.employee_id ??
     result?.user?.employee_id ??
     result?.user_role_id ??
+    // CHECKLIST_MASTER_CREATION must be checked before loan_type_id/lender_id:
+    // ChecklistParams (alpha-api app/handler/master/checklist.go) carries BOTH
+    // its own `checklist_id` AND a `lender_id`/`loan_type` the checklist merely
+    // references — checking the generic loan_type_id/lender_id fields first
+    // would wrongly resolve sourceId to that referenced entity's id instead of
+    // the checklist's own, breaking the id handoff into step 2+.
+    result?.checklist_id ??
+    // CAM_CONFIGURATION_CREATION must likewise be checked before loan_type_id/
+    // rule_id: CamConfigurationParamList (alpha-api app/handler/master/cam.go)
+    // carries its own `configuration_id` alongside a referenced `loan_type_id`/
+    // `rule_id`/`template_id` — same collision class as checklist_id above.
+    result?.configuration_id ??
     result?.loan_type_id ??
     result?.lender_id ??
     result?.id ??

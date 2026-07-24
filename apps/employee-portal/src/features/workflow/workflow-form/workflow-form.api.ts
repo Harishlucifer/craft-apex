@@ -1,31 +1,22 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type {
   ComponentOption,
-  LookupItem,
   RuleRow,
   WorkflowComponentOption,
   WorkflowDetail,
-  WorkflowSavePayload,
 } from "./workflow-form.types";
 
+// The Workflow Type dropdown in the FORM_BUILDER header step resolves
+// against /alpha/v1/lookup?group_code=WORKFLOW_TYPE via the server-configured
+// form_builder JSON's `source.api` — no bespoke hook needed here anymore.
+// The save itself now goes through the workflow-runtime's saveStepData (see
+// WORKFLOW_MASTER_CREATION in workflow-runtime.api.ts) rather than a bespoke
+// useSaveWorkflow mutation.
 const WORKFLOW_URL = "/alpha/v1/workflow";
-const WORKFLOW_CREATE_URL = "/alpha/v1/workflow/create";
 const WORKFLOW_COMPONENT_URL = "/alpha/v1/workflow/component";
 const FIELD_MASTER_URL = "/alpha/v1/master/field-master?type=COMPONENT";
 const RULE_URL = "/alpha/v1/rule";
-const LOOKUP_URL = "/alpha/v1/lookup?group_code=WORKFLOW_TYPE";
-
-export function useWorkflowTypes() {
-  return useQuery({
-    queryKey: ["lookup", "WORKFLOW_TYPE"],
-    queryFn: async (): Promise<LookupItem[]> => {
-      const body = await api.get<unknown, any>(LOOKUP_URL);
-      const arr = body?.data ?? body?.result ?? body;
-      return Array.isArray(arr) ? (arr as LookupItem[]) : [];
-    },
-  });
-}
 
 export function useWorkflowRules() {
   return useQuery({
@@ -78,12 +69,5 @@ export function useWorkflowDetail(id: string | undefined) {
       const first = Array.isArray(arr) ? (arr[0] as WorkflowDetail) : null;
       return first ?? null;
     },
-  });
-}
-
-export function useSaveWorkflow() {
-  return useMutation({
-    mutationFn: async (payload: WorkflowSavePayload) =>
-      api.post<unknown, any>(WORKFLOW_CREATE_URL, payload),
   });
 }

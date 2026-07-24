@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import {
   ChevronDown,
   ChevronRight,
@@ -10,10 +10,6 @@ import {
 import {
   Badge,
   Button,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
   Input,
   Skeleton,
   Table,
@@ -30,45 +26,32 @@ import {
 } from "@/components/data-table-shell";
 import { useLookupGroups } from "./lookup-master-list.api";
 import type { LookupGroup, LookupItem } from "./lookup-master-list.types";
-import { LookupMasterForm } from "../lookup-master-form/lookup-master-form";
 
 const PAGE_SIZE = 10;
 
-interface EditState {
-  /** existing item when editing; undefined when adding */
-  item?: LookupItem;
-  /** preset group code when adding from inside a group */
-  groupCode?: string;
-}
-
 export default function LookupMasterListPage() {
   const { data: groups = [], isFetching } = useLookupGroups();
-  const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [openGroup, setOpenGroup] = useState<string | null>(null);
 
-  const [editing, setEditing] = useState<EditState | null>(null);
-  const onSaved = () => {
-    qc.invalidateQueries({ queryKey: ["lookup-groups"] });
-    setEditing(null);
-  };
-
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return groups;
-    return groups
-      .map((g) => ({
-        groupCode: g.groupCode,
-        values: g.values.filter((v) =>
+    // Legacy LookupList.js matches at the group level only — a matching
+    // group keeps its full, unfiltered values array. Filtering the values
+    // array itself (as this used to) hides a group's existing items
+    // whenever it only matched by group code, making a successful add look
+    // like it wiped out everything else in that group.
+    return groups.filter(
+      (g) =>
+        g.groupCode.toLowerCase().includes(q) ||
+        g.values.some((v) =>
           [v.lu_key, v.lu_name, v.lu_value]
             .filter(Boolean)
             .some((s) => String(s).toLowerCase().includes(q))
-        ),
-      }))
-      .filter(
-        (g) => g.groupCode.toLowerCase().includes(q) || g.values.length > 0
-      );
+        )
+    );
   }, [groups, search]);
 
   const total = filtered.length;
@@ -93,8 +76,10 @@ export default function LookupMasterListPage() {
             className="h-10 rounded-full bg-white pl-9"
           />
         </div>
-        <Button onClick={() => setEditing({})}>
-          <Plus className="h-4 w-4" /> Add Lookup
+        <Button asChild>
+          <Link to="/settings/lookup-master/create">
+            <Plus className="h-4 w-4" /> Add Lookup
+          </Link>
         </Button>
       </div>
 
@@ -120,8 +105,6 @@ export default function LookupMasterListPage() {
                   cur === g.groupCode ? null : g.groupCode
                 )
               }
-              onAdd={() => setEditing({ groupCode: g.groupCode })}
-              onEdit={(item) => setEditing({ item })}
             />
           ))
         )}
@@ -158,24 +141,6 @@ export default function LookupMasterListPage() {
           </Button>
         </div>
       </div>
-
-      <Dialog open={editing !== null} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {editing?.item ? "Edit Lookup" : "Add Lookup"}
-            </DialogTitle>
-          </DialogHeader>
-          {editing && (
-            <LookupMasterForm
-              initial={editing.item}
-              defaultGroupCode={editing.groupCode}
-              onCancel={() => setEditing(null)}
-              onSaved={onSaved}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
@@ -184,14 +149,10 @@ function GroupSection({
   group,
   open,
   onToggle,
-  onAdd,
-  onEdit,
 }: {
   group: LookupGroup;
   open: boolean;
   onToggle: () => void;
-  onAdd: () => void;
-  onEdit: (v: LookupItem) => void;
 }) {
   return (
     <div className="border-b border-slate-100 last:border-b-0">
@@ -212,16 +173,13 @@ function GroupSection({
         </button>
         <div className="flex items-center gap-2">
           <Badge variant="secondary">{group.values.length} items</Badge>
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onClick={(e) => {
-              e.stopPropagation();
-              onAdd();
-            }}
-          >
-            <Plus className="h-3.5 w-3.5" /> Add
+          <Button asChild type="button" size="sm" variant="ghost">
+            <Link
+              to={`/settings/lookup-master/create?group_code=${encodeURIComponent(group.groupCode)}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Plus className="h-3.5 w-3.5" /> Add
+            </Link>
           </Button>
         </div>
       </div>
@@ -251,7 +209,7 @@ function GroupSection({
                   </TableCell>
                 </TableRow>
               ) : (
-                group.values.map((v, i) => (
+                group.values.map((v: LookupItem, i) => (
                   <TableRow
                     key={`${v.id ?? v.lu_key ?? ""}-${i}`}
                     className={TABLE_ROW_CLASS}
@@ -276,20 +234,30 @@ function GroupSection({
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="gap-1.5"
-                        onClick={() => onEdit(v)}
-                        disabled={v.created_by === "SYSTEM"}
-                        title={
-                          v.created_by === "SYSTEM"
-                            ? "System lookups can't be edited"
-                            : "Edit"
-                        }
-                      >
-                        <Pencil className="h-3.5 w-3.5" /> Edit
-                      </Button>
+                      {v.created_by === "SYSTEM" ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="gap-1.5"
+                          disabled
+                          title="System lookups can't be edited"
+                        >
+                          <Pencil className="h-3.5 w-3.5" /> Edit
+                        </Button>
+                      ) : (
+                        <Button
+                          asChild
+                          size="sm"
+                          variant="ghost"
+                          className="gap-1.5"
+                        >
+                          <Link
+                            to={`/settings/lookup-master/create/${String(v.id ?? "")}`}
+                          >
+                            <Pencil className="h-3.5 w-3.5" /> Edit
+                          </Link>
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))

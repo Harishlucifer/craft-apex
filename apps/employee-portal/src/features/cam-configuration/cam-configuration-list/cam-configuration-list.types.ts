@@ -2,7 +2,7 @@
 // GET /alpha/v1/master/cam-configuration -> { result: CamConfigRow[] }
 
 export interface CamConfigRow {
-  cam_config_id?: string | number;
+  configuration_id?: string | number;
   title?: string;
   type?: string;
   product_code?: string;
