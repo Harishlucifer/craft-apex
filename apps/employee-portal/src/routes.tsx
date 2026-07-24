@@ -15,6 +15,11 @@ import LoginQPage from "@/features/application/login-q/login-q.page";
 import TrackingQPage from "@/features/application/tracking-q/tracking-q.page";
 import DisbursedQPage from "@/features/application/disbursed-q/disbursed-q.page";
 import RejectedQPage from "@/features/application/rejected-q/rejected-q.page";
+import ExcelUploadTemplateListPage from "@/features/excel-upload/template-list/template-list.page";
+import ExcelUploadTemplateFormPage from "@/features/excel-upload/template-form/template-form.page";
+import ExcelUploadPage from "@/features/excel-upload/upload/upload.page";
+import ExcelUploadBatchHistoryPage from "@/features/excel-upload/batch-history/batch-history.page";
+import ExcelUploadBatchDetailPage from "@/features/excel-upload/batch-detail/batch-detail.page";
 import RoleListPage from "@/features/role/role-list/role-list.page";
 import { roleMaster } from "@/features/role/role-form/role-form.page";
 import ParameterListPage from "@/features/parameter/parameter-list/parameter-list.page";
@@ -190,6 +195,15 @@ export const router = createBrowserRouter([
       { path: "/los/acceptance-view", element: <LeadListPage /> },
       { path: "/los/appeal-q", element: <LeadListPage /> },
       { path: "/los/appeal-view", element: <LeadListPage /> },
+
+      // Excel Upload Facility — generic configurable bulk-import engine,
+      // generalizes /settings/partner/bulk-upload's hardcoded PARTNER_FLOW.
+      { path: "/settings/excel-upload/templates", element: <ExcelUploadTemplateListPage /> },
+      { path: "/settings/excel-upload/templates/create", element: <ExcelUploadTemplateFormPage /> },
+      { path: "/settings/excel-upload/templates/create/:id", element: <ExcelUploadTemplateFormPage /> },
+      { path: "/settings/excel-upload/upload", element: <ExcelUploadPage /> },
+      { path: "/settings/excel-upload/batches", element: <ExcelUploadBatchHistoryPage /> },
+      { path: "/settings/excel-upload/batches/:id", element: <ExcelUploadBatchDetailPage /> },
 
       // Role management — legacy /pages/Configuration/Role/*
       { path: "/settings/role", element: <RoleListPage /> },
